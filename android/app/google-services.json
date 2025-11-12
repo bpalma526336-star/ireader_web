@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "469823726976",
+    "project_id": "ireader-af97b",
+    "storage_bucket": "ireader-af97b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469823726976:android:178a90a245525073dccd65",
+        "android_client_info": {
+          "package_name": "com.example.ireader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvHSeGCT0MTdhe4z7DW7p5juwPC3bGdIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469823726976:android:1ad8d845d567451cdccd65",
+        "android_client_info": {
+          "package_name": "com.example.ireader_web"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvHSeGCT0MTdhe4z7DW7p5juwPC3bGdIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
