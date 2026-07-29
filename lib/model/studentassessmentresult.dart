@@ -1,4 +1,4 @@
-import 'package:ireader_web/model/complevelhistorydetail.dart';
+import 'package:ireader_web/model/compresultdetail.dart';
 
 class CompAssessmentResult {
   final String id;
@@ -8,7 +8,10 @@ class CompAssessmentResult {
   final String correctitems;
   final String incorrectitems;
   final String totalitems;
-  // final List<compleveldetails> complevelhistorydetails;
+  final String readingpassagetitle;
+  final String readingpassage;
+  final List<compleveldetails> compresultdetails;
+  final String resultpercentage;
   final String result;
 
   CompAssessmentResult({
@@ -19,7 +22,11 @@ class CompAssessmentResult {
     required this.correctitems,
     required this.incorrectitems,
     required this.totalitems,
+    required this.resultpercentage,
     required this.result,
+    required this.readingpassagetitle,
+    required this.readingpassage,
+    required this.compresultdetails,
   });
 
   factory CompAssessmentResult.fromMap(String id, Map<String, dynamic> map) {
@@ -31,7 +38,13 @@ class CompAssessmentResult {
       correctitems: map['correctitems'] ?? "",
       incorrectitems: map['incorrectitems'] ?? "",
       totalitems: map['totalitems'] ?? "",
+      resultpercentage: map['resultpercentage'] ?? "",
       result: map['result'] ?? "",
+      readingpassagetitle: map['readingpassagetitle'] ?? "",
+      readingpassage: map['readingpassage'] ?? "",
+      compresultdetails: ((map['complevelhistorydetails'] ?? []) as List)
+          .map((e) => compleveldetails.fromMap(e))
+          .toList(),
     );
   }
 
@@ -43,7 +56,13 @@ class CompAssessmentResult {
       'correctitems': correctitems,
       'incorrectitems': incorrectitems,
       'totalitems': totalitems,
+      'resultpercentage': resultpercentage,
       'result': result,
+      'readingpassagetitle': readingpassagetitle,
+      'readingpassage': readingpassage,
+      'complevelhistorydetails': compresultdetails
+          .map((e) => e.toMap())
+          .toList(),
     };
   }
 
@@ -55,7 +74,11 @@ class CompAssessmentResult {
     String? correctitems,
     String? incorrectitems,
     String? totalitems,
+    String? resultpercentage,
     String? result,
+    String? readingpassagetitle,
+    String? readingpassage,
+    List<compleveldetails>? compresultdetails,
   }) {
     return CompAssessmentResult(
       id: id,
@@ -65,7 +88,11 @@ class CompAssessmentResult {
       correctitems: correctitems ?? this.correctitems,
       incorrectitems: incorrectitems ?? this.incorrectitems,
       totalitems: totalitems ?? this.totalitems,
+      resultpercentage: resultpercentage ?? this.resultpercentage,
       result: result ?? this.result,
+      readingpassagetitle: readingpassagetitle ?? this.readingpassagetitle,
+      readingpassage: readingpassage ?? this.readingpassage,
+      compresultdetails: compresultdetails ?? this.compresultdetails,
     );
   }
 }

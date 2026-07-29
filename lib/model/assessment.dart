@@ -7,11 +7,10 @@ class Assessment {
   final String visibility;
   final int timelimit;
   final String date;
-  final String timeopen;
-  final String timeclose;
   final String accesscode;
   final String readingpassagetitle;
   final String readingpassagecontent;
+  final int totalwords;
   final List<AssessmentContent> questions;
 
   Assessment({
@@ -21,11 +20,10 @@ class Assessment {
     required this.visibility,
     required this.timelimit,
     required this.date,
-    required this.timeopen,
-    required this.timeclose,
     required this.accesscode,
     required this.readingpassagetitle,
     required this.readingpassagecontent,
+    required this.totalwords,
     required this.questions,
   });
 
@@ -37,11 +35,10 @@ class Assessment {
       visibility: map['visibility'] ?? "",
       timelimit: map['timelimit'] ?? "",
       date: map['date'] ?? "",
-      timeopen: map['timeopen'] ?? "",
-      timeclose: map['timeclose'] ?? "",
       accesscode: map['accesscode'] ?? "",
       readingpassagetitle: map['readingpassagetitle'] ?? "",
       readingpassagecontent: map['readingpassagecontent'] ?? "",
+      totalwords: map['totalwords'] ?? "",
       questions: ((map['questions'] ?? []) as List)
           .map((e) => AssessmentContent.fromMap(e))
           .toList(),
@@ -55,11 +52,10 @@ class Assessment {
       'visibility': visibility,
       'timelimit': timelimit,
       'date': date,
-      'timeopen': timeopen,
-      'timeclose': timeclose,
       'accesscode': accesscode,
       'readingpassagetitle': readingpassagetitle,
       'readingpassagecontent': readingpassagecontent,
+      'totalwords': totalwords,
       'questions': questions.map((e) => e.toMap()).toList(),
     };
   }
@@ -70,11 +66,10 @@ class Assessment {
     String? visibility,
     int? timelimit,
     String? date,
-    String? timeopen,
-    String? timeclose,
     String? accesscode,
     String? readingpassagetitle,
     String? readingpassagecontent,
+    int? totalwords,
     List<AssessmentContent>? questions,
   }) {
     return Assessment(
@@ -84,12 +79,11 @@ class Assessment {
       visibility: visibility ?? this.visibility,
       timelimit: timelimit ?? this.timelimit,
       date: date ?? this.date,
-      timeopen: timeopen ?? this.timeopen,
-      timeclose: timeclose ?? this.timeclose,
       accesscode: accesscode ?? this.accesscode,
       readingpassagetitle: readingpassagetitle ?? this.readingpassagetitle,
       readingpassagecontent:
           readingpassagecontent ?? this.readingpassagecontent,
+      totalwords: totalwords ?? this.totalwords,
       questions: questions ?? this.questions,
     );
   }

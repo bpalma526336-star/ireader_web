@@ -1,19 +1,17 @@
 class RC {
   final String id;
   final String firstname;
-  final String middlename;
+  final String? middlename;
   final String lastname;
   final String email;
-  final String phonenumber;
   final String status;
 
   RC({
     required this.id,
     required this.firstname,
-    required this.middlename,
+    this.middlename,
     required this.lastname,
     required this.email,
-    required this.phonenumber,
     required this.status,
   });
 
@@ -21,10 +19,9 @@ class RC {
     return RC(
       id: id,
       firstname: map['firstname'] ?? "",
-      middlename: map['middlename'] ?? "",
+      middlename: map['middlename'],
       lastname: map['lastname'] ?? "",
       email: map['email'] ?? "",
-      phonenumber: map['phonenumber'] ?? "",
       status: map['status'] ?? "",
     );
   }
@@ -35,7 +32,6 @@ class RC {
       'middlename': middlename,
       'lastname': lastname,
       'email': email,
-      'phonenumber': phonenumber,
       'status': status,
     };
   }
@@ -45,7 +41,6 @@ class RC {
     String? middlename,
     String? lastname,
     String? email,
-    String? phonenumber,
     String? status,
   }) {
     return RC(
@@ -54,7 +49,6 @@ class RC {
       middlename: middlename ?? this.middlename,
       lastname: lastname ?? this.lastname,
       email: email ?? this.email,
-      phonenumber: phonenumber ?? this.phonenumber,
       status: status ?? this.status,
     );
   }

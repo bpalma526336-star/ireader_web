@@ -30,7 +30,10 @@ class _AddSectionScreenState extends State<AddSectionScreen> {
   }
 
   Future<void> _fetchTeachers() async {
-    final snapshot = await firestore.collection("teachers").get();
+    final snapshot = await firestore
+        .collection("teachers")
+        .where('status', isEqualTo: 'ACTIVE')
+        .get();
     setState(() {
       _teachers = snapshot.docs;
     });
@@ -91,26 +94,42 @@ class _AddSectionScreenState extends State<AddSectionScreen> {
         backgroundColor: AppTheme.backgroundColor,
         title: const Text("Create Section"),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.save, size: 20),
-              label: const Text('Save Section'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                elevation: 0,
-              ),
-              onPressed: _isLoading ? null : _saveSection,
-            ),
+          Builder(
+            builder: (context) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              final isMobileS = screenWidth <= 320;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: isMobileS
+                    // 🔥 ICON ONLY (Mobile S 320px)
+                    ? IconButton(
+                        icon: const Icon(Icons.save),
+                        color: AppTheme.primaryColor,
+                        tooltip: "Save Section",
+                        onPressed: _isLoading ? null : _saveSection,
+                      )
+                    // 🔥 ICON + LABEL (Tablet/Desktop)
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.save, size: 20),
+                        label: const Text('Save Section'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: _isLoading ? null : _saveSection,
+                      ),
+              );
+            },
           ),
         ],
       ),
@@ -140,6 +159,7 @@ class _AddSectionScreenState extends State<AddSectionScreen> {
 
             // Teacher dropdown
             DropdownButtonFormField<String>(
+              isExpanded: true,
               value: _selectedTeacherId,
               decoration: const InputDecoration(
                 labelText: "Assigned Teacher",

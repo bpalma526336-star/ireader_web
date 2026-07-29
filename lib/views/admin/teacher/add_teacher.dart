@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
@@ -15,12 +16,10 @@ class AddTeacherScreen extends StatefulWidget {
 class _AddTeacherScreenState extends State<AddTeacherScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   late TextEditingController firstnameController;
   late TextEditingController middlenameController;
   late TextEditingController lastnameController;
   late TextEditingController emailController;
-  late TextEditingController phoneController;
 
   bool _isLoading = false;
 
@@ -37,9 +36,6 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
       text: widget.teacher?.lastname ?? '',
     );
     emailController = TextEditingController(text: widget.teacher?.email ?? '');
-    phoneController = TextEditingController(
-      text: widget.teacher?.phonenumber ?? '',
-    );
   }
 
   @override
@@ -48,7 +44,6 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
     middlenameController.dispose();
     lastnameController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     super.dispose();
   }
 
@@ -79,8 +74,12 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
         final nameCheck = await _firestore
             .collection('teachers')
             .where('firstname', isEqualTo: firstnameController.text.trim())
-            .where('middlename', isEqualTo: middlenameController.text.trim())
-            .where('lastname', isEqualTo: lastnameController.text.trim())
+            .where(
+              'middlename',
+              isEqualTo: middlenameController.text.trim().isEmpty
+                  ? null
+                  : middlenameController.text.trim(),
+            )
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
@@ -95,8 +94,9 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
         }
       }
 
-      final newId =
-          widget.teacher?.id ?? _firestore.collection('teachers').doc().id;
+      final newId = widget.teacher == null
+          ? _firestore.collection('teachers').doc().id
+          : widget.teacher!.id;
 
       if (widget.teacher == null) {
         // ✅ ADD NEW TEACHER
@@ -110,8 +110,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
                 middlename: middlenameController.text.trim(),
                 lastname: lastnameController.text.trim(),
                 email: emailController.text.trim(),
-                phonenumber: phoneController.text.trim(),
-                status: 'active',
+                status: 'ACTIVE',
               ).toMap(),
             );
 
@@ -123,13 +122,25 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
         );
       } else {
         // ✅ UPDATE EXISTING TEACHER
-        await _firestore.collection('teachers').doc(widget.teacher!.id).update({
-          'firstname': firstnameController.text.trim(),
-          'middlename': middlenameController.text.trim(),
-          'lastname': lastnameController.text.trim(),
-          'email': emailController.text.trim(),
-          'phonenumber': phoneController.text.trim(),
-        });
+        final teacherUpdate = widget.teacher!.copyWith(
+          firstname: firstnameController.text.trim(),
+          middlename: middlenameController.text.trim().isEmpty
+              ? null
+              : middlenameController.text.trim(),
+          lastname: lastnameController.text.trim(),
+          email: emailController.text.trim(),
+        );
+
+        Map<String, dynamic> updateData = teacherUpdate.toMap();
+
+        if (middlenameController.text.trim().isEmpty) {
+          updateData['middlename'] = FieldValue.delete();
+        }
+
+        await _firestore
+            .collection('teachers')
+            .doc(widget.teacher!.id)
+            .update(updateData);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -195,11 +206,10 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
               TextFormField(
                 controller: middlenameController,
                 decoration: const InputDecoration(
-                  labelText: "Middle Name",
+                  labelText: "Middle Name (Optional)",
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Enter middle name" : null,
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
 
@@ -224,19 +234,6 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
                 ),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Enter email" : null,
-              ),
-              const SizedBox(height: 16),
-
-              // 📱 PHONE NUMBER
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-                validator: (value) => value == null || value.isEmpty
-                    ? "Enter phone number"
-                    : null,
               ),
               const SizedBox(height: 32),
 

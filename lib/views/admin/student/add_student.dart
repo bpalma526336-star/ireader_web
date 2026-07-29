@@ -58,8 +58,21 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         widget.student?.gender; // Set the gender if updating a student
   }
 
+  String gradelevelread() {
+    int score = int.tryParse(gstscorecontroller.text) ?? 0;
+
+    if (score <= 7) {
+      return "Grade 1";
+    } else if (score <= 13) {
+      return "Grade 2";
+    } else {
+      return "NOT QUALIFIED";
+    }
+  }
+
   Future<void> SaveStudent() async {
     if (!_formKey.currentState!.validate()) {
+      int gst = int.tryParse(gstscorecontroller.text.trim()) ?? 0;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Please fill in all required fields"),
@@ -69,22 +82,42 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       return;
     }
 
+    int gst = int.tryParse(gstscorecontroller.text.trim()) ?? 0;
+    if (gst >= 14) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("This student is not qualified for PHIL IRI Pretest"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return; // STOP COMPLETELY — NO FIREBASE SAVE
+    }
+
     try {
       if (widget.student != null) {
         // Update the existing student
         final studentupdate = widget.student!.copyWith(
           lrn: lrncontroller.text.trim(),
           firstname: _firstnamecontroller.text.trim(),
-          middlename: _middlenamecontroller.text.trim(),
+          middlename: _middlenamecontroller.text.trim().isEmpty
+              ? null
+              : _middlenamecontroller.text.trim(),
           lastname: _lastnamecontroller.text.trim(),
           gstscore: gstscorecontroller.text.trim(),
+          gradelevelread: gradelevelread(),
           gender: selectedgender,
         );
 
+        Map<String, dynamic> updateData = studentupdate.toMap();
+
+        if (_middlenamecontroller.text.trim().isEmpty) {
+          updateData['middlename'] = FieldValue.delete();
+        }
+
         await firestore
             .collection("students")
-            .doc(widget.student!.id) // Use the existing student ID
-            .update(studentupdate.toMap()); // Update the student data
+            .doc(widget.student!.id)
+            .update(updateData);
 
         ScaffoldMessenger.of(
           context,
@@ -92,22 +125,28 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         Navigator.pop(context);
       } else {
         // Add a new student
-
         // 🔍 Check if student already exists
         final existingStudent = await firestore
             .collection("students")
             .where("lrn", isEqualTo: lrncontroller.text.trim())
             .where("firstname", isEqualTo: _firstnamecontroller.text.trim())
-            .where("middlename", isEqualTo: _middlenamecontroller.text.trim())
             .where("lastname", isEqualTo: _lastnamecontroller.text.trim())
             .where("schoolyearid", isEqualTo: widget.schoolyear.id)
+            .where("sectionid", isEqualTo: widget.section.id)
             .get();
 
-        if (existingStudent.docs.isNotEmpty) {
+        final existinglrn = await firestore
+            .collection("students")
+            .where("lrn", isEqualTo: lrncontroller.text.trim())
+            .where("schoolyearid", isEqualTo: widget.schoolyear.id)
+            .where("sectionid", isEqualTo: widget.section.id)
+            .get();
+
+        if (existingStudent.docs.isNotEmpty || existinglrn.docs.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                "Student already exists in this school year.",
+                "Student already exists in this section.",
                 style: TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.redAccent,
@@ -128,11 +167,16 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 sectionid: widget.section.id,
                 schoolyearid: widget.schoolyear.id,
                 firstname: _firstnamecontroller.text.trim(),
-                middlename: _middlenamecontroller.text.trim(),
+                middlename: _middlenamecontroller.text.trim().isEmpty
+                    ? null
+                    : _middlenamecontroller.text.trim(),
                 lastname: _lastnamecontroller.text.trim(),
                 gstscore: gstscorecontroller.text.trim(),
+                gradelevelread: gradelevelread(),
                 gender: selectedgender!,
-                readlevel: "NOT YET ASSESSED",
+                readlevel: "Not Started",
+                readingresult: "Not Started",
+                comprehensionresult: "Not Started",
                 status: "ACTIVE",
               ).toMap(),
             );
@@ -251,15 +295,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(vertical: 20),
                     fillColor: Colors.white,
-                    labelText: "Student Middle Name",
+                    labelText: "Student Middle Name (Optional)",
                     hintText: "Enter Middle Name",
                     prefixIcon: Icon(
                       Icons.person,
                       color: AppTheme.primaryColor,
                     ),
                   ),
-                  validator: (value) =>
-                      value!.isEmpty ? "Enter Middle Name" : null,
+                  validator: (value) => null,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 20),
@@ -290,10 +333,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                     fillColor: Colors.white,
                     labelText: "GST Score",
                     hintText: "Enter Student Gst Score",
-                    prefixIcon: Icon(
-                      Icons.format_list_numbered,
-                      color: AppTheme.primaryColor,
-                    ),
+                    prefixIcon: Icon(Icons.score, color: AppTheme.primaryColor),
                   ),
                   validator: (value) =>
                       value!.isEmpty ? "Enter Student GST Score" : null,

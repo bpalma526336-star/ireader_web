@@ -4,11 +4,14 @@ class Student {
   final String sectionid;
   final String schoolyearid;
   final String firstname;
-  final String middlename;
+  final String? middlename;
   final String lastname;
   final String gender;
   final String gstscore;
+  final String gradelevelread;
   final String readlevel;
+  final String readingresult;
+  final String comprehensionresult;
   final String status;
 
   Student({
@@ -17,11 +20,14 @@ class Student {
     required this.sectionid,
     required this.schoolyearid,
     required this.firstname,
-    required this.middlename,
+    this.middlename,
     required this.lastname,
     required this.gender,
     required this.gstscore,
+    required this.gradelevelread,
     required this.readlevel,
+    required this.readingresult,
+    required this.comprehensionresult,
     required this.status,
   });
 
@@ -32,11 +38,14 @@ class Student {
       sectionid: map['sectionid'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
       firstname: map['firstname'] ?? "",
-      middlename: map['middlename'] ?? "",
+      middlename: map['middlename'],
       lastname: map['lastname'] ?? "",
       gender: map['gender'] ?? "",
       gstscore: map['gstscore'] ?? "",
+      gradelevelread: map['gradelevelread'] ?? "",
       readlevel: map['readlevel'] ?? "",
+      readingresult: map['readingresult'] ?? "",
+      comprehensionresult: map['comprehensionresult'] ?? "",
       status: map['status'] ?? "",
     );
   }
@@ -51,7 +60,10 @@ class Student {
       'lastname': lastname,
       'gender': gender,
       'gstscore': gstscore,
+      'gradelevelread': gradelevelread,
       'readlevel': readlevel,
+      'readingresult': readingresult,
+      'comprehensionresult': comprehensionresult,
       'status': status,
     };
   }
@@ -65,7 +77,10 @@ class Student {
     String? lastname,
     String? gender,
     String? gstscore,
+    String? gradelevelread,
     String? readlevel,
+    String? readingresult,
+    String? comprehensionresult,
     String? status,
   }) {
     return Student(
@@ -78,7 +93,10 @@ class Student {
       lastname: lastname ?? this.lastname,
       gender: gender ?? this.gender,
       gstscore: gstscore ?? this.gstscore,
+      gradelevelread: gradelevelread ?? this.gradelevelread,
       readlevel: readlevel ?? this.readlevel,
+      readingresult: readingresult ?? this.readingresult,
+      comprehensionresult: comprehensionresult ?? this.comprehensionresult,
       status: status ?? this.status,
     );
   }

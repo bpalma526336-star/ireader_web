@@ -26,13 +26,10 @@ String formatPhoneNumber(String input) {
 class _AddAdminScreenState extends State<AddAdminScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final TextEditingController _passwordController = TextEditingController();
   late TextEditingController firstnameController;
   late TextEditingController middlenameController;
   late TextEditingController lastnameController;
   late TextEditingController emailController;
-  late TextEditingController phoneController;
 
   bool _isLoading = false;
 
@@ -49,9 +46,6 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
       text: widget.admin?.lastname ?? '',
     );
     emailController = TextEditingController(text: widget.admin?.email ?? '');
-    phoneController = TextEditingController(
-      text: widget.admin?.phonenumber ?? '',
-    );
   }
 
   @override
@@ -60,7 +54,6 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
     middlenameController.dispose();
     lastnameController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     super.dispose();
   }
 
@@ -71,6 +64,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
 
     try {
       // 🔍 Run duplication check only when adding
+
       if (widget.admin == null) {
         final emailCheck = await _firestore
             .collection('admins')
@@ -91,8 +85,14 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
         final nameCheck = await _firestore
             .collection('admins')
             .where('firstname', isEqualTo: firstnameController.text.trim())
-            .where('middlename', isEqualTo: middlenameController.text.trim())
+            .where(
+              'middlename',
+              isEqualTo: middlenameController.text.trim().isEmpty
+                  ? null
+                  : middlenameController.text.trim(),
+            )
             .where('lastname', isEqualTo: lastnameController.text.trim())
+            .where('email', isEqualTo: emailController.text.trim())
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
@@ -107,46 +107,39 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
         }
       }
 
-      final newadmin =
-          widget.admin?.id ?? _firestore.collection('admins').doc().id;
+      final newadmin = widget.admin == null
+          ? _firestore.collection('admins').doc().id
+          : widget.admin!.id;
 
       if (widget.admin == null) {
-        await _auth.createUserWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        final User? user = _auth.currentUser;
-        final String uid = user?.uid ?? newadmin;
-        // ✅ ADD NEW TEACHER
         await _firestore
             .collection('admins')
-            .doc(uid)
+            .doc(newadmin)
             .set(
               Admin(
-                id: uid,
+                id: newadmin,
                 firstname: firstnameController.text.trim(),
                 middlename: middlenameController.text.trim(),
                 lastname: lastnameController.text.trim(),
                 email: emailController.text.trim(),
-                phonenumber: formatPhoneNumber(phoneController.text),
-                status: 'active',
+                status: 'ACTIVE',
               ).toMap(),
             );
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Reading Coordinator added successfully!"),
+            content: Text("Admin added successfully!"),
             behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
         // ✅ UPDATE EXISTING TEACHER
+
         await _firestore.collection('admins').doc(widget.admin!.id).update({
           'firstname': firstnameController.text.trim(),
           'middlename': middlenameController.text.trim(),
           'lastname': lastnameController.text.trim(),
           'email': emailController.text.trim(),
-          'phonenumber': formatPhoneNumber(phoneController.text),
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -213,11 +206,10 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
               TextFormField(
                 controller: middlenameController,
                 decoration: const InputDecoration(
-                  labelText: "Middle Name",
+                  labelText: "Middle Name (Optional)",
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Enter middle name" : null,
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
 
@@ -244,39 +236,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                     value == null || value.isEmpty ? "Enter email" : null,
               ),
               const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  prefixIcon: Icon(Icons.password),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Enter Password" : null,
-              ),
-              const SizedBox(height: 16),
-
               // 📱 PHONE NUMBER
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Enter phone number";
-                  }
-
-                  final formatted = formatPhoneNumber(value);
-
-                  if (formatted.length != 13 || !formatted.startsWith('+63')) {
-                    return "Invalid phone number";
-                  }
-
-                  return null;
-                },
-              ),
               const SizedBox(height: 32),
 
               // 💾 SAVE BUTTON

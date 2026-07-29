@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/theme.dart';
@@ -12,26 +13,13 @@ class AddRCScreen extends StatefulWidget {
   State<AddRCScreen> createState() => _AddRCScreenState();
 }
 
-String formatPhoneNumber(String input) {
-  input = input.trim();
-  if (input.startsWith('0')) {
-    return '+63${input.substring(1)}';
-  } else if (input.startsWith('+63')) {
-    return input;
-  } else {
-    return input; // Or throw error/handle differently if needed
-  }
-}
-
 class _AddRCScreenState extends State<AddRCScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   late TextEditingController firstnameController;
   late TextEditingController middlenameController;
   late TextEditingController lastnameController;
   late TextEditingController emailController;
-  late TextEditingController phoneController;
 
   bool _isLoading = false;
 
@@ -46,7 +34,6 @@ class _AddRCScreenState extends State<AddRCScreen> {
     );
     lastnameController = TextEditingController(text: widget.rc?.lastname ?? '');
     emailController = TextEditingController(text: widget.rc?.email ?? '');
-    phoneController = TextEditingController(text: widget.rc?.phonenumber ?? '');
   }
 
   @override
@@ -55,11 +42,10 @@ class _AddRCScreenState extends State<AddRCScreen> {
     middlenameController.dispose();
     lastnameController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveTeacher() async {
+  Future<void> _saveRC() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -86,16 +72,24 @@ class _AddRCScreenState extends State<AddRCScreen> {
         }
 
         final nameCheck = await _firestore
-            .collection('teachers')
+            .collection('readingcoordinators')
             .where('firstname', isEqualTo: firstnameController.text.trim())
-            .where('middlename', isEqualTo: middlenameController.text.trim())
+            .where(
+              'middlename',
+              isEqualTo: middlenameController.text.trim().isEmpty
+                  ? null
+                  : middlenameController.text.trim(),
+            )
             .where('lastname', isEqualTo: lastnameController.text.trim())
+            .where('email', isEqualTo: emailController.text.trim())
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Teacher with same name already exists."),
+              content: Text(
+                "Reading Coordinator with same name already exists.",
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -104,9 +98,9 @@ class _AddRCScreenState extends State<AddRCScreen> {
         }
       }
 
-      final newrc =
-          widget.rc?.id ??
-          _firestore.collection('readingcoordinators').doc().id;
+      final newrc = widget.rc == null
+          ? _firestore.collection('readingcoordinators').doc().id
+          : widget.rc!.id;
 
       if (widget.rc == null) {
         // ✅ ADD NEW TEACHER
@@ -120,8 +114,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
                 middlename: middlenameController.text.trim(),
                 lastname: lastnameController.text.trim(),
                 email: emailController.text.trim(),
-                phonenumber: formatPhoneNumber(phoneController.text),
-                status: 'active',
+                status: 'ACTIVE',
               ).toMap(),
             );
 
@@ -132,14 +125,15 @@ class _AddRCScreenState extends State<AddRCScreen> {
           ),
         );
       } else {
-        // ✅ UPDATE EXISTING TEACHER
-        await _firestore.collection('teachers').doc(widget.rc!.id).update({
-          'firstname': firstnameController.text.trim(),
-          'middlename': middlenameController.text.trim(),
-          'lastname': lastnameController.text.trim(),
-          'email': emailController.text.trim(),
-          'phonenumber': formatPhoneNumber(phoneController.text),
-        });
+        await _firestore
+            .collection('readingcoordinators')
+            .doc(widget.rc!.id)
+            .update({
+              'firstname': firstnameController.text.trim(),
+              'middlename': middlenameController.text.trim(),
+              'lastname': lastnameController.text.trim(),
+              'email': emailController.text.trim(),
+            });
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -165,15 +159,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
-        title: Text(
-          widget.rc != null
-              ? "Edit Reading Coordinator"
-              : "Add Reading Coordinator",
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+      appBar: AppBar(backgroundColor: AppTheme.backgroundColor),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -207,11 +193,10 @@ class _AddRCScreenState extends State<AddRCScreen> {
               TextFormField(
                 controller: middlenameController,
                 decoration: const InputDecoration(
-                  labelText: "Middle Name",
+                  labelText: "Middle Name (Optional)",
                   prefixIcon: Icon(Icons.person_outline),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Enter middle name" : null,
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
 
@@ -237,29 +222,6 @@ class _AddRCScreenState extends State<AddRCScreen> {
                 validator: (value) =>
                     value == null || value.isEmpty ? "Enter email" : null,
               ),
-              const SizedBox(height: 16),
-
-              // 📱 PHONE NUMBER
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Enter phone number";
-                  }
-
-                  final formatted = formatPhoneNumber(value);
-
-                  if (formatted.length != 13 || !formatted.startsWith('+63')) {
-                    return "Invalid phone number";
-                  }
-
-                  return null;
-                },
-              ),
               const SizedBox(height: 32),
 
               // 💾 SAVE BUTTON
@@ -268,7 +230,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
                 height: 50,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.save),
-                  onPressed: _isLoading ? null : _saveTeacher,
+                  onPressed: _isLoading ? null : _saveRC,
                   label: _isLoading
                       ? const SizedBox(
                           height: 20,

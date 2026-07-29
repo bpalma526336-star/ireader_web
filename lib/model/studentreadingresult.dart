@@ -24,7 +24,9 @@ class StudentReadingresult {
       assessmentid: map['assessmentid'] ?? "",
       totalwordsread: map['totalwordsread'] ?? "",
       totalmiscues: map['totalmiscues'] ?? "",
-      totalreadingresult: map['totalreadingresult'] ?? "",
+      totalreadingresult: (map['totalreadingresult'] ?? 0) is int
+          ? map['totalreadingresult']
+          : int.tryParse(map['totalreadingresult'].toString()) ?? 0,
       readinglevel: map['readinglevel'] ?? "",
     );
   }

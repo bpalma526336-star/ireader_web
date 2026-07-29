@@ -1,5 +1,3 @@
-import 'package:ireader_web/model/student.dart';
-
 class Section {
   final String id;
   final String sectionname;

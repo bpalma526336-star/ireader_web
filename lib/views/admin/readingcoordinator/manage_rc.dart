@@ -1,13 +1,18 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/admin/manage_admin.dart';
 import 'package:ireader_web/views/admin/admindashboard.dart';
-import 'package:ireader_web/views/admin/practice_set/manage_practice_set.dart';
+import 'package:ireader_web/views/admin/practice_set/select_practice_set.dart';
 import 'package:ireader_web/views/admin/readingcoordinator/add_rc.dart';
+import 'package:ireader_web/views/admin/readingcoordinator/add_rc_dialog.dart';
 import 'package:ireader_web/views/admin/schoolyear/manage_schoolyear.dart';
 import 'package:ireader_web/views/admin/teacher/manage_teacher.dart';
+import 'dart:html' as html;
 
 class ManageRcScreen extends StatefulWidget {
   const ManageRcScreen({super.key});
@@ -18,8 +23,9 @@ class ManageRcScreen extends StatefulWidget {
 
 class _ManageRcScreenState extends State<ManageRcScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String status = "active";
+  final String status = "ACTIVE";
   String selectedFilter = "All";
+  final TextEditingController _searchController = TextEditingController();
 
   Stream<QuerySnapshot> fetchRC() {
     Query rcs = _firestore.collection("readingcoordinators");
@@ -28,37 +34,67 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Manage Reading Coordinator"),
         elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.person_add, size: 20),
-              label: const Text('Add Reading Coordinator'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddRCScreen()),
-                );
-              },
-            ),
+          Builder(
+            builder: (context) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              final isMobile = screenWidth <= 768;
+
+              void onPressed() {
+                if (isMobile) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddRCScreen(),
+                    ),
+                  );
+                } else {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const AddRcDialog(rc: null),
+                  );
+                }
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: isMobile
+                    ? IconButton(
+                        icon: const Icon(Icons.person_add),
+                        tooltip: 'Add Reading Coordinator',
+                        onPressed: onPressed,
+                      )
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.person_add, size: 20),
+                        label: const Text('Add Reading Coordinator'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: onPressed,
+                      ),
+              );
+            },
           ),
         ],
       ),
@@ -74,7 +110,7 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                 children: [
                   Flexible(
                     child: Image.asset(
-                      'assets/Department-of-Education-DepEd-Seal-300x300.png',
+                      'assets/images/Department-of-Education-DepEd-Seal-300x300.png',
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -115,24 +151,6 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const AdminDashboard(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const Icon(Icons.book, color: AppTheme.textPrimaryColor),
-              title: const Text(
-                'Practice Set',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ManagePracticeSet(),
                   ),
                 );
               },
@@ -218,6 +236,28 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                 );
               },
             ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text(
+                'Log Out',
+                style: TextStyle(fontSize: 20, color: Colors.redAccent),
+              ),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+
+                html.window.history.pushState(null, '', '');
+                html.window.onPopState.listen((event) {
+                  html.window.history.pushState(null, '', '');
+                });
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -225,50 +265,93 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
               children: [
-                ChoiceChip(
-                  label: Text(
-                    "All",
-                    style: TextStyle(color: AppTheme.textPrimaryColor),
+                Center(
+                  child: AutoSizeText(
+                    "Manage Reading Coordinators",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimaryColor,
+                    ),
                   ),
-                  selected: selectedFilter == "All",
-                  selectedColor: AppTheme.primaryColor,
-                  onSelected: (selected) {
-                    setState(() {
-                      selectedFilter = "All";
-                    });
-                  },
                 ),
-                SizedBox(width: 8),
-                ChoiceChip(
-                  label: Text(
-                    "Active",
-                    style: TextStyle(color: AppTheme.textPrimaryColor),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search reading coordinators by name or email',
+                    prefixIcon: Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
-                  selected: selectedFilter == "active",
-                  selectedColor: AppTheme.primaryColor,
-                  onSelected: (selected) {
-                    setState(() {
-                      selectedFilter = "active";
-                    });
-                  },
+                  onChanged: (value) => setState(() {}),
                 ),
-                SizedBox(width: 8),
-                ChoiceChip(
-                  label: Text(
-                    "Inactive",
-                    style: TextStyle(color: AppTheme.textPrimaryColor),
-                  ),
-                  selected: selectedFilter == "inactive",
-                  selectedColor: AppTheme.primaryColor,
-                  onSelected: (selected) {
-                    setState(() {
-                      selectedFilter = "inactive";
-                    });
-                  },
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ChoiceChip(
+                      label: Text(
+                        "All",
+                        style: TextStyle(
+                          color: selectedFilter == "All"
+                              ? Colors.white
+                              : AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                      selected: selectedFilter == "All",
+                      selectedColor: AppTheme.primaryColor,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = "All";
+                        });
+                      },
+                    ),
+                    SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text(
+                        "Active",
+                        style: TextStyle(
+                          color: selectedFilter == "ACTIVE"
+                              ? Colors.white
+                              : AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                      selected: selectedFilter == "ACTIVE",
+                      selectedColor: AppTheme.primaryColor,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = "ACTIVE";
+                        });
+                      },
+                    ),
+
+                    SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text(
+                        "Inactive",
+                        style: TextStyle(
+                          color: selectedFilter == "INACTIVE"
+                              ? Colors.white
+                              : AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                      selected: selectedFilter == "INACTIVE",
+                      selectedColor: AppTheme.primaryColor,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = "INACTIVE";
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -302,6 +385,17 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                   rcs = rcs
                       .where((set) => set.status == selectedFilter)
                       .toList();
+                }
+
+                final query = _searchController.text.trim().toLowerCase();
+                if (query.isNotEmpty) {
+                  rcs = rcs.where((t) {
+                    final fullName =
+                        "${t.firstname} ${t.middlename} ${t.lastname}"
+                            .toLowerCase();
+                    return fullName.contains(query) ||
+                        t.email.toLowerCase().contains(query);
+                  }).toList();
                 }
 
                 // final teachers = snapshot.data!.docs
@@ -341,7 +435,7 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                               ),
                             );
                           },
-                          child: const Text("Add School Year"),
+                          child: const Text("Add Reading Coordinator"),
                         ),
                       ],
                     ),
@@ -353,108 +447,134 @@ class _ManageRcScreenState extends State<ManageRcScreen> {
                   itemBuilder: (context, index) {
                     final RC rc = rcs[index];
                     return Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       margin: EdgeInsets.only(bottom: 12),
                       child: ListTile(
-                        // onTap: () {
-                        //   Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) =>
-                        //           ManageSection(schoolyear: schoolyear),
-                        //     ),
-                        //   );
-                        // },
                         contentPadding: EdgeInsets.all(16),
-                        leading: Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                        leading: CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppTheme.primaryColor.withOpacity(
+                            0.1,
                           ),
-                          child: Icon(
-                            Icons.person,
-                            color: AppTheme.primaryColor,
+                          child: Text(
+                            (rc.firstname.isNotEmpty ? rc.firstname[0] : 'R')
+                                .toUpperCase(),
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
                           ),
                         ),
-                        title: Column(
+                        title: Text(
+                          "${rc.firstname} ${rc.middlename ?? ""} ${rc.lastname}"
+                              .replaceAll(RegExp(r'\s+'), ' ')
+                              .trim(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "${rc.firstname} ${rc.middlename} ${rc.lastname}",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            SizedBox(height: 6),
                             Text("Email: ${rc.email}"),
-                            Text("Phone Number: ${rc.phonenumber}"),
-                            Text("Status: ${rc.status}"),
-                          ],
-                        ),
-                        trailing: PopupMenuButton(
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: "edit",
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.edit,
-                                  color: AppTheme.primaryColor,
-                                ),
-                                title: Text("Edit"),
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                            PopupMenuItem(
-                              // 👇 dynamic value & label depending on teacher.status
-                              value: rc.status == "active"
-                                  ? "inactive"
-                                  : "active",
-                              child: ListTile(
-                                leading: Icon(
-                                  rc.status == "active"
-                                      ? Icons.disabled_by_default
-                                      : Icons.check_circle,
-                                  color: rc.status == "active"
-                                      ? Colors.redAccent
-                                      : Colors.greenAccent,
-                                ),
-                                title: Text(
-                                  rc.status == "active"
-                                      ? "Set Inactive"
-                                      : "Set Active",
-                                ),
-                                contentPadding: EdgeInsets.zero,
+                            SizedBox(height: 4),
+                            Text(
+                              "Status: ${rc.status}",
+                              style: TextStyle(
+                                color: rc.status == "ACTIVE"
+                                    ? Colors.green
+                                    : Colors.redAccent,
                               ),
                             ),
                           ],
-                          onSelected: (value) {
-                            if (value == "edit") {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddRCScreen(rc: rc),
-                                ),
-                              );
-                            } else if (value == "inactive" ||
-                                value == "active") {
-                              _firestore
-                                  .collection("students")
-                                  .doc(rc.id)
-                                  .update({"status": value});
-                            }
-                          },
                         ),
-                        // onTap: () {
-                        //   Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) => ManageQuizesScreen(
-                        //         categoryId: category.id,
-                        //         categoryName: category.name,
-                        //       ),
-                        //     ),
-                        //   );
-                        // },
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit',
+                              icon: Icon(
+                                Icons.edit,
+                                color: AppTheme.primaryColor,
+                              ),
+                              onPressed: () {
+                                final screenWidth = MediaQuery.of(
+                                  context,
+                                ).size.width;
+
+                                if (screenWidth > 600) {
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => AddRcDialog(rc: rc),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddRCScreen(rc: rc),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            IconButton(
+                              tooltip: rc.status == "ACTIVE"
+                                  ? 'Set Inactive'
+                                  : 'Set Active',
+                              icon: Icon(
+                                rc.status == "ACTIVE"
+                                    ? Icons.toggle_on
+                                    : Icons.toggle_off,
+                                color: rc.status == "ACTIVE"
+                                    ? Colors.green
+                                    : Colors.grey,
+                                size: 28,
+                              ),
+                              onPressed: () async {
+                                final newStatus = rc.status == "ACTIVE"
+                                    ? "INACTIVE"
+                                    : "ACTIVE";
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text(
+                                      '${rc.status == "ACTIVE" ? "Deactivate" : "Activate"} Reading Coordinator',
+                                    ),
+                                    content: Text(
+                                      'Are you sure you want to ${rc.status == "ACTIVE" ? "set this reading coordinator as inactive" : "set this reading coordinator as active"}?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: Text('Confirm'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed ?? false) {
+                                  _firestore
+                                      .collection('readingcoordinators')
+                                      .doc(rc.id)
+                                      .update({'status': newStatus});
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
