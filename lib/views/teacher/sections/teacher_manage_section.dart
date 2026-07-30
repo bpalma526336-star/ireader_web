@@ -588,13 +588,12 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(child: _viewPracticeSetButton(section)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _exportButton(section)),
-                  ],
+                SizedBox(
+                  width: double.infinity,
+                  child: _viewPracticeSetButton(section),
                 ),
+                // Export button hidden
+                // Expanded(child: _exportButton(section)),
               ],
             ),
           ),

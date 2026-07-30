@@ -159,41 +159,35 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
 
   Widget _buildResultToggle() {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(30),
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: studentreads.map((type) {
           final isSelected = _selectedReadType == type;
-
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedReadType = type;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.primaryColor
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Center(
-                  child: Text(
-                    type,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black54,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedReadType = type;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                type,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black54,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
             ),
