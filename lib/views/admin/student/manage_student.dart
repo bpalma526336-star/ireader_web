@@ -8,6 +8,7 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/student/add_student.dart';
 import 'package:ireader_web/views/admin/student/add_student_dialog.dart';
 import 'package:ireader_web/views/admin/student/student_profile.dart';
+import 'package:ireader_web/shared/import_students_dialog.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
 
@@ -134,6 +135,17 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
       )
       ..setAttribute('download', 'Phil-IRI_Student_List(Stage_2).xlsx')
       ..click();
+  }
+
+  void _openImportStudents() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => ImportStudentsDialog(
+        section: widget.section,
+        schoolyear: widget.schoolyear,
+      ),
+    );
   }
 
   void _openAddStudent() {
@@ -504,6 +516,22 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
             ),
           ),
           const SizedBox(width: 12),
+          SizedBox(
+            height: 38,
+            child: OutlinedButton.icon(
+              onPressed: _openImportStudents,
+              icon: const Icon(Icons.upload_file, size: 16),
+              label: const Text('Import'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+                side: const BorderSide(color: AppTheme.primaryColor),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           SizedBox(
             height: 38,
             child: ElevatedButton.icon(

@@ -35,6 +35,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   String? _cachedMultiYearUrl;
   String? _cachedMaleUrl;
   String? _cachedFemaleUrl;
+  String? _cachedGradeUrl;
+
+  // yearId -> gradeLevel -> readingLevel -> count
+  final Map<String, Map<String, Map<String, int>>> _gradeCounts = {};
 
   static const List<String> _chartColors = [
     '#6366F1', '#3B82F6', '#10B981', '#F59E0B',
@@ -89,6 +93,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'Instructional': {'Male': 0, 'Female': 0},
       'Independent': {'Male': 0, 'Female': 0},
     };
+    _gradeCounts[schoolyearId] = {};
 
     for (final doc in snap.docs) {
       final student = Student.fromMap(doc.id, doc.data());
@@ -106,6 +111,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
       _genderCounts[schoolyearId]![level]![gender] =
           (_genderCounts[schoolyearId]![level]![gender] ?? 0) + 1;
+
+      final grade = student.gradelevelread;
+      if (grade.isNotEmpty) {
+        _gradeCounts[schoolyearId]!.putIfAbsent(grade, () => {
+          'Frustration': 0, 'Instructional': 0, 'Independent': 0,
+        });
+        _gradeCounts[schoolyearId]![grade]![level] =
+            (_gradeCounts[schoolyearId]![grade]![level] ?? 0) + 1;
+      }
     }
 
     return {
@@ -118,6 +132,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> _analyzeRange(List<SchoolYear> years) async {
     _rangeCounts.clear();
     _genderCounts.clear();
+    _gradeCounts.clear();
     await Future.wait(
       years.map((y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c)),
     );
@@ -126,6 +141,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _cachedMultiYearUrl = _buildMultiYearChartUrl();
     _cachedMaleUrl = _buildGenderChartUrl('Male');
     _cachedFemaleUrl = _buildGenderChartUrl('Female');
+    _cachedGradeUrl = _buildGradeChartUrl();
     if (mounted) setState(() {});
   }
 
@@ -677,6 +693,385 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  // ─── PHIL-IRI 2018 DESCRIPTIVE ANALYTICS ─────────────────────────────────
+
+  String _buildGradeChartUrl() {
+    final Map<String, Map<String, int>> aggregated = {};
+    for (final y in _selectedRangeYears) {
+      final yearGrades = _gradeCounts[y.id] ?? {};
+      for (final entry in yearGrades.entries) {
+        final grade = entry.key;
+        final lvls = entry.value;
+        aggregated.putIfAbsent(grade, () => {'Frustration': 0, 'Instructional': 0, 'Independent': 0});
+        for (final lEntry in lvls.entries) {
+          aggregated[grade]![lEntry.key] = (aggregated[grade]![lEntry.key] ?? 0) + lEntry.value;
+        }
+      }
+    }
+
+    final gradeOrder = ['Pre-reading', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+    final labels = aggregated.keys.toList()
+      ..sort((a, b) {
+        final ai = gradeOrder.indexWhere((g) => g.toLowerCase() == a.toLowerCase());
+        final bi = gradeOrder.indexWhere((g) => g.toLowerCase() == b.toLowerCase());
+        if (ai == -1 && bi == -1) return a.compareTo(b);
+        if (ai == -1) return 1;
+        if (bi == -1) return -1;
+        return ai.compareTo(bi);
+      });
+
+    if (labels.isEmpty) return '';
+
+    final datasets = [
+      {
+        'label': 'Frustration',
+        'data': labels.map((g) => aggregated[g]?['Frustration'] ?? 0).toList(),
+        'backgroundColor': '#FF8C00',
+        'borderWidth': 0,
+        'borderRadius': 4,
+        'borderSkipped': false,
+      },
+      {
+        'label': 'Instructional',
+        'data': labels.map((g) => aggregated[g]?['Instructional'] ?? 0).toList(),
+        'backgroundColor': '#FFB347',
+        'borderWidth': 0,
+        'borderRadius': 4,
+        'borderSkipped': false,
+      },
+      {
+        'label': 'Independent',
+        'data': labels.map((g) => aggregated[g]?['Independent'] ?? 0).toList(),
+        'backgroundColor': '#22C55E',
+        'borderWidth': 0,
+        'borderRadius': 4,
+        'borderSkipped': false,
+      },
+    ];
+
+    final chart = {
+      'type': 'bar',
+      'data': {'labels': labels, 'datasets': datasets},
+      'options': {
+        'backgroundColor': '#FFFFFF',
+        'plugins': {
+          'legend': {
+            'position': 'top',
+            'labels': {
+              'font': {'size': 11, 'family': 'Inter, sans-serif'},
+              'usePointStyle': true,
+              'pointStyle': 'circle',
+              'padding': 16,
+            },
+          },
+          'datalabels': {
+            'anchor': 'end',
+            'align': 'top',
+            'font': {'size': 10, 'weight': 'bold'},
+            'color': '#374151',
+            'formatter': "function(v){return v>0?v:'';}",
+          },
+        },
+        'scales': {
+          'x': {
+            'grid': {'display': false},
+            'ticks': {'font': {'size': 11}, 'color': '#64748B'},
+          },
+          'y': {
+            'beginAtZero': true,
+            'grid': {'color': '#F1F5F9'},
+            'ticks': {'font': {'size': 11}, 'color': '#94A3B8', 'stepSize': 1},
+            'border': {'dash': [4, 4]},
+          },
+        },
+        'barPercentage': 0.7,
+        'categoryPercentage': 0.8,
+      },
+    };
+    return 'https://quickchart.io/chart?c=${Uri.encodeComponent(jsonEncode(chart))}&width=1000&height=380&backgroundColor=white';
+  }
+
+  Widget _buildPhilIriSection(bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 3,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Phil-IRI 2018 Descriptive Analytics',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Based on DepEd\'s Philippine Informal Reading Inventory (Phil-IRI) 2018 framework',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+        ),
+        const SizedBox(height: 16),
+        isMobile
+            ? Column(children: [
+                _buildFrequencyTable(),
+                const SizedBox(height: 16),
+                _buildDescriptiveStats(),
+              ])
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _buildFrequencyTable()),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 1, child: _buildDescriptiveStats()),
+                ],
+              ),
+        if (_cachedGradeUrl != null && _cachedGradeUrl!.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _buildChartCard('Grade Level Reading Distribution', _cachedGradeUrl, 340),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildFrequencyTable() {
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    final levelColors = {
+      'Frustration': AppTheme.levelFrustration,
+      'Instructional': AppTheme.levelInstructional,
+      'Independent': AppTheme.levelIndependent,
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Frequency Distribution Table',
+            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$_selectedReadType · Count (n) and percentage (%) per reading level',
+            style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: _buildTableContent(levels, levelColors),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableContent(List<String> levels, Map<String, Color> levelColors) {
+    final years = _selectedRangeYears;
+
+    Widget hCell(Widget child, double w) => SizedBox(
+          width: w,
+          child: Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: child),
+        );
+
+    Widget dCell(Widget child, double w) => SizedBox(
+          width: w,
+          child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: child),
+        );
+
+    final headerRow = Row(children: [
+      hCell(
+        const Text('Reading Level',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.3)),
+        130,
+      ),
+      ...years.map((y) => hCell(
+            Column(children: [
+              Text('${y.schoolyearstart}–${y.schoolyearend}',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor),
+                  textAlign: TextAlign.center),
+              const Text('n            %',
+                  style: TextStyle(fontSize: 10, color: AppTheme.textSecondaryColor), textAlign: TextAlign.center),
+            ]),
+            160,
+          )),
+    ]);
+
+    final dataRows = levels.asMap().entries.map((entry) {
+      final level = entry.value;
+      return Container(
+        color: entry.key % 2 == 0 ? const Color(0xFFFAFAFC) : Colors.white,
+        child: Row(children: [
+          dCell(
+            Row(children: [
+              Container(width: 8, height: 8, decoration: BoxDecoration(color: levelColors[level], shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Text(level, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.textPrimaryColor)),
+            ]),
+            130,
+          ),
+          ...years.map((y) {
+            final counts = _rangeCounts[y.id] ?? {};
+            final total = _total(counts);
+            final count = counts[level] ?? 0;
+            final pct = _percent(count, total);
+            return dCell(
+              Text('$count            ${pct.toStringAsFixed(1)}%',
+                  style: TextStyle(fontSize: 12, color: levelColors[level], fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center),
+              160,
+            );
+          }),
+        ]),
+      );
+    }).toList();
+
+    final totalRow = Row(children: [
+      dCell(const Text('Total', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor)), 130),
+      ...years.map((y) {
+        final counts = _rangeCounts[y.id] ?? {};
+        final total = _total(counts);
+        return dCell(
+          Text('$total            100.0%',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+              textAlign: TextAlign.center),
+          160,
+        );
+      }),
+    ]);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        headerRow,
+        const Divider(color: AppTheme.borderColor, height: 12),
+        ...dataRows,
+        const Divider(color: AppTheme.borderColor, height: 12),
+        totalRow,
+      ],
+    );
+  }
+
+  Widget _buildDescriptiveStats() {
+    int totalFrustration = 0, totalInstructional = 0, totalIndependent = 0;
+    for (final y in _selectedRangeYears) {
+      final counts = _rangeCounts[y.id] ?? {};
+      totalFrustration += counts['Frustration'] ?? 0;
+      totalInstructional += counts['Instructional'] ?? 0;
+      totalIndependent += counts['Independent'] ?? 0;
+    }
+    final grandTotal = totalFrustration + totalInstructional + totalIndependent;
+
+    String mode = 'N/A';
+    int modeCount = 0;
+    if (grandTotal > 0) {
+      if (totalFrustration >= totalInstructional && totalFrustration >= totalIndependent) {
+        mode = 'Frustration';
+        modeCount = totalFrustration;
+      } else if (totalInstructional >= totalIndependent) {
+        mode = 'Instructional';
+        modeCount = totalInstructional;
+      } else {
+        mode = 'Independent';
+        modeCount = totalIndependent;
+      }
+    }
+
+    final modeColor = {
+      'Frustration': AppTheme.levelFrustration,
+      'Instructional': AppTheme.levelInstructional,
+      'Independent': AppTheme.levelIndependent,
+      'N/A': AppTheme.textSecondaryColor,
+    }[mode]!;
+
+    final frustPct = _percent(totalFrustration, grandTotal);
+    final instrPct = _percent(totalInstructional, grandTotal);
+    final indPct = _percent(totalIndependent, grandTotal);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Descriptive Measures',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+          const SizedBox(height: 4),
+          const Text('Summary statistics across selected range',
+              style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: modeColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: modeColor.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('MODE (DOMINANT LEVEL)',
+                    style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 1.0)),
+                const SizedBox(height: 6),
+                Text(mode, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: modeColor)),
+                if (grandTotal > 0)
+                  Text('$modeCount students · ${_percent(modeCount, grandTotal).toStringAsFixed(1)}%',
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          _philIriStatRow('Frustration', totalFrustration, frustPct, AppTheme.levelFrustration),
+          const SizedBox(height: 8),
+          _philIriStatRow('Instructional', totalInstructional, instrPct, AppTheme.levelInstructional),
+          const SizedBox(height: 8),
+          _philIriStatRow('Independent', totalIndependent, indPct, AppTheme.levelIndependent),
+          const Divider(color: AppTheme.borderColor, height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total N', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+              Text('$grandTotal', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _philIriStatRow(String label, int count, double pct, Color color) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor))),
+        Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 48,
+          child: Text('${pct.toStringAsFixed(1)}%',
+              style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor), textAlign: TextAlign.right),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -829,6 +1224,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                         Expanded(child: _buildGenderCard('Female')),
                                       ],
                                     ),
+                              const SizedBox(height: 24),
+                              _buildPhilIriSection(isMobile),
                             ],
                           ],
                         ),
