@@ -364,9 +364,9 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
           .limit(1)
           .get();
 
-      // if (snap.docs.isEmpty) {
-      //   return;
-      // }
+      if (snap.docs.isEmpty) {
+        return;
+      }
 
       final assessmentId = snap.docs.first.id;
 
@@ -481,9 +481,22 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
         ),
         const SizedBox(width: 6),
         Expanded(
-          child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
         ),
-        Text('$count', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor)),
+        Text(
+          '$count',
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
       ],
     );
   }
@@ -494,29 +507,42 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
     final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      drawer: isDesktop ? null : Drawer(child: AdminSidebar(activeRoute: AdminRoute.schoolYears)),
+      drawer: isDesktop
+          ? null
+          : Drawer(child: AdminSidebar(activeRoute: AdminRoute.schoolYears)),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isDesktop) const AdminSidebar(activeRoute: AdminRoute.schoolYears),
+          if (isDesktop)
+            const AdminSidebar(activeRoute: AdminRoute.schoolYears),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AdminTopHeader(
                   pageTitle: 'School Years',
-                  pageSubtitle: 'Per-year results, sections, assessments and exports',
+                  pageSubtitle:
+                      'Per-year results, sections, assessments and exports',
                   trailing: ElevatedButton.icon(
-                    onPressed: () => AddSchoolyearDialog.show(context, schoolyear: null),
+                    onPressed: () =>
+                        AddSchoolyearDialog.show(context, schoolyear: null),
                     icon: const Icon(Icons.add, size: 16),
                     label: const Text('Add School Year'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -525,10 +551,16 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                     stream: _fetchSchoolYears(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryColor,
+                          ),
+                        );
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No School Years Found'));
+                        return const Center(
+                          child: Text('No School Years Found'),
+                        );
                       }
                       final schoolYears = snapshot.data!;
 
@@ -542,7 +574,10 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                 const Spacer(),
                                 Text(
                                   '${schoolYears.length} of ${schoolYears.length} years',
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
                                 ),
                               ],
                             ),
@@ -551,12 +586,15 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                           Expanded(
                             child: GridView.builder(
                               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: screenWidth <= 600 ? 600 : 380,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                mainAxisExtent: 370,
-                              ),
+                              gridDelegate:
+                                  SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: screenWidth <= 600
+                                        ? 600
+                                        : 380,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                    mainAxisExtent: 370,
+                                  ),
                               itemCount: schoolYears.length,
                               itemBuilder: (_, index) {
                                 final schoolyear = schoolYears[index];
@@ -566,32 +604,53 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppTheme.borderColor),
+                                    border: Border.all(
+                                      color: AppTheme.borderColor,
+                                    ),
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
                                               '${schoolyear.schoolyearstart}-${schoolyear.schoolyearend}',
-                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w800,
+                                                color:
+                                                    AppTheme.textPrimaryColor,
+                                              ),
                                             ),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: isCurrentYear ? const Color(0xFFDCFCE7) : AppTheme.backgroundColor,
-                                                borderRadius: BorderRadius.circular(4),
+                                                color: isCurrentYear
+                                                    ? const Color(0xFFDCFCE7)
+                                                    : AppTheme.backgroundColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Text(
-                                                isCurrentYear ? 'CURRENT' : 'ARCHIVED',
+                                                isCurrentYear
+                                                    ? 'CURRENT'
+                                                    : 'ARCHIVED',
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w700,
-                                                  color: isCurrentYear ? const Color(0xFF15803D) : AppTheme.textSecondaryColor,
+                                                  color: isCurrentYear
+                                                      ? const Color(0xFF15803D)
+                                                      : AppTheme
+                                                            .textSecondaryColor,
                                                   letterSpacing: 0.5,
                                                 ),
                                               ),
@@ -600,27 +659,62 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                         ),
                                         const SizedBox(height: 12),
                                         StreamBuilder<Map<String, int>>(
-                                          stream: _fetchStudentReadLevels(schoolyear.id),
+                                          stream: _fetchStudentReadLevels(
+                                            schoolyear.id,
+                                          ),
                                           builder: (context, snap) {
-                                            final counts = snap.data ?? {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
-                                            final insight = generateReadingInsight(counts);
+                                            final counts =
+                                                snap.data ??
+                                                {
+                                                  'Frustration': 0,
+                                                  'Instructional': 0,
+                                                  'Independent': 0,
+                                                };
+                                            final insight =
+                                                generateReadingInsight(counts);
                                             return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
                                                   children: [
                                                     _DonutChart(counts: counts),
                                                     const SizedBox(width: 16),
                                                     Expanded(
                                                       child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
-                                                          _legendRow(AppTheme.levelFrustration, 'Frustration', counts['Frustration'] ?? 0),
-                                                          const SizedBox(height: 7),
-                                                          _legendRow(AppTheme.levelInstructional, 'Instructional', counts['Instructional'] ?? 0),
-                                                          const SizedBox(height: 7),
-                                                          _legendRow(AppTheme.levelIndependent, 'Independent', counts['Independent'] ?? 0),
+                                                          _legendRow(
+                                                            AppTheme
+                                                                .levelFrustration,
+                                                            'Frustration',
+                                                            counts['Frustration'] ??
+                                                                0,
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 7,
+                                                          ),
+                                                          _legendRow(
+                                                            AppTheme
+                                                                .levelInstructional,
+                                                            'Instructional',
+                                                            counts['Instructional'] ??
+                                                                0,
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 7,
+                                                          ),
+                                                          _legendRow(
+                                                            AppTheme
+                                                                .levelIndependent,
+                                                            'Independent',
+                                                            counts['Independent'] ??
+                                                                0,
+                                                          ),
                                                         ],
                                                       ),
                                                     ),
@@ -629,9 +723,15 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                                 const SizedBox(height: 12),
                                                 Text(
                                                   insight,
-                                                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor, height: 1.45),
+                                                  style: const TextStyle(
+                                                    fontSize: 11.5,
+                                                    color: AppTheme
+                                                        .textSecondaryColor,
+                                                    height: 1.45,
+                                                  ),
                                                   maxLines: 3,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             );
@@ -640,35 +740,87 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                         const Spacer(),
                                         Row(
                                           children: [
-                                            Expanded(child: _cardButton('Sections', () {
-                                              Navigator.push(context, MaterialPageRoute(
-                                                builder: (_) => ManageSection(schoolyear: schoolyear),
-                                              ));
-                                            })),
+                                            Expanded(
+                                              child: _cardButton(
+                                                'Sections',
+                                                () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          ManageSection(
+                                                            schoolyear:
+                                                                schoolyear,
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
                                             const SizedBox(width: 8),
-                                            Expanded(child: _cardButton('Edit Year', () {
-                                              showDialog(context: context, barrierDismissible: false,
-                                                builder: (_) => AddSchoolyearDialog(schoolyear: schoolyear));
-                                            })),
+                                            Expanded(
+                                              child: _cardButton(
+                                                'Edit Year',
+                                                () {
+                                                  showDialog(
+                                                    context: context,
+                                                    barrierDismissible: false,
+                                                    builder: (_) =>
+                                                        AddSchoolyearDialog(
+                                                          schoolyear:
+                                                              schoolyear,
+                                                        ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 6),
                                         Row(
                                           children: [
-                                            Expanded(child: _cardButton('Assessments', () {
-                                              Navigator.push(context, MaterialPageRoute(
-                                                builder: (_) => ManageAssessment(schoolyear: schoolyear),
-                                              ));
-                                            })),
+                                            Expanded(
+                                              child: _cardButton(
+                                                'Assessments',
+                                                () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          ManageAssessment(
+                                                            schoolyear:
+                                                                schoolyear,
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
                                             const SizedBox(width: 8),
-                                            Expanded(child: _cardButton('Export', () async {
-                                              final messenger = ScaffoldMessenger.of(context);
-                                              try {
-                                                await exportschoolyeardata(schoolyear.id);
-                                              } catch (e) {
-                                                messenger.showSnackBar(SnackBar(content: Text('Export failed: $e')));
-                                              }
-                                            })),
+                                            Expanded(
+                                              child: _cardButton(
+                                                'Export',
+                                                () async {
+                                                  final messenger =
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      );
+                                                  try {
+                                                    await exportschoolyeardata(
+                                                      schoolyear.id,
+                                                    );
+                                                  } catch (e) {
+                                                    messenger.showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'Export failed: $e',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 8),
@@ -677,18 +829,33 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                           height: 36,
                                           child: ElevatedButton(
                                             onPressed: () {
-                                              Navigator.push(context, MaterialPageRoute(
-                                                builder: (_) => ManageSection(schoolyear: schoolyear),
-                                              ));
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => ManageSection(
+                                                    schoolyear: schoolyear,
+                                                  ),
+                                                ),
+                                              );
                                             },
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF1E293B),
+                                              backgroundColor: const Color(
+                                                0xFF1E293B,
+                                              ),
                                               foregroundColor: Colors.white,
                                               elevation: 0,
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              textStyle: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
-                                            child: const Text('View Full Report'),
+                                            child: const Text(
+                                              'View Full Report',
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -718,7 +885,10 @@ class _DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = (counts['Frustration'] ?? 0) + (counts['Instructional'] ?? 0) + (counts['Independent'] ?? 0);
+    final total =
+        (counts['Frustration'] ?? 0) +
+        (counts['Instructional'] ?? 0) +
+        (counts['Independent'] ?? 0);
     return SizedBox(
       width: 86,
       height: 86,
@@ -730,11 +900,18 @@ class _DonutChart extends StatelessWidget {
             children: [
               Text(
                 '$total',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimaryColor,
+                ),
               ),
               const Text(
                 'students',
-                style: TextStyle(fontSize: 8, color: AppTheme.textSecondaryColor),
+                style: TextStyle(
+                  fontSize: 8,
+                  color: AppTheme.textSecondaryColor,
+                ),
               ),
             ],
           ),

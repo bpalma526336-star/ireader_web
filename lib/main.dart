@@ -25,7 +25,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
       routes: {
-        '/login': (context) => LoginScreen(errorMessage: AuthService.lastErrorMessage),
+        '/login': (context) =>
+            LoginScreen(errorMessage: AuthService.lastErrorMessage),
       },
     );
   }

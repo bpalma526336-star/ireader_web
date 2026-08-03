@@ -10,8 +10,8 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/readingcoordinator/assessments/manage_assessment.dart';
 import 'package:ireader_web/views/readingcoordinator/sections/manage_section.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row;
-import 'package:universal_html/html.dart' hide File;
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
+import 'package:universal_html/html.dart' hide File, VoidCallback;
 import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
@@ -37,7 +37,8 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
 
     if (total == 0) return "No reading data available for this school year.";
 
-    final totalScore = (frustration * 1) + (instructional * 2) + (independent * 3);
+    final totalScore =
+        (frustration * 1) + (instructional * 2) + (independent * 3);
     final averageScore = totalScore / total;
     final percentage = (averageScore / 3) * 100;
     final percentFormatted = percentage.toStringAsFixed(1);
@@ -61,12 +62,22 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final workbook = Workbook();
     const subject = "English";
 
-    final schoolyear = await _firestore.collection('schoolyears').doc(schoolYearId).get();
-    final sections = await _firestore.collection('sections').where('schoolyearid', isEqualTo: schoolYearId).get();
+    final schoolyear = await _firestore
+        .collection('schoolyears')
+        .doc(schoolYearId)
+        .get();
+    final sections = await _firestore
+        .collection('sections')
+        .where('schoolyearid', isEqualTo: schoolYearId)
+        .get();
 
     void buildHeaders(Worksheet sheet, String stageTitle) {
       sheet.getRangeByName('A1:M1').merge();
-      sheet.getRangeByName('A1').setText('Phil IRI: School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Report');
+      sheet
+          .getRangeByName('A1')
+          .setText(
+            'Phil IRI: School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Report',
+          );
       sheet.getRangeByName('A2:M2').merge();
       sheet.getRangeByName('A2').setText(subject);
       sheet.getRangeByName('A3:M3').merge();
@@ -74,7 +85,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       sheet.getRangeByName('A4:M4').merge();
       sheet.getRangeByName('A4').setText(stageTitle);
       for (int r = 1; r <= 4; r++) {
-        sheet.getRangeByIndex(r, 1, r, 13).cellStyle..hAlign = HAlignType.center..bold = true;
+        sheet.getRangeByIndex(r, 1, r, 13).cellStyle
+          ..hAlign = HAlignType.center
+          ..bold = true;
       }
       sheet.getRangeByName('E5:G5').merge();
       sheet.getRangeByName('E5').setText('FRUSTRATION');
@@ -94,43 +107,117 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       }
     }
 
-    Future<Map<String, int>> countSectionResults({required String sectionId, required String assessmentId}) async {
-      final studentsSnap = await _firestore.collection('students').where('sectionid', isEqualTo: sectionId).get();
+    Future<Map<String, int>> countSectionResults({
+      required String sectionId,
+      required String assessmentId,
+    }) async {
+      final studentsSnap = await _firestore
+          .collection('students')
+          .where('sectionid', isEqualTo: sectionId)
+          .get();
       final studentMap = <String, Student>{};
       for (final s in studentsSnap.docs) {
         final student = Student.fromMap(s.id, s.data());
         studentMap[student.id] = student;
       }
       if (studentMap.isEmpty) {
-        return {'fm': 0, 'ff': 0, 'fa': 0, 'im': 0, 'iff': 0, 'ia': 0, 'im2': 0, 'iff2': 0, 'ia2': 0};
+        return {
+          'fm': 0,
+          'ff': 0,
+          'fa': 0,
+          'im': 0,
+          'iff': 0,
+          'ia': 0,
+          'im2': 0,
+          'iff2': 0,
+          'ia2': 0,
+        };
       }
-      final resultSnap = await _firestore.collection('overallresult').where('assessmentid', isEqualTo: assessmentId).get();
-      int fm = 0, ff = 0, fa = 0, im = 0, iff = 0, ia = 0, im2 = 0, iff2 = 0, ia2 = 0;
+      final resultSnap = await _firestore
+          .collection('overallresult')
+          .where('assessmentid', isEqualTo: assessmentId)
+          .get();
+      int fm = 0,
+          ff = 0,
+          fa = 0,
+          im = 0,
+          iff = 0,
+          ia = 0,
+          im2 = 0,
+          iff2 = 0,
+          ia2 = 0;
       for (final r in resultSnap.docs) {
         final result = studentoverallresult.fromMap(r.id, r.data());
         final student = studentMap[result.studentid];
         if (student == null) continue;
         final gender = student.gender;
         final level = result.readlevel;
-        if (level == 'Frustration') { fa++; if (gender == 'Male') fm++; if (gender == 'Female') ff++; }
-        if (level == 'Instructional') { ia++; if (gender == 'Male') im++; if (gender == 'Female') iff++; }
-        if (level == 'Independent') { ia2++; if (gender == 'Male') im2++; if (gender == 'Female') iff2++; }
+        if (level == 'Frustration') {
+          fa++;
+          if (gender == 'Male') fm++;
+          if (gender == 'Female') ff++;
+        }
+        if (level == 'Instructional') {
+          ia++;
+          if (gender == 'Male') im++;
+          if (gender == 'Female') iff++;
+        }
+        if (level == 'Independent') {
+          ia2++;
+          if (gender == 'Male') im2++;
+          if (gender == 'Female') iff2++;
+        }
       }
-      return {'fm': fm, 'ff': ff, 'fa': fa, 'im': im, 'iff': iff, 'ia': ia, 'im2': im2, 'iff2': iff2, 'ia2': ia2};
+      return {
+        'fm': fm,
+        'ff': ff,
+        'fa': fa,
+        'im': im,
+        'iff': iff,
+        'ia': ia,
+        'im2': im2,
+        'iff2': iff2,
+        'ia2': ia2,
+      };
     }
 
-    Future<void> buildSheet({required Worksheet sheet, required String title, required String assessmentTitle}) async {
+    Future<void> buildSheet({
+      required Worksheet sheet,
+      required String title,
+      required String assessmentTitle,
+    }) async {
       sheet.name = title;
-      final snap = await _firestore.collection('assessment').where('assessmenttitle', isEqualTo: assessmentTitle).where('schoolyearid', isEqualTo: schoolYearId).limit(1).get();
+      final snap = await _firestore
+          .collection('assessment')
+          .where('assessmenttitle', isEqualTo: assessmentTitle)
+          .where('schoolyearid', isEqualTo: schoolYearId)
+          .limit(1)
+          .get();
       final assessmentId = snap.docs.first.id;
       buildHeaders(sheet, title);
       int row = 7;
       for (final sec in sections.docs) {
-        final teacherSnap = await _firestore.collection('teachers').doc(sec['teacherid']).get();
-        final counts = await countSectionResults(sectionId: sec.id, assessmentId: assessmentId);
+        final teacherSnap = await _firestore
+            .collection('teachers')
+            .doc(sec['teacherid'])
+            .get();
+        final counts = await countSectionResults(
+          sectionId: sec.id,
+          assessmentId: assessmentId,
+        );
         sheet.getRangeByName('A$row').setText(sec['sectionname']);
         sheet.getRangeByName('C$row').setText(teacherSnap['lastname']);
-        final values = [counts['fm'], counts['ff'], counts['fa'], counts['im'], counts['iff'], counts['ia'], counts['im2'], counts['iff2'], counts['ia2']];
+        final values = [
+          counts['fm'],
+          counts['ff'],
+          counts['fa'],
+          counts['im'],
+          counts['iff'],
+          counts['ia'],
+          counts['im2'],
+          counts['iff2'],
+          counts['ia2'],
+        ];
         for (int i = 0; i < values.length; i++) {
           sheet.getRangeByIndex(row, 5 + i).setNumber(values[i]!.toDouble());
         }
@@ -138,20 +225,39 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       }
     }
 
-    await buildSheet(sheet: workbook.worksheets[0], title: 'Pre-Test', assessmentTitle: 'Stage 2 - Pre-Test');
-    await buildSheet(sheet: workbook.worksheets.add(), title: 'Midway Test', assessmentTitle: 'Stage 3 - Midway/Mid-test');
-    await buildSheet(sheet: workbook.worksheets.add(), title: 'Post-Test', assessmentTitle: 'Stage 4 - Post-Test');
+    await buildSheet(
+      sheet: workbook.worksheets[0],
+      title: 'Pre-Test',
+      assessmentTitle: 'Stage 2 - Pre-Test',
+    );
+    await buildSheet(
+      sheet: workbook.worksheets.add(),
+      title: 'Midway Test',
+      assessmentTitle: 'Stage 3 - Midway/Mid-test',
+    );
+    await buildSheet(
+      sheet: workbook.worksheets.add(),
+      title: 'Post-Test',
+      assessmentTitle: 'Stage 4 - Post-Test',
+    );
 
     final bytes = workbook.saveAsStream();
     workbook.dispose();
 
     if (kIsWeb) {
-      AnchorElement(href: 'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx')
+      AnchorElement(
+          href:
+              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}',
+        )
+        ..setAttribute(
+          'download',
+          'School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx',
+        )
         ..click();
     } else {
       final directory = (await getApplicationDocumentsDirectory()).path;
-      final filePath = '$directory/School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx';
+      final filePath =
+          '$directory/School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx';
       final file = File(filePath);
       await file.writeAsBytes(bytes, flush: true);
       OpenFile.open(filePath);
@@ -211,11 +317,18 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
             final level = _selectedReadType == "Overall Result"
                 ? (data['readlevel'] ?? '')
                 : (data['comprehensionresult'] ?? '');
-            if (level == 'Frustration') frustration++;
-            else if (level == 'Instructional') instructional++;
-            else if (level == 'Independent') independent++;
+            if (level == 'Frustration')
+              frustration++;
+            else if (level == 'Instructional')
+              instructional++;
+            else if (level == 'Independent')
+              independent++;
           }
-          return {'Frustration': frustration, 'Instructional': instructional, 'Independent': independent};
+          return {
+            'Frustration': frustration,
+            'Instructional': instructional,
+            'Independent': independent,
+          };
         });
   }
 
@@ -224,7 +337,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         .collection('schoolyears')
         .orderBy('schoolyearstart', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => SchoolYear.fromMap(doc.id, doc.data())).toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Widget _cardButton(String label, VoidCallback onTap) {
@@ -247,10 +364,29 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
   Widget _legendRow(Color color, String label, int count) {
     return Row(
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor))),
-        Text('$count', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor)),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
+        ),
+        Text(
+          '$count',
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
       ],
     );
   }
@@ -261,7 +397,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      drawer: isDesktop ? null : Drawer(child: RCSidebar(activeRoute: RCRoute.schoolYears)),
+      drawer: isDesktop
+          ? null
+          : Drawer(child: RCSidebar(activeRoute: RCRoute.schoolYears)),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -271,7 +409,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
               stream: _fetchSchoolYears(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text("No School Year Found"));
@@ -289,7 +431,10 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                           const Spacer(),
                           Text(
                             '${schoolYears.length} of ${schoolYears.length} years',
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondaryColor,
+                            ),
                           ),
                         ],
                       ),
@@ -321,24 +466,40 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         '${schoolyear.schoolyearstart}-${schoolyear.schoolyearend}',
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.textPrimaryColor,
+                                        ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: isCurrentYear ? const Color(0xFFDCFCE7) : AppTheme.backgroundColor,
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: isCurrentYear
+                                              ? const Color(0xFFDCFCE7)
+                                              : AppTheme.backgroundColor,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
-                                          isCurrentYear ? 'CURRENT' : 'ARCHIVED',
+                                          isCurrentYear
+                                              ? 'CURRENT'
+                                              : 'ARCHIVED',
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: isCurrentYear ? const Color(0xFF15803D) : AppTheme.textSecondaryColor,
+                                            color: isCurrentYear
+                                                ? const Color(0xFF15803D)
+                                                : AppTheme.textSecondaryColor,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
@@ -347,27 +508,56 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   StreamBuilder<Map<String, int>>(
-                                    stream: _fetchStudentReadLevels(schoolyear.id),
+                                    stream: _fetchStudentReadLevels(
+                                      schoolyear.id,
+                                    ),
                                     builder: (context, snap) {
-                                      final counts = snap.data ?? {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
-                                      final insight = generateReadingInsight(counts);
+                                      final counts =
+                                          snap.data ??
+                                          {
+                                            'Frustration': 0,
+                                            'Instructional': 0,
+                                            'Independent': 0,
+                                          };
+                                      final insight = generateReadingInsight(
+                                        counts,
+                                      );
                                       return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: [
                                               _RCDonutChart(counts: counts),
                                               const SizedBox(width: 16),
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
-                                                    _legendRow(AppTheme.levelFrustration, 'Frustration', counts['Frustration'] ?? 0),
+                                                    _legendRow(
+                                                      AppTheme.levelFrustration,
+                                                      'Frustration',
+                                                      counts['Frustration'] ??
+                                                          0,
+                                                    ),
                                                     const SizedBox(height: 7),
-                                                    _legendRow(AppTheme.levelInstructional, 'Instructional', counts['Instructional'] ?? 0),
+                                                    _legendRow(
+                                                      AppTheme
+                                                          .levelInstructional,
+                                                      'Instructional',
+                                                      counts['Instructional'] ??
+                                                          0,
+                                                    ),
                                                     const SizedBox(height: 7),
-                                                    _legendRow(AppTheme.levelIndependent, 'Independent', counts['Independent'] ?? 0),
+                                                    _legendRow(
+                                                      AppTheme.levelIndependent,
+                                                      'Independent',
+                                                      counts['Independent'] ??
+                                                          0,
+                                                    ),
                                                   ],
                                                 ),
                                               ),
@@ -376,7 +566,12 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                           const SizedBox(height: 12),
                                           Text(
                                             insight,
-                                            style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor, height: 1.45),
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              color:
+                                                  AppTheme.textSecondaryColor,
+                                              height: 1.45,
+                                            ),
                                             maxLines: 3,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -387,17 +582,31 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                   const Spacer(),
                                   Row(
                                     children: [
-                                      Expanded(child: _cardButton('View Sections', () {
-                                        Navigator.push(context, MaterialPageRoute(
-                                          builder: (_) => RCManageSection(schoolyear: schoolyear),
-                                        ));
-                                      })),
+                                      Expanded(
+                                        child: _cardButton('View Sections', () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => RCManageSection(
+                                                schoolyear: schoolyear,
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
                                       const SizedBox(width: 8),
-                                      Expanded(child: _cardButton('Assessments', () {
-                                        Navigator.push(context, MaterialPageRoute(
-                                          builder: (_) => ManageAssessment(schoolyear: schoolyear),
-                                        ));
-                                      })),
+                                      Expanded(
+                                        child: _cardButton('Assessments', () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ManageAssessment(
+                                                schoolyear: schoolyear,
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
                                     ],
                                   ),
                                   // Export button hidden
@@ -433,7 +642,10 @@ class _RCDonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = (counts['Frustration'] ?? 0) + (counts['Instructional'] ?? 0) + (counts['Independent'] ?? 0);
+    final total =
+        (counts['Frustration'] ?? 0) +
+        (counts['Instructional'] ?? 0) +
+        (counts['Independent'] ?? 0);
     return SizedBox(
       width: 86,
       height: 86,
@@ -443,8 +655,21 @@ class _RCDonutChart extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$total', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor)),
-              const Text('students', style: TextStyle(fontSize: 8, color: AppTheme.textSecondaryColor)),
+              Text(
+                '$total',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              const Text(
+                'students',
+                style: TextStyle(
+                  fontSize: 8,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
             ],
           ),
         ),
@@ -465,7 +690,14 @@ class _RCDonutPainter extends CustomPainter {
     const strokeWidth = 13.0;
 
     if (total == 0) {
-      canvas.drawCircle(center, radius, Paint()..color = const Color(0xFFE2E8F0)..style = PaintingStyle.stroke..strokeWidth = strokeWidth);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = const Color(0xFFE2E8F0)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth,
+      );
       return;
     }
 
@@ -487,12 +719,17 @@ class _RCDonutPainter extends CustomPainter {
         startAngle + gap / 2,
         sweep,
         false,
-        Paint()..color = seg.color..style = PaintingStyle.stroke..strokeWidth = strokeWidth..strokeCap = StrokeCap.round,
+        Paint()
+          ..color = seg.color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round,
       );
       startAngle += sweep + gap;
     }
   }
 
   @override
-  bool shouldRepaint(covariant _RCDonutPainter old) => old.counts != counts || old.total != total;
+  bool shouldRepaint(covariant _RCDonutPainter old) =>
+      old.counts != counts || old.total != total;
 }
