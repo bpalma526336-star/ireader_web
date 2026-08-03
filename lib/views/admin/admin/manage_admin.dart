@@ -368,7 +368,7 @@ class _ManageAdminScreenState extends State<ManageAdminScreen> {
                 const SizedBox(width: 8),
                 Switch(
                   value: isActive,
-                  activeColor: const Color(0xFF16A34A),
+                  activeThumbColor: const Color(0xFF16A34A),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   onChanged: (val) async {
                     final newStatus = val ? 'ACTIVE' : 'INACTIVE';

@@ -441,6 +441,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       "Reading Results",
       "Comprehension Results",
       "Overall Results",
+      "Recommendations",
     ];
 
     return SingleChildScrollView(
@@ -983,8 +984,543 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           },
         );
 
+      case 3:
+        return _buildRecommendationsTab();
+
       default:
         return const SizedBox();
+    }
+  }
+
+  // ── Phil-IRI recommendation helpers ──────────────────────────────────────
+
+  Color _levelColor(String level) {
+    switch (level) {
+      case 'Frustration':
+        return AppTheme.levelFrustration;
+      case 'Instructional':
+        return AppTheme.levelInstructional;
+      case 'Independent':
+        return AppTheme.levelIndependent;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _levelIcon(String level) {
+    switch (level) {
+      case 'Frustration':
+        return Icons.warning_amber_rounded;
+      case 'Instructional':
+        return Icons.school;
+      case 'Independent':
+        return Icons.star;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  String _wordReadingGuidance(String level) {
+    switch (level) {
+      case 'Frustration':
+        return 'This student reads below 90% word accuracy. Phil-IRI recommends '
+            'intensive intervention with Frustration-level word recognition drills '
+            'to build foundational decoding and sight-word skills.';
+      case 'Instructional':
+        return 'This student reads at 90–95% word accuracy. Phil-IRI recommends '
+            'Instructional-level word recognition practice with teacher guidance '
+            'to improve reading fluency and accuracy.';
+      case 'Independent':
+        return 'This student reads at 96–100% word accuracy. Phil-IRI recommends '
+            'Independent-level enrichment activities to expand vocabulary '
+            'and reading stamina.';
+      default:
+        return 'No word reading assessment has been recorded yet.';
+    }
+  }
+
+  String _comprehensionGuidance(String level) {
+    switch (level) {
+      case 'Frustration':
+        return 'This student comprehends below 50% of reading material. Phil-IRI '
+            'recommends Frustration-level passages and sentence exercises '
+            'to build comprehension foundations through structured, supported reading.';
+      case 'Instructional':
+        return 'This student comprehends 50–74% of reading material. Phil-IRI '
+            'recommends Instructional-level reading passages and sentences '
+            'with guided comprehension support to strengthen understanding.';
+      case 'Independent':
+        return 'This student comprehends 75% or more of reading material. Phil-IRI '
+            'recommends Independent-level stories and enrichment reading '
+            'to develop higher-order comprehension and critical thinking.';
+      default:
+        return 'No comprehension assessment has been recorded yet.';
+    }
+  }
+
+  Widget _levelBadge(String level) {
+    final color = _levelColor(level);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_levelIcon(level), size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            level.isEmpty ? 'Not assessed' : level,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _guidanceCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String body,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: AppTheme.textSecondaryColor,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _practiceSetChip({
+    required String title,
+    required String gradelevel,
+    required String category,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: AppTheme.textPrimaryColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _smallTag(gradelevel, Colors.blueGrey),
+              _smallTag(category, color),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _smallTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPracticeSetSection({
+    required String sectionTitle,
+    required IconData icon,
+    required Color color,
+    required Future<List<Map<String, String>>> future,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              sectionTitle,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        FutureBuilder<List<Map<String, String>>>(
+          future: future,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              );
+            }
+
+            final sets = snap.data ?? [];
+
+            if (sets.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'No published practice sets available for this level.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              );
+            }
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.5,
+              ),
+              itemCount: sets.length,
+              itemBuilder: (context, i) => _practiceSetChip(
+                title: sets[i]['title'] ?? '',
+                gradelevel: sets[i]['gradelevel'] ?? '',
+                category: sets[i]['category'] ?? '',
+                color: color,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<List<Map<String, String>>> _fetchRecommendedWR(
+    String category,
+  ) async {
+    if (category.isEmpty) return [];
+    final snap = await _firestore
+        .collection('wordrecognitionpracticeset')
+        .where('sectionid', isEqualTo: widget.section.id)
+        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('category', isEqualTo: category)
+        .where('visibility', isEqualTo: 'View to Students')
+        .get();
+    return snap.docs.map((d) {
+      final m = d.data();
+      return {
+        'title': (m['title'] ?? '') as String,
+        'gradelevel': (m['gradelevel'] ?? '') as String,
+        'category': (m['category'] ?? '') as String,
+      };
+    }).toList();
+  }
+
+  Future<List<Map<String, String>>> _fetchRecommendedSentences(
+    String category,
+  ) async {
+    if (category.isEmpty) return [];
+    final snap = await _firestore
+        .collection('phrasesentencespracticeset')
+        .where('sectionid', isEqualTo: widget.section.id)
+        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('category', isEqualTo: category)
+        .where('visibility', isEqualTo: 'View to Students')
+        .get();
+    return snap.docs.map((d) {
+      final m = d.data();
+      return {
+        'title': (m['title'] ?? '') as String,
+        'gradelevel': (m['gradelevel'] ?? '') as String,
+        'category': (m['category'] ?? '') as String,
+      };
+    }).toList();
+  }
+
+  Future<List<Map<String, String>>> _fetchRecommendedStoryline(
+    String category,
+  ) async {
+    if (category.isEmpty) return [];
+    final snap = await _firestore
+        .collection('storylinepracticeset')
+        .where('sectionid', isEqualTo: widget.section.id)
+        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('category', isEqualTo: category)
+        .where('visibility', isEqualTo: 'View to Students')
+        .get();
+    return snap.docs.map((d) {
+      final m = d.data();
+      return {
+        'title': (m['practicesettitle'] ?? '') as String,
+        'gradelevel': (m['gradelevel'] ?? '') as String,
+        'category': (m['category'] ?? '') as String,
+      };
+    }).toList();
+  }
+
+  Widget _buildRecommendationsTab() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore
+          .collection('students')
+          .doc(widget.student.id)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final data =
+            (snapshot.data?.data() as Map<String, dynamic>?) ?? {};
+        final readlevel = (data['readlevel'] ?? '') as String;
+        final comprehensionresult =
+            (data['comprehensionresult'] ?? '') as String;
+        final gradelevelread = (data['gradelevelread'] ?? '') as String;
+
+        final wrColor = _levelColor(readlevel);
+        final compColor = _levelColor(comprehensionresult);
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ── Level Summary ────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Phil-IRI Reading Level Profile',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                  if (gradelevelread.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Grade Level Read: $gradelevelread',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Word Recognition',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                      _levelBadge(readlevel.isEmpty ? 'Not assessed' : readlevel),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Comprehension',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                      _levelBadge(
+                        comprehensionresult.isEmpty
+                            ? 'Not assessed'
+                            : comprehensionresult,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // ── Phil-IRI Guidance ─────────────────────────────────────────
+            if (readlevel.isNotEmpty)
+              _guidanceCard(
+                icon: _levelIcon(readlevel),
+                color: wrColor,
+                title: 'Word Recognition — ${_wrTitle(readlevel)}',
+                body: _wordReadingGuidance(readlevel),
+              ),
+
+            if (readlevel.isNotEmpty) const SizedBox(height: 10),
+
+            if (comprehensionresult.isNotEmpty)
+              _guidanceCard(
+                icon: _levelIcon(comprehensionresult),
+                color: compColor,
+                title: 'Comprehension — ${_compTitle(comprehensionresult)}',
+                body: _comprehensionGuidance(comprehensionresult),
+              ),
+
+            const SizedBox(height: 20),
+
+            // ── Recommended Practice Sets ────────────────────────────────
+            const Text(
+              'Recommended Practice Sets',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+                color: AppTheme.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Published sets in this section that match this student\'s reading level.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildPracticeSetSection(
+              sectionTitle: 'Word Recognition (${readlevel.isEmpty ? "Not assessed" : readlevel})',
+              icon: Icons.spellcheck,
+              color: wrColor,
+              future: _fetchRecommendedWR(readlevel),
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildPracticeSetSection(
+              sectionTitle: 'Phrases & Sentences (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
+              icon: Icons.short_text,
+              color: compColor,
+              future: _fetchRecommendedSentences(comprehensionresult),
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildPracticeSetSection(
+              sectionTitle: 'Storyline (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
+              icon: Icons.menu_book,
+              color: compColor,
+              future: _fetchRecommendedStoryline(comprehensionresult),
+            ),
+
+            const SizedBox(height: 24),
+          ],
+        );
+      },
+    );
+  }
+
+  String _wrTitle(String level) {
+    switch (level) {
+      case 'Frustration':
+        return 'Intensive Intervention';
+      case 'Instructional':
+        return 'Guided Practice';
+      case 'Independent':
+        return 'Enrichment';
+      default:
+        return '';
+    }
+  }
+
+  String _compTitle(String level) {
+    switch (level) {
+      case 'Frustration':
+        return 'Comprehension Intervention';
+      case 'Instructional':
+        return 'Guided Reading Support';
+      case 'Independent':
+        return 'Independent Enrichment';
+      default:
+        return '';
     }
   }
 

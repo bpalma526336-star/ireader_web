@@ -658,7 +658,7 @@ class _ManageWRPSState extends State<ManageWRPS> {
 class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _InfoChip({super.key, required this.icon, required this.label});
+  const _InfoChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {

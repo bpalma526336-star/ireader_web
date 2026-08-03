@@ -6,7 +6,6 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/practice_set/sentences/manage_sentence_ps.dart';
 import 'package:ireader_web/views/admin/practice_set/storyline/manage_storyline_ps.dart';
 import 'package:ireader_web/views/admin/practice_set/word_recognition/manage_wr_ps.dart';
-import 'dart:html' as html;
 
 class SelectPracticeSetScreen extends StatefulWidget {
   final Section section;

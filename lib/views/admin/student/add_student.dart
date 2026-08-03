@@ -4,7 +4,6 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/theme.dart';
-import 'package:ireader_web/views/admin/student/manage_student.dart';
 
 class AddStudentScreen extends StatefulWidget {
   final Student? student;

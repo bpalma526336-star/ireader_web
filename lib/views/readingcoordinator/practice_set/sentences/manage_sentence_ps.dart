@@ -4,7 +4,6 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/sentences.dart';
 import 'package:ireader_web/theme.dart';
-import 'package:ireader_web/views/readingcoordinator/practice_set/sentences/add_sentences.dart';
 import 'package:ireader_web/views/readingcoordinator/practice_set/sentences/edit_sentences.dart';
 
 class SentencePS extends StatefulWidget {

@@ -4,7 +4,6 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/storyline_practice_set.dart';
 import 'package:ireader_web/theme.dart';
-import 'package:ireader_web/views/readingcoordinator/practice_set/storyline/add_storyline_ps.dart';
 import 'package:ireader_web/views/readingcoordinator/practice_set/storyline/edit_storyline_ps.dart';
 
 class ManageSLPS extends StatefulWidget {

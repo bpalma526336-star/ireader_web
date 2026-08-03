@@ -4,7 +4,6 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/word_recognition.dart';
 import 'package:ireader_web/theme.dart';
-import 'package:ireader_web/views/readingcoordinator/practice_set/word_recognition/add_wr_ps.dart';
 import 'package:ireader_web/views/readingcoordinator/practice_set/word_recognition/edit_wr_ps.dart';
 
 class ManageWRPS extends StatefulWidget {
@@ -627,7 +626,7 @@ class _ManageWRPSState extends State<ManageWRPS> {
 class _InfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _InfoChip({super.key, required this.icon, required this.label});
+  const _InfoChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {

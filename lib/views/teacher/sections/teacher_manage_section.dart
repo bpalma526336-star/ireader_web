@@ -78,8 +78,9 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
             final level = _selectedReadType == 'Overall Result'
                 ? (data['readlevel'] ?? '')
                 : (data['comprehensionresult'] ?? '');
-            if (level == 'Frustration') frustration++;
-            else if (level == 'Instructional') instructional++;
+            if (level == 'Frustration') {
+              frustration++;
+            } else if (level == 'Instructional') instructional++;
             else if (level == 'Independent') independent++;
           }
           return {
@@ -588,12 +589,13 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: _viewPracticeSetButton(section),
+                Row(
+                  children: [
+                    Expanded(child: _viewPracticeSetButton(section)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _exportButton(section)),
+                  ],
                 ),
-                // Export button hidden
-                // Expanded(child: _exportButton(section)),
               ],
             ),
           ),
