@@ -3,6 +3,7 @@ import 'package:ireader_web/model/wr_record_questions.dart';
 class wr_record {
   final String id;
   final String studentid;
+  final String wrid;
   final String correctitems;
   final String incorrectitems;
   final String totalitems;
@@ -13,6 +14,7 @@ class wr_record {
   wr_record({
     required this.id,
     required this.studentid,
+    required this.wrid,
     required this.correctitems,
     required this.incorrectitems,
     required this.totalitems,
@@ -25,6 +27,7 @@ class wr_record {
     return wr_record(
       id: id,
       studentid: map['studentid'] ?? "",
+      wrid: map['wrid'] ?? "",
       correctitems: map['correctitems'] ?? "",
       incorrectitems: map['incorrectitems'] ?? "",
       totalitems: map['totalitems'] ?? "",
@@ -45,6 +48,7 @@ class wr_record {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     return {
       'studentid': studentid,
+      'wrid': wrid,
       'correctitems': correctitems,
       'incorrectitems': incorrectitems,
       'totalitems': totalitems,
@@ -65,6 +69,7 @@ class wr_record {
   wr_record copyWith({
     String? id,
     String? studentid,
+    String? wrid,
     String? correctitems,
     String? incorrectitems,
     String? totalitems,
@@ -75,6 +80,7 @@ class wr_record {
     return wr_record(
       id: id ?? this.id,
       studentid: studentid ?? this.studentid,
+      wrid: wrid ?? this.wrid,
       correctitems: correctitems ?? this.correctitems,
       incorrectitems: incorrectitems ?? this.incorrectitems,
       totalitems: totalitems ?? this.totalitems,

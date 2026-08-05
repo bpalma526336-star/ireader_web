@@ -3,6 +3,7 @@ import 'package:ireader_web/model/ps_record_questions.dart';
 class ps_record {
   final String id;
   final String studentid;
+  final String psid;
   final String correctitems;
   final String incorrectitems;
   final String totalitems;
@@ -13,6 +14,7 @@ class ps_record {
   ps_record({
     required this.id,
     required this.studentid,
+    required this.psid,
     required this.correctitems,
     required this.incorrectitems,
     required this.totalitems,
@@ -25,6 +27,7 @@ class ps_record {
     return ps_record(
       id: id,
       studentid: map['studentid'] ?? "",
+      psid: map['psid'] ?? "",
       correctitems: map['correctitems'] ?? "",
       incorrectitems: map['incorrectitems'] ?? "",
       totalitems: map['totalitems'] ?? "",
@@ -45,6 +48,7 @@ class ps_record {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     return {
       'studentid': studentid,
+      'psid': psid,
       'correctitems': correctitems,
       'incorrectitems': incorrectitems,
       'totalitems': totalitems,
@@ -65,6 +69,7 @@ class ps_record {
   ps_record copyWith({
     String? id,
     String? studentid,
+    String? psid,
     String? correctitems,
     String? incorrectitems,
     String? totalitems,
@@ -75,6 +80,7 @@ class ps_record {
     return ps_record(
       id: id ?? this.id,
       studentid: studentid ?? this.studentid,
+      psid: psid ?? this.psid,
       correctitems: correctitems ?? this.correctitems,
       incorrectitems: incorrectitems ?? this.incorrectitems,
       totalitems: totalitems ?? this.totalitems,

@@ -3,6 +3,7 @@ import 'package:ireader_web/model/sl_record_questions.dart';
 class sl_record {
   final String id;
   final String studentid;
+  final String slid;
   final String correctitems;
   final String incorrectitems;
   final String totalitems;
@@ -15,6 +16,7 @@ class sl_record {
   sl_record({
     required this.id,
     required this.studentid,
+    required this.slid,
     required this.correctitems,
     required this.incorrectitems,
     required this.totalitems,
@@ -29,6 +31,7 @@ class sl_record {
     return sl_record(
       id: id ?? "",
       studentid: map['studentid'] ?? "",
+      slid: map['slid'] ?? "",
       correctitems: map['correctitems'] ?? "",
       incorrectitems: map['incorrectitems'] ?? "",
       totalitems: map['totalitems'] ?? "",
@@ -51,6 +54,7 @@ class sl_record {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     return {
       'studentid': studentid,
+      'slid': slid,
       'correctitems': correctitems,
       'incorrectitems': incorrectitems,
       'totalitems': totalitems,
@@ -65,6 +69,7 @@ class sl_record {
   sl_record copyWith({
     String? id,
     String? studentid,
+    String? slid,
     String? correctitems,
     String? incorrectitems,
     String? totalitems,
@@ -77,6 +82,7 @@ class sl_record {
     return sl_record(
       id: id ?? this.id,
       studentid: studentid ?? this.studentid,
+      slid: slid ?? this.slid,
       correctitems: correctitems ?? this.correctitems,
       incorrectitems: incorrectitems ?? this.incorrectitems,
       totalitems: totalitems ?? this.totalitems,
