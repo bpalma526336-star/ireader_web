@@ -27,7 +27,11 @@ class sl_record {
     required this.slresultdetails,
   });
 
-  factory sl_record.fromMap(Map<String, dynamic> map, {String? id}) {
+  factory sl_record.fromMap(
+    Map<String, dynamic> map, {
+    // Map<String, dynamic> data,
+    String? id,
+  }) {
     return sl_record(
       id: id ?? "",
       studentid: map['studentid'] ?? "",

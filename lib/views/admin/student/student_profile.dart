@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/ps_record.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
+import 'package:ireader_web/model/sl_record.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/studentassessmentresult.dart';
 import 'package:ireader_web/model/studentoverallresult.dart';
 import 'package:ireader_web/model/studentreadingresult.dart';
+import 'package:ireader_web/model/wr_record.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/student/add_student_read_record.dart';
 import 'package:ireader_web/views/admin/student/add_student_read_record_dialog.dart';
@@ -186,7 +189,10 @@ Widget buildQuickChart(
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  int _selectedFilter = 0; // 0 = Reading Results, 1 = Comprehension, 2 = Overall
+  int _selectedFilter =
+      0; // 0 = Reading Results, 1 = Comprehension, 2 = Overall, 3 = Activities History
+  int _selectedPracticeset =
+      0; // 0 = Word Recognition, 1 = Phrase and Sentences, 2 = Storyline Adventure
 
   @override
   void initState() {
@@ -200,7 +206,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   ) async {
     final Map<String, String> titles = {};
     for (final result in results) {
-      titles[result.assessmentid] = await _getAssessmentName(result.assessmentid);
+      titles[result.assessmentid] = await _getAssessmentName(
+        result.assessmentid,
+      );
     }
     return titles;
   }
@@ -346,13 +354,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           _infoRow(
             icon: Icons.arrow_upward,
             label: "Highest Score",
-            value: "${insight.highestStage} (${insight.highest.toStringAsFixed(1)}%)",
+            value:
+                "${insight.highestStage} (${insight.highest.toStringAsFixed(1)}%)",
             color: Colors.green,
           ),
           _infoRow(
             icon: Icons.arrow_downward,
             label: "Lowest Score",
-            value: "${insight.lowestStage} (${insight.lowest.toStringAsFixed(1)}%)",
+            value:
+                "${insight.lowestStage} (${insight.lowest.toStringAsFixed(1)}%)",
             color: Colors.redAccent,
           ),
           _infoRow(
@@ -392,6 +402,308 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 
+  // -- Practice Set filter Buttons
+  Widget _buildPracticeSetButtons() {
+    final practiceSets = [
+      "Word Recognition",
+      "Phrase and Sentences",
+      "Storyline Adventure",
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(practiceSets.length, (index) {
+          final isSelected = _selectedPracticeset == index;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSelected
+                    ? AppTheme.primaryColor
+                    : Colors.white,
+                foregroundColor: isSelected
+                    ? Colors.white
+                    : AppTheme.textSecondaryColor,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                side: BorderSide(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : AppTheme.borderColor,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => setState(() => _selectedPracticeset = index),
+              child: Text(practiceSets[index]),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSelectedPracticeSet() {
+    final practiceSets = [
+      "Word Recognition",
+      "Phrase and Sentences",
+      "Storyline Adventure",
+    ];
+
+    Widget buildPracticeCard({
+      required String title,
+      required String subtitle,
+      required List<Widget> stats,
+      required String badge,
+      required Color badgeColor,
+    }) {
+      return _cardBox(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    badge,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: badgeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            Wrap(spacing: 16, runSpacing: 8, children: stats),
+          ],
+        ),
+      );
+    }
+
+    Widget buildResultList<T>(
+      Stream<QuerySnapshot> stream,
+      T Function(DocumentSnapshot doc) converter,
+      Widget Function(T item) builder,
+      String emptyMessage,
+    ) {
+      return StreamBuilder<QuerySnapshot>(
+        stream: stream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return _emptyState(emptyMessage);
+          }
+
+          final results = snapshot.data!.docs.map(converter).toList();
+
+          return ListView.separated(
+            padding: const EdgeInsets.only(bottom: 8),
+            itemCount: results.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) => builder(results[index]),
+          );
+        },
+      );
+    }
+
+    switch (_selectedPracticeset) {
+      case 0:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<wr_record>(
+                _firestore
+                    .collection('wr_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => wr_record.fromMap(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ),
+                (item) => buildPracticeCard(
+                  title: "Word Recognition Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.green,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No word recognition activities yet",
+              ),
+            ),
+          ],
+        );
+      case 1:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<ps_record>(
+                _firestore
+                    .collection('ps_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => ps_record.fromMap(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ),
+                (item) => buildPracticeCard(
+                  title: "Phrase & Sentences Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.blue,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No phrase and sentence activities yet",
+              ),
+            ),
+          ],
+        );
+      case 2:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<sl_record>(
+                _firestore
+                    .collection('sl_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => sl_record.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ),
+                (item) => buildPracticeCard(
+                  title: item.readingpassagetitle.isNotEmpty
+                      ? item.readingpassagetitle
+                      : "Storyline Adventure Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.purple,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No storyline adventure activities yet",
+              ),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox();
+    }
+  }
+
   // ── Filter chips ─────────────────────────────────────────────────────────────
 
   Widget _buildFilterButtons() {
@@ -399,6 +711,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       "Reading Results",
       "Comprehension Results",
       "Overall Results",
+      "Activities History",
     ];
 
     return SingleChildScrollView(
@@ -503,9 +816,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                                   ),
                                 ),
                               ),
-                              _readingLevelBadge(
-                                item.readinglevel.toString(),
-                              ),
+                              _readingLevelBadge(item.readinglevel.toString()),
                             ],
                           );
                         },
@@ -771,8 +1082,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 return FutureBuilder<String>(
                   future: _getAssessmentName(item.assessmentid),
                   builder: (context, snap) {
-                    final assessmentTitle =
-                        snap.data ?? "Unknown Assessment";
+                    final assessmentTitle = snap.data ?? "Unknown Assessment";
                     return _cardBox(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -795,9 +1105,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                                   ),
                                 ),
                               ),
-                              _readingLevelBadge(
-                                item.readlevel.toString(),
-                              ),
+                              _readingLevelBadge(item.readlevel.toString()),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -831,17 +1139,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           },
         );
 
+      case 3:
+        return _buildSelectedPracticeSet();
+
       default:
         return const SizedBox();
     }
   }
 
-  Widget _statChip(
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-  ) {
+  Widget _statChip(IconData icon, String label, String value, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1003,8 +1309,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 final gender = data['gender'] ?? '';
                 final readlevel = data['readlevel'] ?? '';
                 final status = data['status'] ?? '';
-                final initial =
-                    firstname.isNotEmpty ? firstname[0].toUpperCase() : '?';
+                final initial = firstname.isNotEmpty
+                    ? firstname[0].toUpperCase()
+                    : '?';
 
                 return _cardBox(
                   child: Row(
@@ -1056,10 +1363,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                               runSpacing: 4,
                               children: [
                                 _metaChip(Icons.badge_outlined, "LRN: $lrn"),
-                                _metaChip(
-                                  Icons.wc_outlined,
-                                  gender,
-                                ),
+                                _metaChip(Icons.wc_outlined, gender),
                                 _metaChip(
                                   Icons.class_outlined,
                                   widget.section.sectionname,

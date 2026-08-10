@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/ps_record.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
+import 'package:ireader_web/model/sl_record.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/studentassessmentresult.dart';
 import 'package:ireader_web/model/studentoverallresult.dart';
 import 'package:ireader_web/model/studentreadingresult.dart';
+import 'package:ireader_web/model/wr_record.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/students/add_student_read_record.dart';
 import 'package:ireader_web/views/teacher/students/add_student_read_record_dialog.dart';
@@ -266,9 +269,378 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   int _selectedFilter =
       0; // 0 = Profile, 1 = ReadLevel, 2 = ReadingResult, 3 = Assessment, 4 = History
 
+  int _selectedPracticeset =
+      0; // 0 = Word Recognition, 1 = Phrase and Sentences, 2 = Storyline Adventure
+
   @override
   void initState() {
     super.initState();
+  }
+
+  Widget _cardBox({required Widget child, EdgeInsets? padding}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      padding: padding ?? const EdgeInsets.all(20),
+      child: child,
+    );
+  }
+
+  Widget _sectionHeader(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppTheme.textPrimaryColor,
+      ),
+    );
+  }
+
+  Widget _statChip(IconData icon, String label, String value, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          "$label: ",
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppTheme.textSecondaryColor,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyState(String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPracticeSetButtons() {
+    final practiceSets = [
+      "Word Recognition",
+      "Phrase and Sentences",
+      "Storyline Adventure",
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(practiceSets.length, (index) {
+          final isSelected = _selectedPracticeset == index;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSelected
+                    ? AppTheme.primaryColor
+                    : Colors.white,
+                foregroundColor: isSelected
+                    ? Colors.white
+                    : AppTheme.textSecondaryColor,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                side: BorderSide(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : AppTheme.borderColor,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => setState(() => _selectedPracticeset = index),
+              child: Text(practiceSets[index]),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSelectedPracticeSet() {
+    final practiceSets = [
+      "Word Recognition",
+      "Phrase and Sentences",
+      "Storyline Adventure",
+    ];
+
+    Widget buildPracticeCard({
+      required String title,
+      required String subtitle,
+      required List<Widget> stats,
+      required String badge,
+      required Color badgeColor,
+    }) {
+      return _cardBox(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    badge,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: badgeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            Wrap(spacing: 16, runSpacing: 8, children: stats),
+          ],
+        ),
+      );
+    }
+
+    Widget buildResultList<T>(
+      Stream<QuerySnapshot> stream,
+      T Function(DocumentSnapshot doc) converter,
+      Widget Function(T item) builder,
+      String emptyMessage,
+    ) {
+      return StreamBuilder<QuerySnapshot>(
+        stream: stream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return _emptyState(emptyMessage);
+          }
+
+          final results = snapshot.data!.docs.map(converter).toList();
+
+          return ListView.separated(
+            padding: const EdgeInsets.only(bottom: 8),
+            itemCount: results.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) => builder(results[index]),
+          );
+        },
+      );
+    }
+
+    switch (_selectedPracticeset) {
+      case 0:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<wr_record>(
+                _firestore
+                    .collection('wr_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => wr_record.fromMap(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ),
+                (item) => buildPracticeCard(
+                  title: "Word Recognition Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.green,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No word recognition activities yet",
+              ),
+            ),
+          ],
+        );
+      case 1:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<ps_record>(
+                _firestore
+                    .collection('ps_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => ps_record.fromMap(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ),
+                (item) => buildPracticeCard(
+                  title: "Phrase & Sentences Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.blue,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No phrase and sentence activities yet",
+              ),
+            ),
+          ],
+        );
+      case 2:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader("Activities History"),
+            const SizedBox(height: 12),
+            _buildPracticeSetButtons(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: buildResultList<sl_record>(
+                _firestore
+                    .collection('sl_record_results')
+                    .where('studentid', isEqualTo: widget.student.id)
+                    .snapshots(),
+                (doc) => sl_record.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ),
+                (item) => buildPracticeCard(
+                  title: item.readingpassagetitle.isNotEmpty
+                      ? item.readingpassagetitle
+                      : "Storyline Adventure Practice",
+                  subtitle: "Completed: ${item.timestamp}",
+                  badge: "${item.resultpercentage}%",
+                  badgeColor: Colors.purple,
+                  stats: [
+                    _statChip(
+                      Icons.check_circle_outlined,
+                      "Correct",
+                      item.correctitems,
+                      Colors.green,
+                    ),
+                    _statChip(
+                      Icons.cancel_outlined,
+                      "Incorrect",
+                      item.incorrectitems,
+                      Colors.redAccent,
+                    ),
+                    _statChip(
+                      Icons.list_alt,
+                      "Total",
+                      item.totalitems,
+                      AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+                "No storyline adventure activities yet",
+              ),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox();
+    }
   }
 
   Widget _infoRow({
@@ -442,6 +814,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       "Comprehension Results",
       "Overall Results",
       "Recommendations",
+      "Activities History",
     ];
 
     return SingleChildScrollView(
@@ -987,6 +1360,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       case 3:
         return _buildRecommendationsTab();
 
+      case 4:
+        return _buildSelectedPracticeSet();
+
       default:
         return const SizedBox();
     }
@@ -1269,9 +1645,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 
-  Future<List<Map<String, String>>> _fetchRecommendedWR(
-    String category,
-  ) async {
+  Future<List<Map<String, String>>> _fetchRecommendedWR(String category) async {
     if (category.isEmpty) return [];
     final snap = await _firestore
         .collection('wordrecognitionpracticeset')
@@ -1343,8 +1717,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data =
-            (snapshot.data?.data() as Map<String, dynamic>?) ?? {};
+        final data = (snapshot.data?.data() as Map<String, dynamic>?) ?? {};
         final readlevel = (data['readlevel'] ?? '') as String;
         final comprehensionresult =
             (data['comprehensionresult'] ?? '') as String;
@@ -1397,7 +1770,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                           ),
                         ),
                       ),
-                      _levelBadge(readlevel.isEmpty ? 'Not assessed' : readlevel),
+                      _levelBadge(
+                        readlevel.isEmpty ? 'Not assessed' : readlevel,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1467,7 +1842,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 16),
 
             _buildPracticeSetSection(
-              sectionTitle: 'Word Recognition (${readlevel.isEmpty ? "Not assessed" : readlevel})',
+              sectionTitle:
+                  'Word Recognition (${readlevel.isEmpty ? "Not assessed" : readlevel})',
               icon: Icons.spellcheck,
               color: wrColor,
               future: _fetchRecommendedWR(readlevel),
@@ -1476,7 +1852,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 16),
 
             _buildPracticeSetSection(
-              sectionTitle: 'Phrases & Sentences (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
+              sectionTitle:
+                  'Phrases & Sentences (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
               icon: Icons.short_text,
               color: compColor,
               future: _fetchRecommendedSentences(comprehensionresult),
@@ -1485,7 +1862,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 16),
 
             _buildPracticeSetSection(
-              sectionTitle: 'Storyline (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
+              sectionTitle:
+                  'Storyline (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
               icon: Icons.menu_book,
               color: compColor,
               future: _fetchRecommendedStoryline(comprehensionresult),
