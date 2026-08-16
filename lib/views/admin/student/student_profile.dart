@@ -37,9 +37,9 @@ class StudentProfileScreen extends StatefulWidget {
 class CompInsights {
   final double average;
   final double highest;
-  final double lowest;
+  final double? lowest;
   final String highestStage;
-  final String lowestStage;
+  final String? lowestStage;
   final bool improving;
 
   CompInsights({
@@ -79,9 +79,9 @@ CompInsights buildInsights(
     return CompInsights(
       average: 0,
       highest: 0,
-      lowest: 0,
+      lowest: null,
       highestStage: "-",
-      lowestStage: "-",
+      lowestStage: null,
       improving: false,
     );
   }
@@ -94,19 +94,27 @@ CompInsights buildInsights(
       .map((e) => assessmentTitles[e.assessmentid] ?? "")
       .toList();
 
+  // Find highest score
   double highest = scores.first;
-  double lowest = scores.first;
   int highestIndex = 0;
-  int lowestIndex = 0;
 
-  for (int i = 0; i < scores.length; i++) {
+  for (int i = 1; i < scores.length; i++) {
     if (scores[i] > highest) {
       highest = scores[i];
       highestIndex = i;
     }
-    if (scores[i] < lowest) {
-      lowest = scores[i];
-      lowestIndex = i;
+  }
+
+  // Find the lowest score that is STRICTLY lower than the highest.
+  double? lowest;
+  int? lowestIndex;
+
+  for (int i = 0; i < scores.length; i++) {
+    if (scores[i] < highest) {
+      if (lowest == null || scores[i] < lowest!) {
+        lowest = scores[i];
+        lowestIndex = i;
+      }
     }
   }
 
@@ -117,7 +125,7 @@ CompInsights buildInsights(
     highest: highest,
     lowest: lowest,
     highestStage: stages[highestIndex],
-    lowestStage: stages[lowestIndex],
+    lowestStage: lowestIndex != null ? stages[lowestIndex] : null,
     improving: scores.last >= scores.first,
   );
 }
@@ -361,8 +369,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           _infoRow(
             icon: Icons.arrow_downward,
             label: "Lowest Score",
-            value:
-                "${insight.lowestStage} (${insight.lowest.toStringAsFixed(1)}%)",
+            value: insight.lowest == null || insight.lowestStage == null
+                ? "No lowest score"
+                : "${insight.lowestStage} (${insight.lowest!.toStringAsFixed(1)}%)",
             color: Colors.redAccent,
           ),
           _infoRow(
