@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/core/firestore_collections.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
@@ -20,6 +22,9 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
   late TextEditingController emailController;
 
   bool _isLoading = false;
+  List<School> _schools = [];
+  String? _selectedSchoolId;
+  bool _loadingSchools = true;
 
   @override
   void initState() {
@@ -34,6 +39,8 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
       text: widget.teacher?.lastname ?? '',
     );
     emailController = TextEditingController(text: widget.teacher?.email ?? '');
+    _selectedSchoolId = widget.teacher?.schoolid;
+    _loadSchools();
   }
 
   @override
@@ -43,6 +50,18 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     lastnameController.dispose();
     emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSchools() async {
+    final snap = await _firestore
+        .collection(FirestoreCollections.schools)
+        .where('status', isEqualTo: 'ACTIVE')
+        .get();
+    if (!mounted) return;
+    setState(() {
+      _schools = snap.docs.map((d) => School.fromMap(d.id, d.data())).toList();
+      _loadingSchools = false;
+    });
   }
 
   Future<void> _saveTeacher() async {
@@ -111,6 +130,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                 lastname: lastnameController.text.trim(),
                 email: emailController.text.trim(),
                 status: 'ACTIVE',
+                schoolid: _selectedSchoolId,
               ).toMap(),
             );
 
@@ -130,6 +150,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
               : middlenameController.text.trim(),
           lastname: lastnameController.text.trim(),
           email: emailController.text.trim(),
+          schoolid: _selectedSchoolId,
         );
 
         Map<String, dynamic> updateData = teacherUpdate.toMap();
@@ -245,6 +266,23 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                   validator: (value) =>
                       value == null || value.isEmpty ? "Enter email" : null,
                 ),
+
+                const SizedBox(height: 16),
+
+                _loadingSchools
+                    ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+                    : DropdownButtonFormField<String>(
+                        value: _selectedSchoolId,
+                        decoration: const InputDecoration(
+                          labelText: 'School (Optional)',
+                          prefixIcon: Icon(Icons.school_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('— No school assigned —')),
+                          ..._schools.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))),
+                        ],
+                        onChanged: (v) => setState(() => _selectedSchoolId = v),
+                      ),
 
                 const SizedBox(height: 24),
 

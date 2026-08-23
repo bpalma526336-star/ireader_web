@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/views/admin/admin/manage_admin.dart';
 import 'package:ireader_web/views/admin/admindashboard.dart';
+import 'package:ireader_web/views/admin/division/manage_division.dart';
 import 'package:ireader_web/views/admin/readingcoordinator/manage_rc.dart';
+import 'package:ireader_web/views/admin/school/manage_school.dart';
 import 'package:ireader_web/views/admin/schoolyear/manage_schoolyear.dart';
 import 'package:ireader_web/views/admin/teacher/manage_teacher.dart';
 
-enum AdminRoute { dashboard, schoolYears, admins, readingCoordinators, teachers }
+enum AdminRoute { dashboard, schoolYears, divisions, schools, admins, readingCoordinators, teachers }
 
 class AdminSidebar extends StatelessWidget {
   final AdminRoute activeRoute;
@@ -115,6 +117,8 @@ class AdminSidebar extends StatelessWidget {
           const SizedBox(height: 6),
           _navItem(context, 'D', 'Dashboard', AdminRoute.dashboard, const AdminDashboard()),
           _navItem(context, 'Y', 'School Years', AdminRoute.schoolYears, const ManageSchoolyearScreen()),
+          _navItem(context, 'V', 'Divisions', AdminRoute.divisions, const ManageDivisionScreen()),
+          _navItem(context, 'S', 'Schools', AdminRoute.schools, const ManageSchoolScreen()),
           _navItem(context, 'A', 'Admins', AdminRoute.admins, const ManageAdminScreen()),
           _navItem(context, 'R', 'Reading Coords', AdminRoute.readingCoordinators, const ManageRcScreen()),
           _navItem(context, 'T', 'Teachers', AdminRoute.teachers, const ManageTeacherScreen()),

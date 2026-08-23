@@ -5,6 +5,7 @@ class RC {
   final String lastname;
   final String email;
   final String status;
+  final String? divisionid;
 
   RC({
     required this.id,
@@ -13,6 +14,7 @@ class RC {
     required this.lastname,
     required this.email,
     required this.status,
+    this.divisionid,
   });
 
   factory RC.fromMap(String id, Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class RC {
       lastname: map['lastname'] ?? "",
       email: map['email'] ?? "",
       status: map['status'] ?? "",
+      divisionid: map['divisionid'],
     );
   }
 
@@ -33,6 +36,7 @@ class RC {
       'lastname': lastname,
       'email': email,
       'status': status,
+      'divisionid': divisionid,
     };
   }
 
@@ -42,6 +46,7 @@ class RC {
     String? lastname,
     String? email,
     String? status,
+    String? divisionid,
   }) {
     return RC(
       id: id,
@@ -50,6 +55,7 @@ class RC {
       lastname: lastname ?? this.lastname,
       email: email ?? this.email,
       status: status ?? this.status,
+      divisionid: divisionid ?? this.divisionid,
     );
   }
 }

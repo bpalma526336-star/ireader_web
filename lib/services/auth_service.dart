@@ -12,16 +12,22 @@ class AuthSession {
   final UserRole role;
   final Teacher? teacher;
   final SchoolYear? schoolYear;
+  final String? divisionId;
 
-  const AuthSession.admin() : role = UserRole.admin, teacher = null, schoolYear = null;
+  const AuthSession.admin()
+    : role = UserRole.admin,
+      teacher = null,
+      schoolYear = null,
+      divisionId = null;
 
-  const AuthSession.readingCoordinator()
+  const AuthSession.readingCoordinator({this.divisionId})
     : role = UserRole.readingCoordinator,
       teacher = null,
       schoolYear = null;
 
   const AuthSession.teacher({required this.teacher, required this.schoolYear})
-    : role = UserRole.teacher;
+    : role = UserRole.teacher,
+      divisionId = null;
 }
 
 class AuthService {
@@ -130,7 +136,8 @@ class AuthService {
         await _auth.signOut();
         throw Exception('Account inactive.');
       }
-      return const AuthSession.readingCoordinator();
+      final divisionId = rcQuery.docs.first.data()['divisionid'] as String?;
+      return AuthSession.readingCoordinator(divisionId: divisionId);
     }
 
     await _auth.signOut();

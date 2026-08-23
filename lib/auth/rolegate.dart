@@ -79,7 +79,7 @@ class _RoleGateState extends State<RoleGate> {
           case UserRole.admin:
             return const AdminDashboard();
           case UserRole.readingCoordinator:
-            return const RCDashboard();
+            return RCDashboard(divisionId: session.divisionId);
           case UserRole.teacher:
             if (session.teacher == null || session.schoolYear == null) {
               AuthService.lastErrorMessage = "Incomplete teacher profile. Please contact your administrator.";

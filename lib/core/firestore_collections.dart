@@ -13,4 +13,6 @@ abstract final class FirestoreCollections {
   static const wordRecognitionPracticeSet = 'wordrecognitionpracticeset';
   static const phraseSentencesPracticeSet = 'phrasesentencespracticeset';
   static const storylinePracticeSet = 'storylinepracticeset';
+  static const divisions = 'divisions';
+  static const schools = 'schools';
 }

@@ -8,7 +8,8 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
 
 class RCDashboard extends StatefulWidget {
-  const RCDashboard({super.key});
+  final String? divisionId;
+  const RCDashboard({super.key, this.divisionId});
 
   @override
   State<RCDashboard> createState() => _RCDashboardState();

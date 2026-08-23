@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/core/firestore_collections.dart';
+import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/theme.dart';
 
@@ -20,6 +22,9 @@ class _AddRcDialogState extends State<AddRcDialog> {
   late TextEditingController emailController;
 
   bool _isLoading = false;
+  List<Division> _divisions = [];
+  String? _selectedDivisionId;
+  bool _loadingDivisions = true;
 
   @override
   void initState() {
@@ -32,6 +37,8 @@ class _AddRcDialogState extends State<AddRcDialog> {
     );
     lastnameController = TextEditingController(text: widget.rc?.lastname ?? '');
     emailController = TextEditingController(text: widget.rc?.email ?? '');
+    _selectedDivisionId = widget.rc?.divisionid;
+    _loadDivisions();
   }
 
   @override
@@ -41,6 +48,18 @@ class _AddRcDialogState extends State<AddRcDialog> {
     lastnameController.dispose();
     emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDivisions() async {
+    final snap = await _firestore
+        .collection(FirestoreCollections.divisions)
+        .where('status', isEqualTo: 'ACTIVE')
+        .get();
+    if (!mounted) return;
+    setState(() {
+      _divisions = snap.docs.map((d) => Division.fromMap(d.id, d.data())).toList();
+      _loadingDivisions = false;
+    });
   }
 
   Future<void> _saveRC() async {
@@ -115,6 +134,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
                 lastname: lastnameController.text.trim(),
                 email: emailController.text.trim(),
                 status: 'ACTIVE',
+                divisionid: _selectedDivisionId,
               ).toMap(),
             );
 
@@ -134,6 +154,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
               'middlename': middlenameController.text.trim(),
               'lastname': lastnameController.text.trim(),
               'email': emailController.text.trim(),
+              'divisionid': _selectedDivisionId,
             });
 
         if (!mounted) return;
@@ -156,7 +177,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -241,6 +262,23 @@ class _AddRcDialogState extends State<AddRcDialog> {
                   validator: (value) =>
                       value == null || value.isEmpty ? "Enter email" : null,
                 ),
+
+                const SizedBox(height: 16),
+
+                _loadingDivisions
+                    ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+                    : DropdownButtonFormField<String>(
+                        value: _selectedDivisionId,
+                        decoration: const InputDecoration(
+                          labelText: 'Division (Optional)',
+                          prefixIcon: Icon(Icons.account_tree_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('— No division assigned —')),
+                          ..._divisions.map((d) => DropdownMenuItem(value: d.id, child: Text(d.name))),
+                        ],
+                        onChanged: (v) => setState(() => _selectedDivisionId = v),
+                      ),
 
                 const SizedBox(height: 32),
 

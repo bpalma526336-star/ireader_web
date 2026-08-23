@@ -5,6 +5,7 @@ class Teacher {
   final String lastname;
   final String email;
   final String status;
+  final String? schoolid;
 
   Teacher({
     required this.id,
@@ -13,6 +14,7 @@ class Teacher {
     required this.lastname,
     required this.email,
     required this.status,
+    this.schoolid,
   });
 
   factory Teacher.fromMap(String id, Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class Teacher {
       lastname: map['lastname'] ?? "",
       email: map['email'] ?? "",
       status: map['status'] ?? "",
+      schoolid: map['schoolid'],
     );
   }
 
@@ -33,6 +36,7 @@ class Teacher {
       'lastname': lastname,
       'email': email,
       'status': status,
+      'schoolid': schoolid,
     };
   }
 
@@ -42,6 +46,7 @@ class Teacher {
     String? lastname,
     String? email,
     String? status,
+    String? schoolid,
   }) {
     return Teacher(
       id: id,
@@ -50,6 +55,7 @@ class Teacher {
       lastname: lastname ?? this.lastname,
       email: email ?? this.email,
       status: status ?? this.status,
+      schoolid: schoolid ?? this.schoolid,
     );
   }
 }
