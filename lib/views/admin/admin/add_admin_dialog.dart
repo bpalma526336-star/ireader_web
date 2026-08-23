@@ -60,6 +60,7 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
             .get();
 
         if (emailCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("An Admin with this email already exists."),
@@ -84,6 +85,7 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Admin with same details already exists."),
@@ -114,6 +116,7 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Admin added successfully!"),
@@ -130,6 +133,7 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
           'email': emailController.text.trim(),
         });
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Admin updated successfully!"),
@@ -138,8 +142,10 @@ class _AddAdminDialogState extends State<AddAdminDialog> {
         );
       }
 
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

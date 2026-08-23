@@ -130,7 +130,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
       final updateQuiz = widget.assessment.copywith(
         assessmenttitle: selectedassessmenttitle,
         visibility: selectedvisibility,
-        timelimit: int.parse(timelimitcontroller.text.trim()),
+        timelimit: int.tryParse(timelimitcontroller.text.trim()) ?? 0,
         date: datecontroller.text.trim(),
         accesscode: accesscodecontroller.text.trim(),
         readingpassagetitle: titlereadingController.text.trim(),

@@ -52,6 +52,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     gstscorecontroller = TextEditingController(
       text: widget.student?.gstscore ?? '',
     );
+    gendercontroller = TextEditingController(
+      text: widget.student?.gender ?? '',
+    );
 
     selectedgender =
         widget.student?.gender; // Set the gender if updating a student
@@ -118,6 +121,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             .doc(widget.student!.id)
             .update(updateData);
 
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Student updated successfully")));
@@ -180,6 +184,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -194,7 +199,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       }
     } catch (e, stack) {
       // Handle any errors
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -210,9 +215,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   @override
   void dispose() {
     _firstnamecontroller.dispose();
+    _middlenamecontroller.dispose();
     _lastnamecontroller.dispose();
     lrncontroller.dispose();
     gstscorecontroller.dispose();
+    gendercontroller.dispose();
     super.dispose();
   }
 

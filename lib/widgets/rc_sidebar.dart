@@ -33,7 +33,7 @@ class RCSidebar extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     html.window.history.pushState(null, '', '');
-    html.window.onPopState.listen((_) {
+    final sub = html.window.onPopState.listen((_) {
       html.window.history.pushState(null, '', '');
     });
     if (context.mounted) {
@@ -43,6 +43,7 @@ class RCSidebar extends StatelessWidget {
         (_) => false,
       );
     }
+    await sub.cancel();
   }
 
   @override

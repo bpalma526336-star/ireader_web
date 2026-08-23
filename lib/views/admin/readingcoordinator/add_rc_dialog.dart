@@ -57,6 +57,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
             .get();
 
         if (emailCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -83,6 +84,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -116,6 +118,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Reading Coordinator added successfully!"),
@@ -133,6 +136,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
               'email': emailController.text.trim(),
             });
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Reading Coordinator updated successfully!"),
@@ -141,8 +145,10 @@ class _AddRcDialogState extends State<AddRcDialog> {
         );
       }
 
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

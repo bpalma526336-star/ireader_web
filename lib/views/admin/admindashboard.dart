@@ -70,7 +70,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return;
     }
     final years = snap.docs.map((d) => SchoolYear.fromMap(d.id, d.data())).toList();
-    years.sort((a, b) => int.parse(a.schoolyearstart).compareTo(int.parse(b.schoolyearstart)));
+    years.sort((a, b) => (int.tryParse(a.schoolyearstart) ?? 0).compareTo(int.tryParse(b.schoolyearstart) ?? 0));
     _startYear = years.first;
     _endYear = years.last;
     _startYearId = _startYear!.id;
@@ -1119,7 +1119,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     years: schoolYears,
                                     onChanged: (v) => setState(() {
                                       _startYearId = v;
-                                      _startYear = schoolYears.firstWhere((s) => s.id == v);
+                                      _startYear = schoolYears.firstWhere(
+                                        (s) => s.id == v,
+                                        orElse: () => schoolYears.first,
+                                      );
                                     }),
                                   ),
                                 ),
@@ -1131,7 +1134,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     years: schoolYears,
                                     onChanged: (v) => setState(() {
                                       _endYearId = v;
-                                      _endYear = schoolYears.firstWhere((s) => s.id == v);
+                                      _endYear = schoolYears.firstWhere(
+                                        (s) => s.id == v,
+                                        orElse: () => schoolYears.last,
+                                      );
                                     }),
                                   ),
                                 ),

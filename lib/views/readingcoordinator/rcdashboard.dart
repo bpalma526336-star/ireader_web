@@ -90,7 +90,7 @@ class _RCDashboardState extends State<RCDashboard> {
         .toList();
     years.sort(
       (a, b) =>
-          int.parse(a.schoolyearstart).compareTo(int.parse(b.schoolyearstart)),
+          (int.tryParse(a.schoolyearstart) ?? 0).compareTo(int.tryParse(b.schoolyearstart) ?? 0),
     );
     _startYear = years.first;
     _endYear = years.last;
@@ -1747,6 +1747,7 @@ class _RCDashboardState extends State<RCDashboard> {
                                       _startYearId = v;
                                       _startYear = schoolYears.firstWhere(
                                         (s) => s.id == v,
+                                        orElse: () => schoolYears.first,
                                       );
                                     }),
                                   ),
@@ -1761,6 +1762,7 @@ class _RCDashboardState extends State<RCDashboard> {
                                       _endYearId = v;
                                       _endYear = schoolYears.firstWhere(
                                         (s) => s.id == v,
+                                        orElse: () => schoolYears.last,
                                       );
                                     }),
                                   ),

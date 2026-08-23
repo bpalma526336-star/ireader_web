@@ -59,6 +59,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
             .get();
 
         if (emailCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("A teacher with this email already exists."),
@@ -81,6 +82,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Teacher with same name already exists."),
@@ -112,6 +114,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Teacher added successfully!"),
@@ -140,6 +143,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
             .doc(widget.teacher!.id)
             .update(updateData);
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Teacher updated successfully!"),
@@ -148,8 +152,10 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
         );
       }
 
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

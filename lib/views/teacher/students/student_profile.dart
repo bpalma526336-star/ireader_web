@@ -203,7 +203,7 @@ Widget buildQuickChart(
 ) {
   final labels = results.map((e) => titles[e.assessmentid] ?? "").toList();
 
-  final scores = results.map((e) => double.parse(e.resultpercentage)).toList();
+  final scores = results.map((e) => double.tryParse(e.resultpercentage) ?? 0.0).toList();
 
   final chart = {
     "type": "bar",

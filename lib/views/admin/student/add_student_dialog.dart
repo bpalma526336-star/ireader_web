@@ -118,6 +118,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
             .doc(widget.student!.id)
             .update(updateData);
 
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Student updated successfully")));
@@ -180,6 +181,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -194,7 +196,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       }
     } catch (e, stack) {
       // Handle any errors
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -210,6 +212,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
   @override
   void dispose() {
     _firstnamecontroller.dispose();
+    _middlenamecontroller.dispose();
     _lastnamecontroller.dispose();
     lrncontroller.dispose();
     gstscorecontroller.dispose();

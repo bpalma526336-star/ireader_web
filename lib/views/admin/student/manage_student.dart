@@ -48,11 +48,13 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
         .collection('teachers')
         .doc(widget.section.teacherid)
         .get();
-    if (teacherSnapshot.exists) {
+    if (teacherSnapshot.exists && mounted) {
       final d = teacherSnapshot.data()!;
       setState(() {
-        _teacherName =
-            "${d['firstname']} ${d['middlename']} ${d['lastname']}";
+        final middle = (d['middlename'] as String?) ?? '';
+        _teacherName = middle.isEmpty
+            ? "${d['firstname']} ${d['lastname']}"
+            : "${d['firstname']} $middle ${d['lastname']}";
       });
     }
   }

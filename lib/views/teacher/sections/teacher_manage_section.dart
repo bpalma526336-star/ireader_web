@@ -117,7 +117,12 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
 
     final teacherSnap = await _firestore.collection('teachers').doc(section.teacherid).get();
     final teacherName = teacherSnap.exists
-        ? '${teacherSnap['firstname']} ${teacherSnap['middlename']} ${teacherSnap['lastname']}'
+        ? () {
+            final middle = (teacherSnap['middlename'] as String?) ?? '';
+            return middle.isEmpty
+                ? '${teacherSnap['firstname']} ${teacherSnap['lastname']}'
+                : '${teacherSnap['firstname']} $middle ${teacherSnap['lastname']}';
+          }()
         : 'Unknown';
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
@@ -317,7 +322,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               html.window.history.pushState(null, '', '');
-              html.window.onPopState.listen((event) {
+              final sub = html.window.onPopState.listen((event) {
                 html.window.history.pushState(null, '', '');
               });
               if (!mounted) return;
@@ -326,6 +331,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (Route<dynamic> route) => false,
               );
+              await sub.cancel();
             },
           ),
         ],

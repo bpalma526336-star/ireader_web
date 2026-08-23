@@ -85,30 +85,24 @@ class _AddStudentReadRecordDialogState
   }
 
   int calculatetotalread() {
+    if (_assessmentTotalWords == 0) return 0;
     double totalwordsread = _assessmentTotalWords.toDouble();
     double totalmiscues = double.tryParse(_totalmiscuescontroller.text) ?? 0.0;
     double result = ((totalwordsread - totalmiscues) / totalwordsread) * 100;
-    int percentageresult = result.round();
-
-    return percentageresult;
+    return result.round();
   }
 
   String calculatereadingresultpercentage() {
+    if (_assessmentTotalWords == 0) return "Frustration";
     double totalwordsread = _assessmentTotalWords.toDouble();
     double totalmiscues = double.tryParse(_totalmiscuescontroller.text) ?? 0.0;
 
-    double result = ((totalwordsread - totalmiscues) / totalwordsread) * 100;
+    int percentageresult =
+        (((totalwordsread - totalmiscues) / totalwordsread) * 100).round();
 
-    int percentageresult = result.round();
-
-    if (percentageresult >= 97) {
-      return "Independent";
-    }
-    if (percentageresult >= 90) {
-      return "Instructional";
-    } else {
-      return "Frustration";
-    }
+    if (percentageresult >= 97) return "Independent";
+    if (percentageresult >= 90) return "Instructional";
+    return "Frustration";
   }
 
   Future<void> SaveReadingRecord() async {
@@ -360,6 +354,7 @@ class _AddStudentReadRecordDialogState
 
                           final selectedAssessment = _assessments.firstWhere(
                             (doc) => doc.id == value,
+                            orElse: () => _assessments.first,
                           );
 
                           final data =

@@ -131,7 +131,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
       final updateQuiz = widget.assessment.copywith(
         assessmenttitle: selectedassessmenttitle,
         visibility: selectedvisibility,
-        timelimit: int.parse(timelimitcontroller.text.trim()),
+        timelimit: int.tryParse(timelimitcontroller.text.trim()) ?? 0,
         date: datecontroller.text.trim(),
         accesscode: accesscodecontroller.text.trim(),
         readingpassagetitle: titlereadingController.text.trim(),
@@ -145,21 +145,13 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
           .doc(widget.assessment.id)
           .update(updateQuiz.toMap(isUpdate: true));
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Assessment Updated Successfully")),
       );
       Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Assessment update successfully",
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: AppTheme.secondaryColor,
-        ),
-      );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -170,9 +162,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

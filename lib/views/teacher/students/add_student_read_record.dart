@@ -355,6 +355,7 @@ class _AddStudentReadRecordScreenState
 
                       final selectedAssessment = _assessments.firstWhere(
                         (doc) => doc.id == value,
+                        orElse: () => _assessments.first,
                       );
 
                       final data =

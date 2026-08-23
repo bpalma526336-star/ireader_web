@@ -75,6 +75,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
   @override
   void dispose() {
     _assessmenttitlecontroller.dispose();
+    _visibilityController.dispose();
     _titlereadingpassagecontroller.dispose();
     _readingpassagecontentcontroller.dispose();
     _timelimit.dispose();
