@@ -1,21 +1,20 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
+import 'package:ireader_web/widgets/teacher_sidebar.dart';
+import 'package:ireader_web/widgets/teacher_top_header.dart';
 import 'package:ireader_web/views/teacher/assessments/viewassessment.dart';
 import 'package:ireader_web/views/teacher/practice_set/select_practice_set.dart';
 import 'package:ireader_web/views/teacher/students/manage_student.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
-import 'dart:html' as html;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:io';
@@ -35,6 +34,7 @@ class TeacherManageSection extends StatefulWidget {
 }
 
 class _TeacherManageSectionState extends State<TeacherManageSection> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<String> studentreads = ['Overall Result', 'Comprehension Result'];
   String _selectedReadType = 'Overall Result';
@@ -207,162 +207,6 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       await file.writeAsBytes(bytes, flush: true);
       OpenFile.open(filePath);
     }
-  }
-
-  // ─── TOP BAR ────────────────────────────────────────────────
-  Widget _buildTopBar() {
-    final teacherName = '${widget.teacher.firstname} ${widget.teacher.lastname}'
-        .trim();
-    return Container(
-      padding: const EdgeInsets.fromLTRB(28, 0, 24, 0),
-      height: 64,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppTheme.borderColor)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Logo / brand mark
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Center(
-              child: Text(
-                'iR',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'iReader',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimaryColor,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text(
-              'Teacher',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-          ),
-          const Spacer(),
-          // Teacher info chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppTheme.backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderColor),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      widget.teacher.firstname.isNotEmpty
-                          ? widget.teacher.firstname[0].toUpperCase()
-                          : 'T',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      teacherName,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                    Text(
-                      'SY ${widget.schoolyear.schoolyearstart}-${widget.schoolyear.schoolyearend}',
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Logout
-          TextButton.icon(
-            icon: const Icon(Icons.logout, size: 15, color: Color(0xFFDC2626)),
-            label: const Text(
-              'Log Out',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFFDC2626),
-              ),
-            ),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              backgroundColor: const Color(0xFFFFF1F1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              html.window.history.pushState(null, '', '');
-              final sub = html.window.onPopState.listen((event) {
-                html.window.history.pushState(null, '', '');
-              });
-              if (!mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (Route<dynamic> route) => false,
-              );
-              await sub.cancel();
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   // ─── RESULT TOGGLE ──────────────────────────────────────────
@@ -846,145 +690,171 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
   // ─── BUILD ───────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: Column(
-        children: [
-          _buildTopBar(),
+    final isDesktop = MediaQuery.of(context).size.width > 900;
 
-          // Page title + toggle toolbar
-          Container(
-            padding: const EdgeInsets.fromLTRB(28, 14, 24, 14),
-            color: Colors.white,
-            child: Row(
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: AppTheme.backgroundColor,
+      drawer: isDesktop
+          ? null
+          : Drawer(
+              child: TeacherSidebar(
+                teacher: widget.teacher,
+                schoolyear: widget.schoolyear,
+              ),
+            ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isDesktop)
+            TeacherSidebar(
+              teacher: widget.teacher,
+              schoolyear: widget.schoolyear,
+            ),
+          Expanded(
+            child: Column(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                TeacherHeader(
+                  teacher: widget.teacher,
+                  schoolyear: widget.schoolyear,
+                  onMenuPressed: isDesktop
+                      ? null
+                      : () => _scaffoldKey.currentState?.openDrawer(),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(28, 14, 24, 14),
+                  color: Colors.white,
+                  child: Row(
                     children: [
-                      const Text(
-                        'My Sections',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimaryColor,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'My Sections',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Sections assigned to you for SY ${widget.schoolyear.schoolyearstart}-${widget.schoolyear.schoolyearend}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Sections assigned to you for SY ${widget.schoolyear.schoolyearstart}-${widget.schoolyear.schoolyearend}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                      ),
+                      _buildResultToggle(),
                     ],
                   ),
                 ),
-                _buildResultToggle(),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1, color: AppTheme.borderColor),
-
-          // Sections content
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('sections')
-                  .where('teacherid', isEqualTo: widget.teacher.id)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppTheme.primaryColor,
-                    ),
-                  );
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.borderColor),
+                const Divider(height: 1, color: AppTheme.borderColor),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _firestore
+                        .collection('sections')
+                        .where('teacherid', isEqualTo: widget.teacher.id)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryColor,
                           ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.class_outlined,
-                              size: 32,
-                              color: AppTheme.textSecondaryColor,
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppTheme.borderColor,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.class_outlined,
+                                    size: 32,
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No sections assigned yet',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimaryColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Contact your administrator to be assigned to a section.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.textSecondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final sections = snapshot.data!.docs
+                          .map(
+                            (doc) => Section.fromMap(
+                              doc.id,
+                              doc.data() as Map<String, dynamic>,
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No sections assigned yet',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Contact your administrator to be assigned to a section.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                          )
+                          .toList();
 
-                final sections = snapshot.data!.docs
-                    .map(
-                      (doc) => Section.fromMap(
-                        doc.id,
-                        doc.data() as Map<String, dynamic>,
-                      ),
-                    )
-                    .toList();
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          final width = constraints.maxWidth;
+                          double cardWidth;
+                          if (width <= 520) {
+                            cardWidth = width - 48;
+                          } else if (width <= 900) {
+                            cardWidth = (width - 64) / 2;
+                          } else {
+                            cardWidth = (width - 80) / 3;
+                          }
 
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.maxWidth;
-                    double cardWidth;
-                    if (width <= 520) {
-                      cardWidth = width - 48;
-                    } else if (width <= 900) {
-                      cardWidth = (width - 64) / 2;
-                    } else {
-                      cardWidth = (width - 80) / 3;
-                    }
-
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        children: sections.map((section) {
-                          return SizedBox(
-                            width: cardWidth,
-                            child: _buildSectionCard(section),
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Wrap(
+                              spacing: 16,
+                              runSpacing: 16,
+                              children: sections.map((section) {
+                                return SizedBox(
+                                  width: cardWidth,
+                                  child: _buildSectionCard(section),
+                                );
+                              }).toList(),
+                            ),
                           );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                );
-              },
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
