@@ -54,22 +54,21 @@ class _RCManageSectionState extends State<RCManageSection> {
     final percentFormatted = percentage.toStringAsFixed(1);
 
     String insight;
-
     if (independent >= instructional && independent >= frustration) {
       insight =
-          "Most students are classified under the Independent level. "
-          "This indicates a high average $_selectedReadType performance with a percentage of $percentFormatted%, and the majority "
-          "of learners can read and comprehend words independently.";
+          "Most students are classified under the Independent level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "indicating that the majority of learners comprehend material independently.";
     } else if (instructional >= independent && instructional >= frustration) {
       insight =
-          "Most students are at the Instructional level. "
-          "This suggests that $_selectedReadType performance remains stable with a percentage of $percentFormatted%, and learners "
-          "benefit from guided reading support to improve further.";
+          "Most students are at the Instructional level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "reflecting a distribution where learners typically require guided reading support.";
     } else {
       insight =
-          "Most students fall under the Frustration level. "
-          "This indicates a low average $_selectedReadType performance with a percentage of $percentFormatted% and highlights the "
-          "need for targeted reading interventions and support.";
+          "Most students fall under the Frustration level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "highlighting a concentration of learners facing reading challenges.";
     }
 
     return insight;
@@ -124,9 +123,8 @@ class _RCManageSectionState extends State<RCManageSection> {
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .snapshots()
         .map(
-          (snap) => snap.docs
-              .map((d) => Section.fromMap(d.id, d.data()))
-              .toList(),
+          (snap) =>
+              snap.docs.map((d) => Section.fromMap(d.id, d.data())).toList(),
         );
   }
 
@@ -145,17 +143,19 @@ class _RCManageSectionState extends State<RCManageSection> {
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
-    sheet.getRangeByName('A3').setText(
-      'All Students enrolled in Phil-IRI for the School Year',
-    );
+    sheet
+        .getRangeByName('A3')
+        .setText('All Students enrolled in Phil-IRI for the School Year');
     sheet.getRangeByName('A3').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -197,13 +197,13 @@ class _RCManageSectionState extends State<RCManageSection> {
 
         sheet.getRangeByName('A$rowIndex').setText(section.sectionname);
         sheet.getRangeByName('B$rowIndex').setText(teacherName);
-        sheet.getRangeByName('C$rowIndex').setText(
-          "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-        );
-        sheet.getRangeByName('D$rowIndex').setText(student.gender);
         sheet
-            .getRangeByName('E$rowIndex')
-            .setText(student.gstscore.toString());
+            .getRangeByName('C$rowIndex')
+            .setText(
+              "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+            );
+        sheet.getRangeByName('D$rowIndex').setText(student.gender);
+        sheet.getRangeByName('E$rowIndex').setText(student.gstscore.toString());
         sheet
             .getRangeByName('F$rowIndex')
             .setText(student.gradelevelread.toString());
@@ -238,9 +238,11 @@ class _RCManageSectionState extends State<RCManageSection> {
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -260,9 +262,11 @@ class _RCManageSectionState extends State<RCManageSection> {
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet.getRangeByName('A4').setText(
-      'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-    );
+    sheet
+        .getRangeByName('A4')
+        .setText(
+          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+        );
     sheet.getRangeByName('A4').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -289,9 +293,11 @@ class _RCManageSectionState extends State<RCManageSection> {
     );
 
     for (var student in students) {
-      sheet.getRangeByName('A$rowIndex').setText(
-        "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-      );
+      sheet
+          .getRangeByName('A$rowIndex')
+          .setText(
+            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+          );
       sheet.getRangeByName('B$rowIndex').setText(student.gender);
       sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
       sheet
@@ -386,10 +392,8 @@ class _RCManageSectionState extends State<RCManageSection> {
           foregroundColor: AppTheme.textPrimaryColor,
           side: const BorderSide(color: AppTheme.borderColor),
           padding: EdgeInsets.zero,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          textStyle:
-              const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         ),
         child: Text(label),
       ),
@@ -453,8 +457,10 @@ class _RCManageSectionState extends State<RCManageSection> {
                   ),
                   filled: true,
                   fillColor: AppTheme.backgroundColor,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -539,12 +545,9 @@ class _RCManageSectionState extends State<RCManageSection> {
             StreamBuilder<Map<String, int>>(
               stream: _fetchStudentReadLevels(section.id),
               builder: (context, snap) {
-                final counts = snap.data ??
-                    {
-                      'Frustration': 0,
-                      'Instructional': 0,
-                      'Independent': 0,
-                    };
+                final counts =
+                    snap.data ??
+                    {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
                 final insight = generateReadingInsight(counts);
 
                 return Column(
@@ -758,8 +761,7 @@ class _RCManageSectionState extends State<RCManageSection> {
                   );
                 }
 
-                final query =
-                    _searchController.text.trim().toLowerCase();
+                final query = _searchController.text.trim().toLowerCase();
                 final sections = snapshot.data!.where((s) {
                   if (query.isEmpty) return true;
                   return s.sectionname.toLowerCase().contains(query);
@@ -785,8 +787,7 @@ class _RCManageSectionState extends State<RCManageSection> {
                     mainAxisExtent: 390,
                   ),
                   itemCount: sections.length,
-                  itemBuilder: (_, index) =>
-                      _buildSectionCard(sections[index]),
+                  itemBuilder: (_, index) => _buildSectionCard(sections[index]),
                 );
               },
             ),
@@ -805,7 +806,8 @@ class _DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = (counts['Frustration'] ?? 0) +
+    final total =
+        (counts['Frustration'] ?? 0) +
         (counts['Instructional'] ?? 0) +
         (counts['Independent'] ?? 0);
     return SizedBox(

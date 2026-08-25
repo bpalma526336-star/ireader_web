@@ -41,9 +41,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         .collection('schoolyears')
         .orderBy('schoolyearstart', descending: true)
         .snapshots()
-        .map((s) => s.docs
-            .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
-            .toList());
+        .map(
+          (s) => s.docs
+              .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Stream<List<Map<String, dynamic>>> _studentStream(String schoolyearid) {
@@ -64,9 +66,12 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       final level = _selectedReadType == "Overall Result"
           ? (data['readlevel'] ?? '')
           : (data['comprehensionresult'] ?? '');
-      if (level == 'Frustration') frustration++;
-      else if (level == 'Instructional') instructional++;
-      else if (level == 'Independent') independent++;
+      if (level == 'Frustration')
+        frustration++;
+      else if (level == 'Instructional')
+        instructional++;
+      else if (level == 'Independent')
+        independent++;
     }
     return {
       'Frustration': frustration,
@@ -81,7 +86,8 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final independent = counts['Independent'] ?? 0;
     final total = frustration + instructional + independent;
 
-    if (total == 0) return "No $_selectedReadType data recorded for this school year.";
+    if (total == 0)
+      return "No $_selectedReadType data recorded for this school year.";
 
     final frustPct = ((frustration / total) * 100).round();
     final instrPct = ((instructional / total) * 100).round();
@@ -90,15 +96,15 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     if (independent >= instructional && independent >= frustration) {
       return "$indepPct% ($independent) of students reached the Independent level — "
           "they can read $_selectedReadType without teacher support. "
-          "$frustPct% ($frustration) are still at Frustration and require the most immediate attention.";
+          "$frustPct% ($frustration) currently remain at the Frustration level.";
     } else if (instructional >= independent && instructional >= frustration) {
       return "$instrPct% ($instructional) of students are at the Instructional level — "
-          "they can progress in $_selectedReadType with guided support. "
-          "$frustPct% ($frustration) are at Frustration and need intensive intervention.";
+          "they typically progress in $_selectedReadType with guided support. "
+          "$frustPct% ($frustration) are recorded at the Frustration level.";
     } else {
       return "$frustPct% ($frustration) of students are at the Frustration level in $_selectedReadType — "
-          "most learners are struggling significantly. "
-          "Only $indepPct% ($independent) have reached the Independent level.";
+          "representing the largest share of the current distribution. "
+          "Meanwhile, $indepPct% ($independent) have reached the Independent level.";
     }
   }
 
@@ -118,9 +124,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
 
     void buildHeaders(Worksheet sheet, String stageTitle) {
       sheet.getRangeByName('A1:M1').merge();
-      sheet.getRangeByName('A1').setText(
-        'Phil IRI: School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Report',
-      );
+      sheet
+          .getRangeByName('A1')
+          .setText(
+            'Phil IRI: School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Report',
+          );
       sheet.getRangeByName('A2:M2').merge();
       sheet.getRangeByName('A2').setText(subject);
       sheet.getRangeByName('A3:M3').merge();
@@ -170,9 +178,15 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
 
       if (studentMap.isEmpty) {
         return {
-          'fm': 0, 'ff': 0, 'fa': 0,
-          'im': 0, 'iff': 0, 'ia': 0,
-          'im2': 0, 'iff2': 0, 'ia2': 0,
+          'fm': 0,
+          'ff': 0,
+          'fa': 0,
+          'im': 0,
+          'iff': 0,
+          'ia': 0,
+          'im2': 0,
+          'iff2': 0,
+          'ia2': 0,
         };
       }
 
@@ -181,7 +195,15 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
           .where('assessmentid', isEqualTo: assessmentId)
           .get();
 
-      int fm = 0, ff = 0, fa = 0, im = 0, iff = 0, ia = 0, im2 = 0, iff2 = 0, ia2 = 0;
+      int fm = 0,
+          ff = 0,
+          fa = 0,
+          im = 0,
+          iff = 0,
+          ia = 0,
+          im2 = 0,
+          iff2 = 0,
+          ia2 = 0;
       for (final r in resultSnap.docs) {
         final result = studentoverallresult.fromMap(r.id, r.data());
         final student = studentMap[result.studentid];
@@ -189,19 +211,31 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         final gender = student.gender;
         final level = result.readlevel;
         if (level == 'Frustration') {
-          fa++; if (gender == 'Male') fm++; if (gender == 'Female') ff++;
+          fa++;
+          if (gender == 'Male') fm++;
+          if (gender == 'Female') ff++;
         }
         if (level == 'Instructional') {
-          ia++; if (gender == 'Male') im++; if (gender == 'Female') iff++;
+          ia++;
+          if (gender == 'Male') im++;
+          if (gender == 'Female') iff++;
         }
         if (level == 'Independent') {
-          ia2++; if (gender == 'Male') im2++; if (gender == 'Female') iff2++;
+          ia2++;
+          if (gender == 'Male') im2++;
+          if (gender == 'Female') iff2++;
         }
       }
       return {
-        'fm': fm, 'ff': ff, 'fa': fa,
-        'im': im, 'iff': iff, 'ia': ia,
-        'im2': im2, 'iff2': iff2, 'ia2': ia2,
+        'fm': fm,
+        'ff': ff,
+        'fa': fa,
+        'im': im,
+        'iff': iff,
+        'ia': ia,
+        'im2': im2,
+        'iff2': iff2,
+        'ia2': ia2,
       };
     }
 
@@ -234,9 +268,15 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         sheet.getRangeByName('A$row').setText(sec['sectionname']);
         sheet.getRangeByName('C$row').setText(teacherSnap['lastname']);
         final values = [
-          counts['fm'], counts['ff'], counts['fa'],
-          counts['im'], counts['iff'], counts['ia'],
-          counts['im2'], counts['iff2'], counts['ia2'],
+          counts['fm'],
+          counts['ff'],
+          counts['fa'],
+          counts['im'],
+          counts['iff'],
+          counts['ia'],
+          counts['im2'],
+          counts['iff2'],
+          counts['ia2'],
         ];
         for (int i = 0; i < values.length; i++) {
           sheet.getRangeByIndex(row, 5 + i).setNumber(values[i]!.toDouble());
@@ -246,28 +286,44 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       sheet.protect('');
     }
 
-    await buildSheet(sheet: workbook.worksheets[0], title: 'Pre-Test', assessmentTitle: 'Stage 2 - Pre-Test');
-    await buildSheet(sheet: workbook.worksheets.add(), title: 'Midway Test', assessmentTitle: 'Stage 3 - Midway/Mid-test');
-    await buildSheet(sheet: workbook.worksheets.add(), title: 'Post-Test', assessmentTitle: 'Stage 4 - Post-Test');
+    await buildSheet(
+      sheet: workbook.worksheets[0],
+      title: 'Pre-Test',
+      assessmentTitle: 'Stage 2 - Pre-Test',
+    );
+    await buildSheet(
+      sheet: workbook.worksheets.add(),
+      title: 'Midway Test',
+      assessmentTitle: 'Stage 3 - Midway/Mid-test',
+    );
+    await buildSheet(
+      sheet: workbook.worksheets.add(),
+      title: 'Post-Test',
+      assessmentTitle: 'Stage 4 - Post-Test',
+    );
 
     final bytes = workbook.saveAsStream();
     workbook.dispose();
 
     if (kIsWeb) {
       AnchorElement(
-        href: 'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}',
-      )
-        ..setAttribute('download', 'School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx')
+          href:
+              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}',
+        )
+        ..setAttribute(
+          'download',
+          'School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx',
+        )
         ..click();
     } else {
       final directory = (await getApplicationDocumentsDirectory()).path;
-      final filePath = '$directory/School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx';
+      final filePath =
+          '$directory/School Year ${schoolyear['schoolyearstart']} - ${schoolyear['schoolyearend']} Result.xlsx';
       final file = File(filePath);
       await file.writeAsBytes(bytes, flush: true);
       OpenFile.open(filePath);
     }
   }
-
 
   Future<List<Map<String, dynamic>>> _fetchStudentsByLevel(
     String schoolyearid,
@@ -282,7 +338,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         s.id: (s.data()['sectionname'] ?? 'Unknown') as String,
     };
 
-    final levelField = _selectedReadType == 'Overall Result' ? 'readlevel' : 'comprehensionresult';
+    final levelField = _selectedReadType == 'Overall Result'
+        ? 'readlevel'
+        : 'comprehensionresult';
 
     final snap = await _firestore
         .collection('students')
@@ -300,17 +358,24 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       };
     }).toList();
 
-    list.sort((a, b) =>
-        ((a['lastname'] as String?) ?? '').compareTo((b['lastname'] as String?) ?? ''));
+    list.sort(
+      (a, b) => ((a['lastname'] as String?) ?? '').compareTo(
+        (b['lastname'] as String?) ?? '',
+      ),
+    );
     return list;
   }
 
   IconData _levelIcon(String level) {
     switch (level) {
-      case 'Frustration':   return Icons.warning_amber_rounded;
-      case 'Instructional': return Icons.school_outlined;
-      case 'Independent':   return Icons.stars_rounded;
-      default:              return Icons.person;
+      case 'Frustration':
+        return Icons.warning_amber_rounded;
+      case 'Instructional':
+        return Icons.school_outlined;
+      case 'Independent':
+        return Icons.stars_rounded;
+      default:
+        return Icons.person;
     }
   }
 
@@ -334,8 +399,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
           initialChildSize: 0.65,
           minChildSize: 0.35,
           maxChildSize: 0.93,
-          builder: (_, scrollController) =>
-              FutureBuilder<List<Map<String, dynamic>>>(
+          builder: (_, scrollController) => FutureBuilder<List<Map<String, dynamic>>>(
             future: _fetchStudentsByLevel(schoolyearid, level),
             builder: (ctx, snap) {
               final students = snap.data ?? [];
@@ -364,7 +428,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                             color: color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(_levelIcon(level), size: 22, color: color),
+                          child: Icon(
+                            _levelIcon(level),
+                            size: 22,
+                            color: color,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -399,7 +467,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.close, size: 18, color: AppTheme.textSecondaryColor),
+                            child: const Icon(
+                              Icons.close,
+                              size: 18,
+                              color: AppTheme.textSecondaryColor,
+                            ),
                           ),
                         ),
                       ],
@@ -409,138 +481,191 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                   // Content
                   Expanded(
                     child: isLoading
-                        ? Center(child: CircularProgressIndicator(color: color, strokeWidth: 2))
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: color,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : students.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.person_off_outlined, size: 52, color: const Color(0xFFCBD5E1)),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      'No students at $level level',
-                                      style: const TextStyle(
-                                        color: AppTheme.textSecondaryColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.person_off_outlined,
+                                  size: 52,
+                                  color: const Color(0xFFCBD5E1),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No students at $level level',
+                                  style: const TextStyle(
+                                    color: AppTheme.textSecondaryColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'There are no active students matching this level.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            controller: scrollController,
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+                            itemCount: students.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (_, i) {
+                              final s = students[i];
+                              final firstname =
+                                  (s['firstname'] as String?) ?? '';
+                              final lastname = (s['lastname'] as String?) ?? '';
+                              final middle = (s['middlename'] as String?) ?? '';
+                              final initial = middle.isNotEmpty
+                                  ? ' ${middle[0]}.'
+                                  : '';
+                              final lrn = (s['lrn'] as String?) ?? '—';
+                              final section =
+                                  (s['sectionname'] as String?) ?? '—';
+                              final gradeLevel =
+                                  (s['gradelevelread'] as String?) ?? '';
+
+                              return Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFEEF2F7),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.03,
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    const Text(
-                                      'There are no active students matching this level.',
-                                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
-                              )
-                            : ListView.separated(
-                                controller: scrollController,
-                                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-                                itemCount: students.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                                itemBuilder: (_, i) {
-                                  final s = students[i];
-                                  final firstname = (s['firstname'] as String?) ?? '';
-                                  final lastname = (s['lastname'] as String?) ?? '';
-                                  final middle = (s['middlename'] as String?) ?? '';
-                                  final initial = middle.isNotEmpty ? ' ${middle[0]}.' : '';
-                                  final lrn = (s['lrn'] as String?) ?? '—';
-                                  final section = (s['sectionname'] as String?) ?? '—';
-                                  final gradeLevel = (s['gradelevelread'] as String?) ?? '';
-
-                                  return Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: const Color(0xFFEEF2F7), width: 1.5),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.03),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: color.withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          firstname.isNotEmpty
+                                              ? firstname[0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: color,
                                           ),
-                                          child: Center(
-                                            child: Text(
-                                              firstname.isNotEmpty ? firstname[0].toUpperCase() : '?',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w800,
-                                                color: color,
-                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '$lastname, $firstname$initial',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 14,
+                                              color: AppTheme.textPrimaryColor,
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                          const SizedBox(height: 3),
+                                          Row(
                                             children: [
+                                              const Icon(
+                                                Icons.badge_outlined,
+                                                size: 10,
+                                                color:
+                                                    AppTheme.textSecondaryColor,
+                                              ),
+                                              const SizedBox(width: 3),
                                               Text(
-                                                '$lastname, $firstname$initial',
+                                                'LRN: $lrn',
                                                 style: const TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 14,
-                                                  color: AppTheme.textPrimaryColor,
+                                                  fontSize: 11,
+                                                  color: AppTheme
+                                                      .textSecondaryColor,
                                                 ),
-                                              ),
-                                              const SizedBox(height: 3),
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.badge_outlined, size: 10, color: AppTheme.textSecondaryColor),
-                                                  const SizedBox(width: 3),
-                                                  Text('LRN: $lrn', style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor)),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.group_outlined, size: 10, color: AppTheme.textSecondaryColor),
-                                                  const SizedBox(width: 3),
-                                                  Flexible(
-                                                    child: Text(
-                                                      gradeLevel.isNotEmpty ? '$section · Grade $gradeLevel read' : section,
-                                                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor),
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ],
                                               ),
                                             ],
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                                          decoration: BoxDecoration(
-                                            color: color.withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(6),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.group_outlined,
+                                                size: 10,
+                                                color:
+                                                    AppTheme.textSecondaryColor,
+                                              ),
+                                              const SizedBox(width: 3),
+                                              Flexible(
+                                                child: Text(
+                                                  gradeLevel.isNotEmpty
+                                                      ? '$section · Grade $gradeLevel read'
+                                                      : section,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppTheme
+                                                        .textSecondaryColor,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          child: Text(
-                                            level,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              color: color,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        level,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: color,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               );
@@ -572,15 +697,25 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                   color: isSelected ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: isSelected
-                      ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 1))]
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
                       : null,
                 ),
                 child: Center(
                   child: Text(
                     type,
                     style: TextStyle(
-                      color: isSelected ? AppTheme.primaryColor : const Color(0xFF94A3B8),
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : const Color(0xFF94A3B8),
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                       fontSize: 12,
                     ),
                   ),
@@ -594,7 +729,13 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
   }
 
   // --- Tappable level tile (replaces _legendRow) ---
-  Widget _levelTile(Color color, String label, int count, int total, VoidCallback? onTap) {
+  Widget _levelTile(
+    Color color,
+    String label,
+    int count,
+    int total,
+    VoidCallback? onTap,
+  ) {
     final pct = total > 0 ? ((count / total) * 100).round() : 0;
     final hasData = count > 0;
     return Expanded(
@@ -603,10 +744,14 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
         child: Container(
           padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-            color: hasData ? color.withValues(alpha: 0.07) : const Color(0xFFF8FAFC),
+            color: hasData
+                ? color.withValues(alpha: 0.07)
+                : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
-              color: hasData ? color.withValues(alpha: 0.28) : const Color(0xFFE2E8F0),
+              color: hasData
+                  ? color.withValues(alpha: 0.28)
+                  : const Color(0xFFE2E8F0),
               width: 1.2,
             ),
           ),
@@ -626,7 +771,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                   ),
                   const Spacer(),
                   if (hasData)
-                    Icon(Icons.arrow_forward_ios_rounded, size: 9, color: color.withValues(alpha: 0.7)),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 9,
+                      color: color.withValues(alpha: 0.7),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -644,7 +793,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: hasData ? color.withValues(alpha: 0.75) : const Color(0xFFCBD5E1),
+                  color: hasData
+                      ? color.withValues(alpha: 0.75)
+                      : const Color(0xFFCBD5E1),
                 ),
               ),
               const SizedBox(height: 5),
@@ -667,7 +818,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
   }
 
   // --- Action button ---
-  Widget _cardButton({required String label, required VoidCallback onTap, IconData? icon}) {
+  Widget _cardButton({
+    required String label,
+    required VoidCallback onTap,
+    IconData? icon,
+  }) {
     return SizedBox(
       height: 38,
       child: OutlinedButton(
@@ -699,7 +854,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      drawer: isDesktop ? null : Drawer(child: RCSidebar(activeRoute: RCRoute.schoolYears)),
+      drawer: isDesktop
+          ? null
+          : Drawer(child: RCSidebar(activeRoute: RCRoute.schoolYears)),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -710,7 +867,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primaryColor),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
                   );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -727,7 +886,12 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                       padding: const EdgeInsets.fromLTRB(24, 22, 24, 16),
                       decoration: const BoxDecoration(
                         color: Colors.white,
-                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1.5)),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xFFF1F5F9),
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -743,7 +907,10 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Phil-IRI $_selectedReadType · ${schoolYears.length} year${schoolYears.length == 1 ? '' : 's'}',
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondaryColor,
+                            ),
                           ),
                           const SizedBox(height: 14),
                           SizedBox(width: 290, child: _buildResultToggle()),
@@ -784,30 +951,42 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: isCurrentYear
-                                            ? [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.5)]
-                                            : [const Color(0xFFCBD5E1), const Color(0xFFE2E8F0)],
+                                            ? [
+                                                AppTheme.primaryColor,
+                                                AppTheme.primaryColor
+                                                    .withValues(alpha: 0.5),
+                                              ]
+                                            : [
+                                                const Color(0xFFCBD5E1),
+                                                const Color(0xFFE2E8F0),
+                                              ],
                                       ),
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(18),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         // Card header
                                         Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   const Text(
                                                     'SCHOOL YEAR',
                                                     style: TextStyle(
                                                       fontSize: 9.5,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: AppTheme.textSecondaryColor,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: AppTheme
+                                                          .textSecondaryColor,
                                                       letterSpacing: 0.8,
                                                     ),
                                                   ),
@@ -816,8 +995,10 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                     '${schoolyear.schoolyearstart} – ${schoolyear.schoolyearend}',
                                                     style: const TextStyle(
                                                       fontSize: 21,
-                                                      fontWeight: FontWeight.w800,
-                                                      color: AppTheme.textPrimaryColor,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: AppTheme
+                                                          .textPrimaryColor,
                                                       height: 1.2,
                                                     ),
                                                   ),
@@ -826,17 +1007,28 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                             ),
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: isCurrentYear ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
-                                                borderRadius: BorderRadius.circular(20),
+                                                color: isCurrentYear
+                                                    ? const Color(0xFFDCFCE7)
+                                                    : const Color(0xFFF1F5F9),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                               ),
                                               child: Text(
-                                                isCurrentYear ? 'CURRENT' : 'ARCHIVED',
+                                                isCurrentYear
+                                                    ? 'CURRENT'
+                                                    : 'ARCHIVED',
                                                 style: TextStyle(
                                                   fontSize: 9.5,
                                                   fontWeight: FontWeight.w700,
-                                                  color: isCurrentYear ? const Color(0xFF15803D) : const Color(0xFF94A3B8),
+                                                  color: isCurrentYear
+                                                      ? const Color(0xFF15803D)
+                                                      : const Color(0xFF94A3B8),
                                                   letterSpacing: 0.7,
                                                 ),
                                               ),
@@ -845,52 +1037,73 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                         ),
 
                                         const SizedBox(height: 16),
-                                        Container(height: 1, color: const Color(0xFFF1F5F9)),
+                                        Container(
+                                          height: 1,
+                                          color: const Color(0xFFF1F5F9),
+                                        ),
                                         const SizedBox(height: 16),
 
                                         // ── Reading level data ────────────
-                                        StreamBuilder<List<Map<String, dynamic>>>(
+                                        StreamBuilder<
+                                          List<Map<String, dynamic>>
+                                        >(
                                           stream: _studentStream(schoolyear.id),
                                           builder: (context, snap) {
-                                            if (snap.connectionState == ConnectionState.waiting) {
+                                            if (snap.connectionState ==
+                                                ConnectionState.waiting) {
                                               return const SizedBox(
                                                 height: 130,
                                                 child: Center(
-                                                  child: CircularProgressIndicator(
-                                                    color: AppTheme.primaryColor,
-                                                    strokeWidth: 2,
-                                                  ),
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: AppTheme
+                                                            .primaryColor,
+                                                        strokeWidth: 2,
+                                                      ),
                                                 ),
                                               );
                                             }
 
-                                            final counts = _computeCounts(snap.data ?? []);
+                                            final counts = _computeCounts(
+                                              snap.data ?? [],
+                                            );
                                             final total =
                                                 (counts['Frustration'] ?? 0) +
                                                 (counts['Instructional'] ?? 0) +
                                                 (counts['Independent'] ?? 0);
-                                            final needIntervention = counts['Frustration'] ?? 0;
-                                            final insight = generateReadingInsight(counts);
+                                            final needIntervention =
+                                                counts['Frustration'] ?? 0;
+                                            final insight =
+                                                generateReadingInsight(counts);
 
                                             return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 // Donut + summary
                                                 Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
                                                   children: [
-                                                    _RCDonutChart(counts: counts),
+                                                    _RCDonutChart(
+                                                      counts: counts,
+                                                    ),
                                                     const SizedBox(width: 18),
                                                     Expanded(
                                                       child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
                                                           Text(
                                                             '$total',
                                                             style: const TextStyle(
                                                               fontSize: 30,
-                                                              fontWeight: FontWeight.w900,
-                                                              color: AppTheme.textPrimaryColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                              color: AppTheme
+                                                                  .textPrimaryColor,
                                                               height: 1,
                                                             ),
                                                           ),
@@ -898,39 +1111,91 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                             'total students',
                                                             style: TextStyle(
                                                               fontSize: 11,
-                                                              color: AppTheme.textSecondaryColor,
+                                                              color: AppTheme
+                                                                  .textSecondaryColor,
                                                             ),
                                                           ),
-                                                          if (needIntervention > 0) ...[
-                                                            const SizedBox(height: 10),
+                                                          if (needIntervention >
+                                                              0) ...[
+                                                            const SizedBox(
+                                                              height: 10,
+                                                            ),
                                                             GestureDetector(
-                                                              onTap: () => _showStudentsByLevel(
-                                                                context, schoolyear.id, 'Frustration', AppTheme.levelFrustration,
-                                                              ),
+                                                              onTap: () =>
+                                                                  _showStudentsByLevel(
+                                                                    context,
+                                                                    schoolyear
+                                                                        .id,
+                                                                    'Frustration',
+                                                                    AppTheme
+                                                                        .levelFrustration,
+                                                                  ),
                                                               child: Container(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          9,
+                                                                      vertical:
+                                                                          5,
+                                                                    ),
                                                                 decoration: BoxDecoration(
-                                                                  color: AppTheme.levelFrustration.withValues(alpha: 0.1),
-                                                                  borderRadius: BorderRadius.circular(7),
-                                                                  border: Border.all(color: AppTheme.levelFrustration.withValues(alpha: 0.3)),
+                                                                  color: AppTheme
+                                                                      .levelFrustration
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.1,
+                                                                      ),
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        7,
+                                                                      ),
+                                                                  border: Border.all(
+                                                                    color: AppTheme
+                                                                        .levelFrustration
+                                                                        .withValues(
+                                                                          alpha:
+                                                                              0.3,
+                                                                        ),
+                                                                  ),
                                                                 ),
                                                                 child: Row(
-                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
                                                                   children: [
-                                                                    Icon(Icons.priority_high_rounded, size: 12, color: AppTheme.levelFrustration),
-                                                                    const SizedBox(width: 4),
+                                                                    Icon(
+                                                                      Icons
+                                                                          .priority_high_rounded,
+                                                                      size: 12,
+                                                                      color: AppTheme
+                                                                          .levelFrustration,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 4,
+                                                                    ),
                                                                     Flexible(
                                                                       child: Text(
                                                                         '$needIntervention need${needIntervention == 1 ? 's' : ''} intervention',
                                                                         style: TextStyle(
-                                                                          fontSize: 10.5,
-                                                                          fontWeight: FontWeight.w700,
-                                                                          color: AppTheme.levelFrustration,
+                                                                          fontSize:
+                                                                              10.5,
+                                                                          fontWeight:
+                                                                              FontWeight.w700,
+                                                                          color:
+                                                                              AppTheme.levelFrustration,
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                    const SizedBox(width: 3),
-                                                                    Icon(Icons.chevron_right_rounded, size: 13, color: AppTheme.levelFrustration),
+                                                                    const SizedBox(
+                                                                      width: 3,
+                                                                    ),
+                                                                    Icon(
+                                                                      Icons
+                                                                          .chevron_right_rounded,
+                                                                      size: 13,
+                                                                      color: AppTheme
+                                                                          .levelFrustration,
+                                                                    ),
                                                                   ],
                                                                 ),
                                                               ),
@@ -950,25 +1215,47 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                     _levelTile(
                                                       AppTheme.levelFrustration,
                                                       'Frustration',
-                                                      counts['Frustration'] ?? 0,
+                                                      counts['Frustration'] ??
+                                                          0,
                                                       total,
-                                                      () => _showStudentsByLevel(context, schoolyear.id, 'Frustration', AppTheme.levelFrustration),
+                                                      () => _showStudentsByLevel(
+                                                        context,
+                                                        schoolyear.id,
+                                                        'Frustration',
+                                                        AppTheme
+                                                            .levelFrustration,
+                                                      ),
                                                     ),
                                                     const SizedBox(width: 8),
                                                     _levelTile(
-                                                      AppTheme.levelInstructional,
+                                                      AppTheme
+                                                          .levelInstructional,
                                                       'Instructional',
-                                                      counts['Instructional'] ?? 0,
+                                                      counts['Instructional'] ??
+                                                          0,
                                                       total,
-                                                      () => _showStudentsByLevel(context, schoolyear.id, 'Instructional', AppTheme.levelInstructional),
+                                                      () => _showStudentsByLevel(
+                                                        context,
+                                                        schoolyear.id,
+                                                        'Instructional',
+                                                        AppTheme
+                                                            .levelInstructional,
+                                                      ),
                                                     ),
                                                     const SizedBox(width: 8),
                                                     _levelTile(
                                                       AppTheme.levelIndependent,
                                                       'Independent',
-                                                      counts['Independent'] ?? 0,
+                                                      counts['Independent'] ??
+                                                          0,
                                                       total,
-                                                      () => _showStudentsByLevel(context, schoolyear.id, 'Independent', AppTheme.levelIndependent),
+                                                      () => _showStudentsByLevel(
+                                                        context,
+                                                        schoolyear.id,
+                                                        'Independent',
+                                                        AppTheme
+                                                            .levelIndependent,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -977,19 +1264,34 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
 
                                                 // Insight box
                                                 Container(
-                                                  padding: const EdgeInsets.all(12),
+                                                  padding: const EdgeInsets.all(
+                                                    12,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF8FAFC),
-                                                    borderRadius: BorderRadius.circular(9),
-                                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                                    color: const Color(
+                                                      0xFFF8FAFC,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          9,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: const Color(
+                                                        0xFFE2E8F0,
+                                                      ),
+                                                    ),
                                                   ),
                                                   child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       const Icon(
-                                                        Icons.info_outline_rounded,
+                                                        Icons
+                                                            .info_outline_rounded,
                                                         size: 14,
-                                                        color: AppTheme.primaryColor,
+                                                        color: AppTheme
+                                                            .primaryColor,
                                                       ),
                                                       const SizedBox(width: 8),
                                                       Expanded(
@@ -997,7 +1299,8 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                           insight,
                                                           style: const TextStyle(
                                                             fontSize: 11.5,
-                                                            color: AppTheme.textSecondaryColor,
+                                                            color: AppTheme
+                                                                .textSecondaryColor,
                                                             height: 1.5,
                                                           ),
                                                         ),
@@ -1022,7 +1325,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                 onTap: () => Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (_) => RCManageSection(schoolyear: schoolyear),
+                                                    builder: (_) =>
+                                                        RCManageSection(
+                                                          schoolyear:
+                                                              schoolyear,
+                                                        ),
                                                   ),
                                                 ),
                                               ),
@@ -1035,7 +1342,11 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                 onTap: () => Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (_) => ManageAssessment(schoolyear: schoolyear),
+                                                    builder: (_) =>
+                                                        ManageAssessment(
+                                                          schoolyear:
+                                                              schoolyear,
+                                                        ),
                                                   ),
                                                 ),
                                               ),

@@ -47,24 +47,28 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
 
     if (total == 0) return 'No reading data available for this section yet.';
 
-    final totalScore = (frustration * 1) + (instructional * 2) + (independent * 3);
+    final totalScore =
+        (frustration * 1) + (instructional * 2) + (independent * 3);
     final averageScore = totalScore / total;
     final percentage = (averageScore / 3) * 100;
     final percentFormatted = percentage.toStringAsFixed(1);
 
     if (independent >= instructional && independent >= frustration) {
       return 'Most students read at the Independent level ($percentFormatted% avg). '
-          'Learners can comprehend passages with minimal guidance.';
+          'Learners comprehend passages independently with minimal guidance.';
     } else if (instructional >= independent && instructional >= frustration) {
       return 'Most students are at the Instructional level ($percentFormatted% avg). '
-          'Guided reading support will help learners progress further.';
+          'Learners operate within a guided reading range.';
     } else {
       return 'Most students fall at the Frustration level ($percentFormatted% avg). '
-          'Targeted reading interventions are recommended.';
+          'This reflects a concentration of learners currently experiencing reading difficulties.';
     }
   }
 
-  Stream<Map<String, int>> _fetchStudentReadLevels(String sectionid, String schoolyearid) {
+  Stream<Map<String, int>> _fetchStudentReadLevels(
+    String sectionid,
+    String schoolyearid,
+  ) {
     return _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearid)
@@ -80,8 +84,10 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                 : (data['comprehensionresult'] ?? '');
             if (level == 'Frustration') {
               frustration++;
-            } else if (level == 'Instructional') instructional++;
-            else if (level == 'Independent') independent++;
+            } else if (level == 'Instructional')
+              instructional++;
+            else if (level == 'Independent')
+              independent++;
           }
           return {
             'Frustration': frustration,
@@ -108,14 +114,19 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
 
-    final teacherSnap = await _firestore.collection('teachers').doc(section.teacherid).get();
+    final teacherSnap = await _firestore
+        .collection('teachers')
+        .doc(section.teacherid)
+        .get();
     final teacherName = teacherSnap.exists
         ? () {
             final middle = (teacherSnap['middlename'] as String?) ?? '';
@@ -132,9 +143,11 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet.getRangeByName('A4').setText(
-      'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-    );
+    sheet
+        .getRangeByName('A4')
+        .setText(
+          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+        );
     sheet.getRangeByName('A4').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -151,17 +164,24 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
         .where('sectionid', isEqualTo: section.id)
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .get();
-    final students =
-        snapshot.docs.map((doc) => Student.fromMap(doc.id, doc.data())).toList();
-    students.sort((a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()));
+    final students = snapshot.docs
+        .map((doc) => Student.fromMap(doc.id, doc.data()))
+        .toList();
+    students.sort(
+      (a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()),
+    );
 
     for (var student in students) {
-      sheet.getRangeByName('A$rowIndex').setText(
-        '${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}',
-      );
+      sheet
+          .getRangeByName('A$rowIndex')
+          .setText(
+            '${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}',
+          );
       sheet.getRangeByName('B$rowIndex').setText(student.gender);
       sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
-      sheet.getRangeByName('D$rowIndex').setText(student.gradelevelread.toString());
+      sheet
+          .getRangeByName('D$rowIndex')
+          .setText(student.gradelevelread.toString());
       rowIndex++;
     }
 
@@ -174,11 +194,15 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       AnchorElement(
           href: 'data:application/octet-stream;base64,${base64.encode(bytes)}',
         )
-        ..setAttribute('download', 'Phil-IRI_Student_List(Stage_2)_${section.sectionname}.xlsx')
+        ..setAttribute(
+          'download',
+          'Phil-IRI_Student_List(Stage_2)_${section.sectionname}.xlsx',
+        )
         ..click();
     } else {
       final directory = (await getApplicationDocumentsDirectory()).path;
-      final filePath = '$directory/Phil-IRI_Student_List(Stage_2)_${section.sectionname}.xlsx';
+      final filePath =
+          '$directory/Phil-IRI_Student_List(Stage_2)_${section.sectionname}.xlsx';
       final file = File(filePath);
       await file.writeAsBytes(bytes, flush: true);
       OpenFile.open(filePath);
@@ -187,8 +211,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
 
   // ─── TOP BAR ────────────────────────────────────────────────
   Widget _buildTopBar() {
-    final teacherName =
-        '${widget.teacher.firstname} ${widget.teacher.lastname}'.trim();
+    final teacherName = '${widget.teacher.firstname} ${widget.teacher.lastname}'
+        .trim();
     return Container(
       padding: const EdgeInsets.fromLTRB(28, 0, 24, 0),
       height: 64,
@@ -317,7 +341,9 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               backgroundColor: const Color(0xFFFFF1F1),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
@@ -354,7 +380,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
           final isSelected = _selectedReadType == type;
           return GestureDetector(
             onTap: () {
-              if (_selectedReadType != type) setState(() => _selectedReadType = type);
+              if (_selectedReadType != type)
+                setState(() => _selectedReadType = type);
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -363,13 +390,21 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                 color: isSelected ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
                 boxShadow: isSelected
-                    ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
                     : null,
               ),
               child: Text(
                 type,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.textPrimaryColor : AppTheme.textSecondaryColor,
+                  color: isSelected
+                      ? AppTheme.textPrimaryColor
+                      : AppTheme.textSecondaryColor,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 12.5,
                 ),
@@ -416,7 +451,11 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Center(
-                    child: Icon(Icons.class_outlined, size: 20, color: AppTheme.primaryColor),
+                    child: Icon(
+                      Icons.class_outlined,
+                      size: 20,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -435,10 +474,15 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                       ),
                       const SizedBox(height: 3),
                       FutureBuilder<DocumentSnapshot>(
-                        future: _firestore.collection('schoolyears').doc(section.schoolyearid).get(),
+                        future: _firestore
+                            .collection('schoolyears')
+                            .doc(section.schoolyearid)
+                            .get(),
                         builder: (context, sySnap) {
-                          if (!sySnap.hasData || !sySnap.data!.exists) return const SizedBox.shrink();
-                          final sy = sySnap.data!.data() as Map<String, dynamic>;
+                          if (!sySnap.hasData || !sySnap.data!.exists)
+                            return const SizedBox.shrink();
+                          final sy =
+                              sySnap.data!.data() as Map<String, dynamic>;
                           return Text(
                             'SY ${sy['schoolyearstart']}-${sy['schoolyearend']}',
                             style: const TextStyle(
@@ -461,13 +505,23 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
             child: StreamBuilder<Map<String, int>>(
               stream: _fetchStudentReadLevels(section.id, section.schoolyearid),
               builder: (context, snapshot) {
-                final counts = snapshot.data ??
-                    {'Frustration': 0, 'Instructional': 0, 'Independent': 0, 'Total': 0};
+                final counts =
+                    snapshot.data ??
+                    {
+                      'Frustration': 0,
+                      'Instructional': 0,
+                      'Independent': 0,
+                      'Total': 0,
+                    };
                 final f = counts['Frustration'] ?? 0;
                 final i = counts['Instructional'] ?? 0;
                 final ind = counts['Independent'] ?? 0;
                 final total = counts['Total'] ?? 0;
-                final displayCounts = {'Frustration': f, 'Instructional': i, 'Independent': ind};
+                final displayCounts = {
+                  'Frustration': f,
+                  'Instructional': i,
+                  'Independent': ind,
+                };
                 final insight = generateReadingInsight(displayCounts);
 
                 return Column(
@@ -505,11 +559,23 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              _legendRow(AppTheme.levelFrustration, 'Frustration', f),
+                              _legendRow(
+                                AppTheme.levelFrustration,
+                                'Frustration',
+                                f,
+                              ),
                               const SizedBox(height: 6),
-                              _legendRow(AppTheme.levelInstructional, 'Instructional', i),
+                              _legendRow(
+                                AppTheme.levelInstructional,
+                                'Instructional',
+                                i,
+                              ),
                               const SizedBox(height: 6),
-                              _legendRow(AppTheme.levelIndependent, 'Independent', ind),
+                              _legendRow(
+                                AppTheme.levelIndependent,
+                                'Independent',
+                                ind,
+                              ),
                             ],
                           ),
                         ),
@@ -528,17 +594,23 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                               if (f > 0)
                                 Expanded(
                                   flex: f,
-                                  child: Container(color: AppTheme.levelFrustration),
+                                  child: Container(
+                                    color: AppTheme.levelFrustration,
+                                  ),
                                 ),
                               if (i > 0)
                                 Expanded(
                                   flex: i,
-                                  child: Container(color: AppTheme.levelInstructional),
+                                  child: Container(
+                                    color: AppTheme.levelInstructional,
+                                  ),
                                 ),
                               if (ind > 0)
                                 Expanded(
                                   flex: ind,
-                                  child: Container(color: AppTheme.levelIndependent),
+                                  child: Container(
+                                    color: AppTheme.levelIndependent,
+                                  ),
                                 ),
                             ],
                           ),
@@ -559,7 +631,11 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.info_outline, size: 14, color: AppTheme.textSecondaryColor),
+                          const Icon(
+                            Icons.info_outline,
+                            size: 14,
+                            color: AppTheme.textSecondaryColor,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -620,11 +696,21 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
         ),
         const SizedBox(width: 6),
         Expanded(
-          child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
         ),
         Text(
           '$count',
-          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+          style: const TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimaryColor,
+          ),
         ),
       ],
     );
@@ -637,11 +723,25 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       label: 'Students',
       isPrimary: true,
       onTap: () async {
-        final schoolYearDoc = await _firestore.collection('schoolyears').doc(section.schoolyearid).get();
+        final schoolYearDoc = await _firestore
+            .collection('schoolyears')
+            .doc(section.schoolyearid)
+            .get();
         if (!schoolYearDoc.exists) return;
-        final correctSchoolYear = SchoolYear.fromMap(schoolYearDoc.id, schoolYearDoc.data() as Map<String, dynamic>);
+        final correctSchoolYear = SchoolYear.fromMap(
+          schoolYearDoc.id,
+          schoolYearDoc.data() as Map<String, dynamic>,
+        );
         if (!mounted) return;
-        Navigator.push(context, MaterialPageRoute(builder: (context) => TeacherManageStudentScreen(section: section, schoolyear: correctSchoolYear)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TeacherManageStudentScreen(
+              section: section,
+              schoolyear: correctSchoolYear,
+            ),
+          ),
+        );
       },
     );
   }
@@ -652,11 +752,22 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       label: 'Assessments',
       isPrimary: true,
       onTap: () async {
-        final schoolYearDoc = await _firestore.collection('schoolyears').doc(section.schoolyearid).get();
+        final schoolYearDoc = await _firestore
+            .collection('schoolyears')
+            .doc(section.schoolyearid)
+            .get();
         if (!schoolYearDoc.exists) return;
-        final correctSchoolYear = SchoolYear.fromMap(schoolYearDoc.id, schoolYearDoc.data() as Map<String, dynamic>);
+        final correctSchoolYear = SchoolYear.fromMap(
+          schoolYearDoc.id,
+          schoolYearDoc.data() as Map<String, dynamic>,
+        );
         if (!mounted) return;
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ViewAssessment(schoolyear: correctSchoolYear)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ViewAssessment(schoolyear: correctSchoolYear),
+          ),
+        );
       },
     );
   }
@@ -667,10 +778,21 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       label: 'Practice Set',
       isPrimary: false,
       onTap: () async {
-        final schoolYearDoc = await _firestore.collection('schoolyears').doc(section.schoolyearid).get();
+        final schoolYearDoc = await _firestore
+            .collection('schoolyears')
+            .doc(section.schoolyearid)
+            .get();
         if (!schoolYearDoc.exists) return;
         if (!mounted) return;
-        Navigator.push(context, MaterialPageRoute(builder: (context) => SelectPracticeSetScreen(section: section, schoolyear: widget.schoolyear)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SelectPracticeSetScreen(
+              section: section,
+              schoolyear: widget.schoolyear,
+            ),
+          ),
+        );
       },
     );
   }
@@ -706,10 +828,15 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
           backgroundColor: isPrimary ? AppTheme.primaryColor : Colors.white,
           foregroundColor: isPrimary ? Colors.white : AppTheme.textPrimaryColor,
           elevation: 0,
-          side: isPrimary ? null : const BorderSide(color: AppTheme.borderColor),
+          side: isPrimary
+              ? null
+              : const BorderSide(color: AppTheme.borderColor),
           padding: const EdgeInsets.symmetric(horizontal: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-          textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         onPressed: onTap,
       ),
@@ -772,7 +899,9 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primaryColor),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
                   );
                 }
 
@@ -790,7 +919,11 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                             border: Border.all(color: AppTheme.borderColor),
                           ),
                           child: const Center(
-                            child: Icon(Icons.class_outlined, size: 32, color: AppTheme.textSecondaryColor),
+                            child: Icon(
+                              Icons.class_outlined,
+                              size: 32,
+                              color: AppTheme.textSecondaryColor,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -805,7 +938,10 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                         const SizedBox(height: 4),
                         const Text(
                           'Contact your administrator to be assigned to a section.',
-                          style: TextStyle(fontSize: 13, color: AppTheme.textSecondaryColor),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondaryColor,
+                          ),
                         ),
                       ],
                     ),
@@ -813,7 +949,12 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                 }
 
                 final sections = snapshot.data!.docs
-                    .map((doc) => Section.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+                    .map(
+                      (doc) => Section.fromMap(
+                        doc.id,
+                        doc.data() as Map<String, dynamic>,
+                      ),
+                    )
                     .toList();
 
                 return LayoutBuilder(
@@ -859,7 +1000,8 @@ class _DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = (counts['Frustration'] ?? 0) +
+    final total =
+        (counts['Frustration'] ?? 0) +
         (counts['Instructional'] ?? 0) +
         (counts['Independent'] ?? 0);
     return SizedBox(
@@ -881,7 +1023,10 @@ class _DonutChart extends StatelessWidget {
               ),
               const Text(
                 'total',
-                style: TextStyle(fontSize: 9, color: AppTheme.textSecondaryColor),
+                style: TextStyle(
+                  fontSize: 9,
+                  color: AppTheme.textSecondaryColor,
+                ),
               ),
             ],
           ),

@@ -242,10 +242,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text(
-                "DISCARD",
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text("DISCARD", style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -345,7 +342,10 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_outlined, color: AppTheme.textPrimaryColor),
+          icon: const Icon(
+            Icons.arrow_back_outlined,
+            color: AppTheme.textPrimaryColor,
+          ),
           onPressed: _showDiscardConfirmation,
         ),
         title: Column(
@@ -384,33 +384,33 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : isMobileS
-                        ? IconButton(
-                            icon: const Icon(Icons.save),
-                            color: AppTheme.primaryColor,
-                            tooltip: "Save Assessment",
-                            onPressed: _saveAssessment,
-                          )
-                        : ElevatedButton.icon(
-                            icon: const Icon(Icons.save, size: 18),
-                            label: const Text('Save Assessment'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            onPressed: _saveAssessment,
+                    ? IconButton(
+                        icon: const Icon(Icons.save),
+                        color: AppTheme.primaryColor,
+                        tooltip: "Save Assessment",
+                        onPressed: _saveAssessment,
+                      )
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.save, size: 18),
+                        label: const Text('Save Assessment'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
                           ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: _saveAssessment,
+                      ),
               );
             },
           ),
@@ -506,15 +506,16 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                                 field: TextFormField(
                                   controller: _date,
                                   readOnly: true,
-                                  decoration: _inputDecoration(
-                                    hint: "Select date",
-                                  ).copyWith(
-                                    suffixIcon: const Icon(
-                                      Icons.calendar_today,
-                                      size: 18,
-                                      color: AppTheme.textSecondaryColor,
-                                    ),
-                                  ),
+                                  decoration:
+                                      _inputDecoration(
+                                        hint: "Select date",
+                                      ).copyWith(
+                                        suffixIcon: const Icon(
+                                          Icons.calendar_today,
+                                          size: 18,
+                                          color: AppTheme.textSecondaryColor,
+                                        ),
+                                      ),
                                   onTap: () async {
                                     final DateTime? picked =
                                         await showDatePicker(
@@ -542,15 +543,14 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                                 label: "Time Limit (minutes)",
                                 field: TextFormField(
                                   controller: _timelimit,
-                                  decoration: _inputDecoration(
-                                    hint: "e.g. 30",
-                                  ).copyWith(
-                                    suffixIcon: const Icon(
-                                      Icons.timer_outlined,
-                                      size: 18,
-                                      color: AppTheme.textSecondaryColor,
-                                    ),
-                                  ),
+                                  decoration: _inputDecoration(hint: "e.g. 30")
+                                      .copyWith(
+                                        suffixIcon: const Icon(
+                                          Icons.timer_outlined,
+                                          size: 18,
+                                          color: AppTheme.textSecondaryColor,
+                                        ),
+                                      ),
                                   keyboardType: TextInputType.number,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -593,15 +593,16 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                           label: "Access Code",
                           field: TextFormField(
                             controller: _accesscodecontroller,
-                            decoration: _inputDecoration(
-                              hint: "Enter access code",
-                            ).copyWith(
-                              suffixIcon: const Icon(
-                                Icons.lock_outline,
-                                size: 18,
-                                color: AppTheme.textSecondaryColor,
-                              ),
-                            ),
+                            decoration:
+                                _inputDecoration(
+                                  hint: "Enter access code",
+                                ).copyWith(
+                                  suffixIcon: const Icon(
+                                    Icons.lock_outline,
+                                    size: 18,
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                                ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -643,12 +644,13 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                           label: "Passage Content",
                           field: TextFormField(
                             controller: _readingpassagecontentcontroller,
-                            decoration: _inputDecoration(
-                              hint: "Enter the reading passage text here…",
-                            ).copyWith(
-                              alignLabelWithHint: true,
-                              contentPadding: const EdgeInsets.all(14),
-                            ),
+                            decoration:
+                                _inputDecoration(
+                                  hint: "Enter the reading passage text here…",
+                                ).copyWith(
+                                  alignLabelWithHint: true,
+                                  contentPadding: const EdgeInsets.all(14),
+                                ),
                             keyboardType: TextInputType.multiline,
                             minLines: 5,
                             maxLines: null,
@@ -778,10 +780,9 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
           // Question text field
           TextFormField(
             controller: question.questionController,
-            decoration: _inputDecoration(hint: "Enter question text").copyWith(
-              filled: true,
-              fillColor: Colors.white,
-            ),
+            decoration: _inputDecoration(
+              hint: "Enter question text",
+            ).copyWith(filled: true, fillColor: Colors.white),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return "Please enter the question";
@@ -800,7 +801,9 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
               }
             },
             child: Column(
-              children: question.optionsControllers.asMap().entries.map((entry) {
+              children: question.optionsControllers.asMap().entries.map((
+                entry,
+              ) {
                 final optionIndex = entry.key;
                 final controller = entry.value;
                 final isCorrect = question.correctoptionindex == optionIndex;
@@ -820,22 +823,27 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: controller,
-                          decoration: _inputDecoration(
-                            hint: "Option ${optionIndex + 1}",
-                          ).copyWith(
-                            filled: true,
-                            fillColor: isCorrect
-                                ? AppTheme.primaryColor.withValues(alpha: 0.05)
-                                : Colors.white,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: isCorrect
-                                    ? AppTheme.primaryColor.withValues(alpha: 0.4)
-                                    : AppTheme.borderColor,
+                          decoration:
+                              _inputDecoration(
+                                hint: "Option ${optionIndex + 1}",
+                              ).copyWith(
+                                filled: true,
+                                fillColor: isCorrect
+                                    ? AppTheme.primaryColor.withValues(
+                                        alpha: 0.05,
+                                      )
+                                    : Colors.white,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: isCorrect
+                                        ? AppTheme.primaryColor.withValues(
+                                            alpha: 0.4,
+                                          )
+                                        : AppTheme.borderColor,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "Please enter option ${optionIndex + 1}";

@@ -6,12 +6,22 @@ import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/views/admin/admin/manage_admin.dart';
 import 'package:ireader_web/views/admin/admindashboard.dart';
 import 'package:ireader_web/views/admin/division/manage_division.dart';
+import 'package:ireader_web/views/admin/parent/manage_parents.dart';
 import 'package:ireader_web/views/admin/readingcoordinator/manage_rc.dart';
 import 'package:ireader_web/views/admin/school/manage_school.dart';
 import 'package:ireader_web/views/admin/schoolyear/manage_schoolyear.dart';
 import 'package:ireader_web/views/admin/teacher/manage_teacher.dart';
 
-enum AdminRoute { dashboard, schoolYears, divisions, schools, admins, readingCoordinators, teachers }
+enum AdminRoute {
+  dashboard,
+  schoolYears,
+  divisions,
+  schools,
+  admins,
+  readingCoordinators,
+  teachers,
+  parents,
+}
 
 class AdminSidebar extends StatelessWidget {
   final AdminRoute activeRoute;
@@ -71,7 +81,10 @@ class AdminSidebar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E3A5F),
                       borderRadius: BorderRadius.circular(9),
-                      border: Border.all(color: const Color(0xFF2D4E7E), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF2D4E7E),
+                        width: 1,
+                      ),
                     ),
                     child: const Center(
                       child: Text(
@@ -115,13 +128,62 @@ class AdminSidebar extends StatelessWidget {
           ),
           Container(height: 1, color: const Color(0xFF1E293B)),
           const SizedBox(height: 6),
-          _navItem(context, 'D', 'Dashboard', AdminRoute.dashboard, const AdminDashboard()),
-          _navItem(context, 'Y', 'School Years', AdminRoute.schoolYears, const ManageSchoolyearScreen()),
-          _navItem(context, 'V', 'Divisions', AdminRoute.divisions, const ManageDivisionScreen()),
-          _navItem(context, 'S', 'Schools', AdminRoute.schools, const ManageSchoolScreen()),
-          _navItem(context, 'A', 'Admins', AdminRoute.admins, const ManageAdminScreen()),
-          _navItem(context, 'R', 'Reading Coords', AdminRoute.readingCoordinators, const ManageRcScreen()),
-          _navItem(context, 'T', 'Teachers', AdminRoute.teachers, const ManageTeacherScreen()),
+          _navItem(
+            context,
+            'D',
+            'Dashboard',
+            AdminRoute.dashboard,
+            const AdminDashboard(),
+          ),
+          _navItem(
+            context,
+            'Y',
+            'School Years',
+            AdminRoute.schoolYears,
+            const ManageSchoolyearScreen(),
+          ),
+          _navItem(
+            context,
+            'V',
+            'Divisions',
+            AdminRoute.divisions,
+            const ManageDivisionScreen(),
+          ),
+          _navItem(
+            context,
+            'S',
+            'Schools',
+            AdminRoute.schools,
+            const ManageSchoolScreen(),
+          ),
+          _navItem(
+            context,
+            'A',
+            'Admins',
+            AdminRoute.admins,
+            const ManageAdminScreen(),
+          ),
+          _navItem(
+            context,
+            'R',
+            'Reading Coords',
+            AdminRoute.readingCoordinators,
+            const ManageRcScreen(),
+          ),
+          _navItem(
+            context,
+            'T',
+            'Teachers',
+            AdminRoute.teachers,
+            const ManageTeacherScreen(),
+          ),
+          _navItem(
+            context,
+            'P',
+            'Parents',
+            AdminRoute.parents,
+            const ManageParents(),
+          ),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),
           _logoutItem(context),
@@ -222,16 +284,17 @@ class AdminSidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: const Center(
-                    child: Icon(Icons.logout, color: Colors.redAccent, size: 13),
+                    child: Icon(
+                      Icons.logout,
+                      color: Colors.redAccent,
+                      size: 13,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 const Text(
                   'Log Out',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 12.5,
-                  ),
+                  style: TextStyle(color: Colors.redAccent, fontSize: 12.5),
                 ),
               ],
             ),

@@ -86,18 +86,18 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
     if (independent >= instructional && independent >= frustration) {
       insight =
           "Most students are classified under the Independent level. "
-          "This indicates a high average $_selectedReadType performance with a percentage of $percentFormatted%, and the majority "
-          "of learners can read and comprehend words independently.";
+          "This indicates a high average $_selectedReadType performance with a percentage of $percentFormatted%, where the majority "
+          "of learners comprehend words independently.";
     } else if (instructional >= independent && instructional >= frustration) {
       insight =
           "Most students are at the Instructional level. "
-          "This suggests that $_selectedReadType performance remains stable with a percentage of $percentFormatted%, and learners "
-          "benefit from guided reading support to improve further.";
+          "This suggests that $_selectedReadType performance is distributed around a percentage of $percentFormatted%, with learners "
+          "operating within a guided reading range.";
     } else {
       insight =
           "Most students fall under the Frustration level. "
-          "This indicates a low average $_selectedReadType performance with a percentage of $percentFormatted% and highlights the "
-          "need for targeted reading interventions and support.";
+          "This indicates a low average $_selectedReadType performance with a percentage of $percentFormatted% and reflects "
+          "a concentration of learners currently facing reading difficulties.";
     }
 
     // ✅ STEP 4: Append percentage

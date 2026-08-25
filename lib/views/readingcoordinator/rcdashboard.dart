@@ -90,8 +90,9 @@ class _RCDashboardState extends State<RCDashboard> {
         .map((d) => SchoolYear.fromMap(d.id, d.data()))
         .toList();
     years.sort(
-      (a, b) =>
-          (int.tryParse(a.schoolyearstart) ?? 0).compareTo(int.tryParse(b.schoolyearstart) ?? 0),
+      (a, b) => (int.tryParse(a.schoolyearstart) ?? 0).compareTo(
+        int.tryParse(b.schoolyearstart) ?? 0,
+      ),
     );
     _startYear = years.first;
     _endYear = years.last;
@@ -533,16 +534,16 @@ class _RCDashboardState extends State<RCDashboard> {
       String insight;
       if (lastIndP > firstIndP) {
         insight =
-            'Independent performance leads at ${lastIndP.toStringAsFixed(1)}% of the selected population. '
-            'Continued enrichment activities and regular reading engagement can help sustain and improve outcomes across all levels.';
+            'Independent performance leads at ${lastIndP.toStringAsFixed(1)}% of the selected population, '
+            'reflecting an increase compared to the initial period.';
       } else if (lastFruP > firstFruP) {
         insight =
             'Frustration level students increased from ${firstFruP.toStringAsFixed(1)}% to ${lastFruP.toStringAsFixed(1)}%, '
-            'indicating learning difficulties. Additional instructional support and intervention are needed.';
+            'highlighting a growth in this student segment over the selected timeframe.';
       } else {
         insight =
-            'Performance remains stable. Independent readers average ${avgInd.toStringAsFixed(1)}% across the selected years. '
-            'Continued enrichment may help improve literacy outcomes further.';
+            'Performance remains stable, with independent readers averaging ${avgInd.toStringAsFixed(1)}% across the selected years '
+            'and showing minimal variance.';
       }
 
       children.add(const SizedBox(height: 14));

@@ -3,6 +3,7 @@ import 'package:ireader_web/model/assessmentcontent.dart';
 class Assessment {
   final String id;
   final String schoolyearid;
+  final String? schoolid;
   final String assessmenttitle;
   final String visibility;
   final int timelimit;
@@ -16,6 +17,7 @@ class Assessment {
   Assessment({
     required this.id,
     required this.schoolyearid,
+    this.schoolid,
     required this.assessmenttitle,
     required this.visibility,
     required this.timelimit,
@@ -31,6 +33,7 @@ class Assessment {
     return Assessment(
       id: id,
       schoolyearid: map['schoolyearid'] ?? "",
+      schoolid: map['schoolid'] ?? "",
       assessmenttitle: map['assessmenttitle'] ?? "",
       visibility: map['visibility'] ?? "",
       timelimit: map['timelimit'] ?? "",
@@ -48,6 +51,7 @@ class Assessment {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     return {
       'schoolyearid': schoolyearid,
+      'schoolid': schoolid,
       'assessmenttitle': assessmenttitle,
       'visibility': visibility,
       'timelimit': timelimit,
@@ -62,6 +66,7 @@ class Assessment {
 
   Assessment copywith({
     String? schoolyearid,
+    String? schoolid,
     String? assessmenttitle,
     String? visibility,
     int? timelimit,
@@ -75,6 +80,7 @@ class Assessment {
     return Assessment(
       id: id,
       schoolyearid: schoolyearid ?? this.schoolyearid,
+      schoolid: schoolid ?? this.schoolid,
       assessmenttitle: assessmenttitle ?? this.assessmenttitle,
       visibility: visibility ?? this.visibility,
       timelimit: timelimit ?? this.timelimit,

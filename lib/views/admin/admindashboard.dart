@@ -41,8 +41,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final Map<String, Map<String, Map<String, int>>> _gradeCounts = {};
 
   static const List<String> _chartColors = [
-    '#6366F1', '#3B82F6', '#10B981', '#F59E0B',
-    '#EC4899', '#8B5CF6', '#14B8A6', '#F97316',
+    '#6366F1',
+    '#3B82F6',
+    '#10B981',
+    '#F59E0B',
+    '#EC4899',
+    '#8B5CF6',
+    '#14B8A6',
+    '#F97316',
   ];
 
   @override
@@ -56,7 +62,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         .collection('schoolyears')
         .orderBy('schoolyearstart')
         .snapshots()
-        .map((s) => s.docs.map((d) => SchoolYear.fromMap(d.id, d.data())).toList());
+        .map(
+          (s) => s.docs.map((d) => SchoolYear.fromMap(d.id, d.data())).toList(),
+        );
   }
 
   Future<void> _autoLoadDashboard() async {
@@ -69,8 +77,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
       setState(() => _loadingAnalysis = false);
       return;
     }
-    final years = snap.docs.map((d) => SchoolYear.fromMap(d.id, d.data())).toList();
-    years.sort((a, b) => (int.tryParse(a.schoolyearstart) ?? 0).compareTo(int.tryParse(b.schoolyearstart) ?? 0));
+    final years = snap.docs
+        .map((d) => SchoolYear.fromMap(d.id, d.data()))
+        .toList();
+    years.sort(
+      (a, b) => (int.tryParse(a.schoolyearstart) ?? 0).compareTo(
+        int.tryParse(b.schoolyearstart) ?? 0,
+      ),
+    );
     _startYear = years.first;
     _endYear = years.last;
     _startYearId = _startYear!.id;
@@ -114,9 +128,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
       final grade = student.gradelevelread;
       if (grade.isNotEmpty) {
-        _gradeCounts[schoolyearId]!.putIfAbsent(grade, () => {
-          'Frustration': 0, 'Instructional': 0, 'Independent': 0,
-        });
+        _gradeCounts[schoolyearId]!.putIfAbsent(
+          grade,
+          () => {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+        );
         _gradeCounts[schoolyearId]![grade]![level] =
             (_gradeCounts[schoolyearId]![grade]![level] ?? 0) + 1;
       }
@@ -134,7 +149,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _genderCounts.clear();
     _gradeCounts.clear();
     await Future.wait(
-      years.map((y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c)),
+      years.map(
+        (y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c),
+      ),
     );
     _selectedRangeYears = years;
     // Rebuild cached URLs once after all data is ready
@@ -189,13 +206,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
         'scales': {
           'x': {
             'grid': {'display': false},
-            'ticks': {'font': {'size': 12}, 'color': '#64748B'},
+            'ticks': {
+              'font': {'size': 12},
+              'color': '#64748B',
+            },
           },
           'y': {
             'beginAtZero': true,
             'grid': {'color': '#F1F5F9'},
-            'ticks': {'font': {'size': 11}, 'color': '#94A3B8', 'stepSize': 1},
-            'border': {'dash': [4, 4]},
+            'ticks': {
+              'font': {'size': 11},
+              'color': '#94A3B8',
+              'stepSize': 1,
+            },
+            'border': {
+              'dash': [4, 4],
+            },
           },
         },
         'barPercentage': 0.7,
@@ -249,13 +275,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
         'scales': {
           'x': {
             'grid': {'display': false},
-            'ticks': {'font': {'size': 11}, 'color': '#64748B'},
+            'ticks': {
+              'font': {'size': 11},
+              'color': '#64748B',
+            },
           },
           'y': {
             'beginAtZero': true,
             'grid': {'color': '#F1F5F9'},
-            'ticks': {'font': {'size': 10}, 'color': '#94A3B8', 'stepSize': 1},
-            'border': {'dash': [4, 4]},
+            'ticks': {
+              'font': {'size': 10},
+              'color': '#94A3B8',
+              'stepSize': 1,
+            },
+            'border': {
+              'dash': [4, 4],
+            },
           },
         },
         'barPercentage': 0.7,
@@ -279,41 +314,66 @@ class _AdminDashboardState extends State<AdminDashboard> {
       SchoolYear? winner;
       for (final y in _selectedRangeYears) {
         final value = _rangeCounts[y.id]?[level] ?? 0;
-        if (value > max) { max = value; winner = y; }
+        if (value > max) {
+          max = value;
+          winner = y;
+        }
       }
       final text = winner == null || max == 0
           ? 'No records yet'
           : 'Most students in ${winner.schoolyearstart}-${winner.schoolyearend}';
 
-      children.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: levelColors[level],
-                shape: BoxShape.circle,
+      children.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: levelColors[level],
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(level, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
-                  Text(text, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
-                ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      level,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimaryColor,
+                      ),
+                    ),
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (winner != null)
-              Text('$max', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: levelColors[level])),
-          ],
+              if (winner != null)
+                Text(
+                  '$max',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: levelColors[level],
+                  ),
+                ),
+            ],
+          ),
         ),
-      ));
+      );
     }
 
     if (_selectedRangeYears.length >= 2) {
@@ -327,40 +387,67 @@ class _AdminDashboardState extends State<AdminDashboard> {
       final lastIndP = _percent(lastCounts['Independent'] ?? 0, lastTotal);
       final firstFruP = _percent(firstCounts['Frustration'] ?? 0, firstTotal);
       final lastFruP = _percent(lastCounts['Frustration'] ?? 0, lastTotal);
-      final avgInd = _selectedRangeYears.map((y) {
-        final c = _rangeCounts[y.id] ?? {};
-        return _percent(c['Independent'] ?? 0, _total(c));
-      }).reduce((a, b) => a + b) / _selectedRangeYears.length;
+      final avgInd =
+          _selectedRangeYears
+              .map((y) {
+                final c = _rangeCounts[y.id] ?? {};
+                return _percent(c['Independent'] ?? 0, _total(c));
+              })
+              .reduce((a, b) => a + b) /
+          _selectedRangeYears.length;
 
       String insight;
       if (lastIndP > firstIndP) {
-        insight = 'Independent performance leads at ${lastIndP.toStringAsFixed(1)}% of the selected population. Continued enrichment activities and regular reading engagement can help sustain and improve outcomes across all levels.';
+        insight =
+            'Independent performance leads at ${lastIndP.toStringAsFixed(1)}% of the selected population, reflecting an upward trend compared to the initial period.';
       } else if (lastFruP < firstFruP) {
-        insight = 'Frustration level students increased from ${firstFruP.toStringAsFixed(1)}% to ${lastFruP.toStringAsFixed(1)}%, indicating learning difficulties. Additional instructional support and intervention are needed.';
+        insight =
+            'Frustration level students changed from ${firstFruP.toStringAsFixed(1)}% to ${lastFruP.toStringAsFixed(1)}%, marking a shift in the distribution of reading challenges over time.';
       } else {
-        insight = 'Performance remains stable. Independent readers average ${avgInd.toStringAsFixed(1)}% across the selected years. Continued enrichment may help improve literacy outcomes further.';
+        insight =
+            'Performance remains stable, with independent readers averaging ${avgInd.toStringAsFixed(1)}% across the selected years with minimal variance.';
       }
 
       children.add(const SizedBox(height: 14));
-      children.add(Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderColor),
+      children.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'INSIGHT',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textSecondaryColor,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                insight,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textPrimaryColor,
+                  height: 1.55,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('INSIGHT', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 1.2)),
-            const SizedBox(height: 6),
-            Text(insight, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor, height: 1.55)),
-          ],
-        ),
-      ));
+      );
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 
   Widget _buildGenderWinnersWidget(String gender) {
@@ -372,15 +459,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
       SchoolYear? winner;
       for (final y in _selectedRangeYears) {
         final value = _genderCounts[y.id]?[level]?[gender] ?? 0;
-        if (value > max) { max = value; winner = y; }
+        if (value > max) {
+          max = value;
+          winner = y;
+        }
       }
       final text = winner == null || max == 0
           ? '$level → No records'
           : '$level → ${winner.schoolyearstart}-${winner.schoolyearend} ($max)';
-      children.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Text(text, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
-      ));
+      children.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
+        ),
+      );
     }
 
     if (_selectedRangeYears.length >= 2) {
@@ -388,35 +486,72 @@ class _AdminDashboardState extends State<AdminDashboard> {
       final last = _selectedRangeYears.last;
       final firstCounts = _genderCounts[first.id] ?? {};
       final lastCounts = _genderCounts[last.id] ?? {};
-      int firstTotal = (firstCounts['Frustration']?[gender] ?? 0) + (firstCounts['Instructional']?[gender] ?? 0) + (firstCounts['Independent']?[gender] ?? 0);
-      int lastTotal = (lastCounts['Frustration']?[gender] ?? 0) + (lastCounts['Instructional']?[gender] ?? 0) + (lastCounts['Independent']?[gender] ?? 0);
-      double firstIndP = _percent(firstCounts['Independent']?[gender] ?? 0, firstTotal);
-      double lastIndP = _percent(lastCounts['Independent']?[gender] ?? 0, lastTotal);
-      double avgInd = _selectedRangeYears.map((y) {
-        final c = _genderCounts[y.id] ?? {};
-        final total = (c['Frustration']?[gender] ?? 0) + (c['Instructional']?[gender] ?? 0) + (c['Independent']?[gender] ?? 0);
-        return _percent(c['Independent']?[gender] ?? 0, total);
-      }).reduce((a, b) => a + b) / _selectedRangeYears.length;
+      int firstTotal =
+          (firstCounts['Frustration']?[gender] ?? 0) +
+          (firstCounts['Instructional']?[gender] ?? 0) +
+          (firstCounts['Independent']?[gender] ?? 0);
+      int lastTotal =
+          (lastCounts['Frustration']?[gender] ?? 0) +
+          (lastCounts['Instructional']?[gender] ?? 0) +
+          (lastCounts['Independent']?[gender] ?? 0);
+      double firstIndP = _percent(
+        firstCounts['Independent']?[gender] ?? 0,
+        firstTotal,
+      );
+      double lastIndP = _percent(
+        lastCounts['Independent']?[gender] ?? 0,
+        lastTotal,
+      );
+      double avgInd =
+          _selectedRangeYears
+              .map((y) {
+                final c = _genderCounts[y.id] ?? {};
+                final total =
+                    (c['Frustration']?[gender] ?? 0) +
+                    (c['Instructional']?[gender] ?? 0) +
+                    (c['Independent']?[gender] ?? 0);
+                return _percent(c['Independent']?[gender] ?? 0, total);
+              })
+              .reduce((a, b) => a + b) /
+          _selectedRangeYears.length;
 
       String insight;
       if (lastIndP > firstIndP) {
-        insight = 'Improving trend — Independent readers increased from ${firstIndP.toStringAsFixed(1)}% to ${lastIndP.toStringAsFixed(1)}%, averaging ${avgInd.toStringAsFixed(1)}%.';
+        insight =
+            'Improving trend — Independent readers increased from ${firstIndP.toStringAsFixed(1)}% to ${lastIndP.toStringAsFixed(1)}%, averaging ${avgInd.toStringAsFixed(1)}%.';
       } else if (lastIndP < firstIndP) {
-        insight = 'Slight decline — Independent readers decreased from ${firstIndP.toStringAsFixed(1)}% to ${lastIndP.toStringAsFixed(1)}%. Targeted support may help.';
+        insight =
+            'Slight decline — Independent readers decreased from ${firstIndP.toStringAsFixed(1)}% to ${lastIndP.toStringAsFixed(1)}% over the measured period.';
       } else {
-        insight = 'Stable performance — Independent readers average ${avgInd.toStringAsFixed(1)}% with minimal change.';
+        insight =
+            'Stable performance — Independent readers average ${avgInd.toStringAsFixed(1)}% with minimal change.';
       }
 
       children.add(const SizedBox(height: 10));
-      children.add(Text(insight, style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor, height: 1.5)));
+      children.add(
+        Text(
+          insight,
+          style: const TextStyle(
+            fontSize: 11.5,
+            color: AppTheme.textSecondaryColor,
+            height: 1.5,
+          ),
+        ),
+      );
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 
-  double _percent(int value, int total) => total == 0 ? 0 : (value / total) * 100;
+  double _percent(int value, int total) =>
+      total == 0 ? 0 : (value / total) * 100;
   int _total(Map<String, int> counts) =>
-      (counts['Frustration'] ?? 0) + (counts['Instructional'] ?? 0) + (counts['Independent'] ?? 0);
+      (counts['Frustration'] ?? 0) +
+      (counts['Instructional'] ?? 0) +
+      (counts['Independent'] ?? 0);
 
   Widget _buildStatCards() {
     int totalStudents = 0;
@@ -435,17 +570,39 @@ class _AdminDashboardState extends State<AdminDashboard> {
       }
     }
 
-    final indRate = totalStudents == 0 ? 0.0 : (totalIndependent / totalStudents) * 100;
+    final indRate = totalStudents == 0
+        ? 0.0
+        : (totalIndependent / totalStudents) * 100;
     final yearsTracked = _selectedRangeYears.length;
     final rangeLabel = yearsTracked == 0
         ? '—'
         : '${_selectedRangeYears.first.schoolyearstart}-${_selectedRangeYears.last.schoolyearend}';
 
     final cards = [
-      (label: 'Total Students Assessed', value: '$totalStudents', sub: '$yearsTracked school ${yearsTracked == 1 ? "year" : "years"}', color: const Color(0xFF6366F1)),
-      (label: 'Independent Reading Rate', value: '${indRate.toStringAsFixed(1)}%', sub: 'across selected range', color: const Color(0xFF10B981)),
-      (label: 'Top Performing Year', value: topYear, sub: 'highest Independent count', color: const Color(0xFF3B82F6)),
-      (label: 'Years Tracked', value: '$yearsTracked', sub: rangeLabel, color: const Color(0xFFF59E0B)),
+      (
+        label: 'Total Students Assessed',
+        value: '$totalStudents',
+        sub: '$yearsTracked school ${yearsTracked == 1 ? "year" : "years"}',
+        color: const Color(0xFF6366F1),
+      ),
+      (
+        label: 'Independent Reading Rate',
+        value: '${indRate.toStringAsFixed(1)}%',
+        sub: 'across selected range',
+        color: const Color(0xFF10B981),
+      ),
+      (
+        label: 'Top Performing Year',
+        value: topYear,
+        sub: 'highest Independent count',
+        color: const Color(0xFF3B82F6),
+      ),
+      (
+        label: 'Years Tracked',
+        value: '$yearsTracked',
+        sub: rangeLabel,
+        color: const Color(0xFFF59E0B),
+      ),
     ];
 
     return Row(
@@ -463,11 +620,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor, fontWeight: FontWeight.w500)),
+                Text(
+                  c.label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text(c.value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: c.color, height: 1)),
+                Text(
+                  c.value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: c.color,
+                    height: 1,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(c.sub, style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondaryColor)),
+                Text(
+                  c.sub,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -491,8 +669,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
           return GestureDetector(
             onTap: () async {
               if (_selectedReadType == type) return;
-              setState(() { _selectedReadType = type; _loadingAnalysis = true; });
-              if (_selectedRangeYears.isNotEmpty) await _analyzeRange(_selectedRangeYears);
+              setState(() {
+                _selectedReadType = type;
+                _loadingAnalysis = true;
+              });
+              if (_selectedRangeYears.isNotEmpty)
+                await _analyzeRange(_selectedRangeYears);
               if (mounted) setState(() => _loadingAnalysis = false);
             },
             child: AnimatedContainer(
@@ -502,13 +684,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 color: isSelected ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
                 boxShadow: isSelected
-                    ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
                     : null,
               ),
               child: Text(
                 type,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.textPrimaryColor : AppTheme.textSecondaryColor,
+                  color: isSelected
+                      ? AppTheme.textPrimaryColor
+                      : AppTheme.textSecondaryColor,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 12.5,
                 ),
@@ -531,12 +721,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimaryColor,
+            ),
+          ),
           const SizedBox(height: 12),
           if (url == null)
             SizedBox(
               height: height,
-              child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor)),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
             )
           else
             Image.network(
@@ -553,7 +755,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       strokeWidth: 2,
                       color: AppTheme.primaryColor,
                       value: progress.expectedTotalBytes != null
-                          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                          ? progress.cumulativeBytesLoaded /
+                                progress.expectedTotalBytes!
                           : null,
                     ),
                   ),
@@ -561,7 +764,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
               },
               errorBuilder: (_, __, ___) => SizedBox(
                 height: height,
-                child: const Center(child: Text('Unable to load chart', style: TextStyle(color: AppTheme.textSecondaryColor, fontSize: 13))),
+                child: const Center(
+                  child: Text(
+                    'Unable to load chart',
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryColor,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
               ),
             ),
         ],
@@ -578,24 +789,54 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.8)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textSecondaryColor,
+            letterSpacing: 0.8,
+          ),
+        ),
         const SizedBox(height: 4),
         SizedBox(
           height: 42,
           child: DropdownButtonFormField<String>(
             initialValue: value,
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.borderColor)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.borderColor)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 0,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppTheme.borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppTheme.borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: AppTheme.primaryColor,
+                  width: 1.5,
+                ),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
-            items: years.map((sy) => DropdownMenuItem(
-              value: sy.id,
-              child: Text('${sy.schoolyearstart}-${sy.schoolyearend}', style: const TextStyle(fontSize: 13)),
-            )).toList(),
+            items: years
+                .map(
+                  (sy) => DropdownMenuItem(
+                    value: sy.id,
+                    child: Text(
+                      '${sy.schoolyearstart}-${sy.schoolyearend}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                )
+                .toList(),
             onChanged: onChanged,
           ),
         ),
@@ -616,12 +857,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           Text(
             '$_selectedReadType Overview',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimaryColor,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'This shows which school year has the most students per $_selectedReadType level, for years ${_selectedRangeYears.isNotEmpty ? "${_selectedRangeYears.first.schoolyearstart}-${_selectedRangeYears.first.schoolyearend}" : ""} to ${_selectedRangeYears.isNotEmpty ? "${_selectedRangeYears.last.schoolyearstart}-${_selectedRangeYears.last.schoolyearend}" : ""}.',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor, height: 1.4),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 16),
           _buildWinnersWidget(),
@@ -643,7 +892,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           Text(
             '$gender Students',
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor),
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimaryColor,
+            ),
           ),
           const SizedBox(height: 12),
           if (gender == 'Male')
@@ -663,7 +916,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     if (url == null) {
       return SizedBox(
         height: height,
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor)),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppTheme.primaryColor,
+          ),
+        ),
       );
     }
     return Image.network(
@@ -680,7 +938,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
               strokeWidth: 2,
               color: AppTheme.primaryColor,
               value: progress.expectedTotalBytes != null
-                  ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                  ? progress.cumulativeBytesLoaded /
+                        progress.expectedTotalBytes!
                   : null,
             ),
           ),
@@ -688,7 +947,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
       },
       errorBuilder: (_, __, ___) => SizedBox(
         height: height,
-        child: const Center(child: Text('Unable to load chart', style: TextStyle(color: AppTheme.textSecondaryColor))),
+        child: const Center(
+          child: Text(
+            'Unable to load chart',
+            style: TextStyle(color: AppTheme.textSecondaryColor),
+          ),
+        ),
       ),
     );
   }
@@ -702,18 +966,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
       for (final entry in yearGrades.entries) {
         final grade = entry.key;
         final lvls = entry.value;
-        aggregated.putIfAbsent(grade, () => {'Frustration': 0, 'Instructional': 0, 'Independent': 0});
+        aggregated.putIfAbsent(
+          grade,
+          () => {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+        );
         for (final lEntry in lvls.entries) {
-          aggregated[grade]![lEntry.key] = (aggregated[grade]![lEntry.key] ?? 0) + lEntry.value;
+          aggregated[grade]![lEntry.key] =
+              (aggregated[grade]![lEntry.key] ?? 0) + lEntry.value;
         }
       }
     }
 
-    final gradeOrder = ['Pre-reading', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+    final gradeOrder = [
+      'Pre-reading',
+      'Kinder',
+      'Grade 1',
+      'Grade 2',
+      'Grade 3',
+      'Grade 4',
+      'Grade 5',
+      'Grade 6',
+    ];
     final labels = aggregated.keys.toList()
       ..sort((a, b) {
-        final ai = gradeOrder.indexWhere((g) => g.toLowerCase() == a.toLowerCase());
-        final bi = gradeOrder.indexWhere((g) => g.toLowerCase() == b.toLowerCase());
+        final ai = gradeOrder.indexWhere(
+          (g) => g.toLowerCase() == a.toLowerCase(),
+        );
+        final bi = gradeOrder.indexWhere(
+          (g) => g.toLowerCase() == b.toLowerCase(),
+        );
         if (ai == -1 && bi == -1) return a.compareTo(b);
         if (ai == -1) return 1;
         if (bi == -1) return -1;
@@ -733,7 +1014,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       },
       {
         'label': 'Instructional',
-        'data': labels.map((g) => aggregated[g]?['Instructional'] ?? 0).toList(),
+        'data': labels
+            .map((g) => aggregated[g]?['Instructional'] ?? 0)
+            .toList(),
         'backgroundColor': '#FFB347',
         'borderWidth': 0,
         'borderRadius': 4,
@@ -775,13 +1058,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
         'scales': {
           'x': {
             'grid': {'display': false},
-            'ticks': {'font': {'size': 11}, 'color': '#64748B'},
+            'ticks': {
+              'font': {'size': 11},
+              'color': '#64748B',
+            },
           },
           'y': {
             'beginAtZero': true,
             'grid': {'color': '#F1F5F9'},
-            'ticks': {'font': {'size': 11}, 'color': '#94A3B8', 'stepSize': 1},
-            'border': {'dash': [4, 4]},
+            'ticks': {
+              'font': {'size': 11},
+              'color': '#94A3B8',
+              'stepSize': 1,
+            },
+            'border': {
+              'dash': [4, 4],
+            },
           },
         },
         'barPercentage': 0.7,
@@ -808,7 +1100,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
             const SizedBox(width: 8),
             const Text(
               'Phil-IRI 2018 Descriptive Analytics',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimaryColor,
+              ),
             ),
           ],
         ),
@@ -819,11 +1115,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         const SizedBox(height: 16),
         isMobile
-            ? Column(children: [
-                _buildFrequencyTable(),
-                const SizedBox(height: 16),
-                _buildDescriptiveStats(),
-              ])
+            ? Column(
+                children: [
+                  _buildFrequencyTable(),
+                  const SizedBox(height: 16),
+                  _buildDescriptiveStats(),
+                ],
+              )
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -834,7 +1132,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
         if (_cachedGradeUrl != null && _cachedGradeUrl!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _buildChartCard('Grade Level Reading Distribution', _cachedGradeUrl, 340),
+          _buildChartCard(
+            'Grade Level Reading Distribution',
+            _cachedGradeUrl,
+            340,
+          ),
         ],
       ],
     );
@@ -860,12 +1162,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           const Text(
             'Frequency Distribution Table',
-            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor),
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimaryColor,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             '$_selectedReadType · Count (n) and percentage (%) per reading level',
-            style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor),
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: AppTheme.textSecondaryColor,
+            ),
           ),
           const SizedBox(height: 16),
           SingleChildScrollView(
@@ -877,79 +1186,155 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildTableContent(List<String> levels, Map<String, Color> levelColors) {
+  Widget _buildTableContent(
+    List<String> levels,
+    Map<String, Color> levelColors,
+  ) {
     final years = _selectedRangeYears;
 
     Widget hCell(Widget child, double w) => SizedBox(
-          width: w,
-          child: Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: child),
-        );
+      width: w,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: child,
+      ),
+    );
 
     Widget dCell(Widget child, double w) => SizedBox(
-          width: w,
-          child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: child),
-        );
-
-    final headerRow = Row(children: [
-      hCell(
-        const Text('Reading Level',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.3)),
-        130,
+      width: w,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: child,
       ),
-      ...years.map((y) => hCell(
-            Column(children: [
-              Text('${y.schoolyearstart}–${y.schoolyearend}',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor),
-                  textAlign: TextAlign.center),
-              const Text('n            %',
-                  style: TextStyle(fontSize: 10, color: AppTheme.textSecondaryColor), textAlign: TextAlign.center),
-            ]),
+    );
+
+    final headerRow = Row(
+      children: [
+        hCell(
+          const Text(
+            'Reading Level',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textSecondaryColor,
+              letterSpacing: 0.3,
+            ),
+          ),
+          130,
+        ),
+        ...years.map(
+          (y) => hCell(
+            Column(
+              children: [
+                Text(
+                  '${y.schoolyearstart}–${y.schoolyearend}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const Text(
+                  'n            %',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
             160,
-          )),
-    ]);
+          ),
+        ),
+      ],
+    );
 
     final dataRows = levels.asMap().entries.map((entry) {
       final level = entry.value;
       return Container(
         color: entry.key % 2 == 0 ? const Color(0xFFFAFAFC) : Colors.white,
-        child: Row(children: [
-          dCell(
-            Row(children: [
-              Container(width: 8, height: 8, decoration: BoxDecoration(color: levelColors[level], shape: BoxShape.circle)),
-              const SizedBox(width: 6),
-              Text(level, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.textPrimaryColor)),
-            ]),
-            130,
-          ),
-          ...years.map((y) {
-            final counts = _rangeCounts[y.id] ?? {};
-            final total = _total(counts);
-            final count = counts[level] ?? 0;
-            final pct = _percent(count, total);
-            return dCell(
-              Text('$count            ${pct.toStringAsFixed(1)}%',
-                  style: TextStyle(fontSize: 12, color: levelColors[level], fontWeight: FontWeight.w600),
-                  textAlign: TextAlign.center),
-              160,
-            );
-          }),
-        ]),
+        child: Row(
+          children: [
+            dCell(
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: levelColors[level],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    level,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              130,
+            ),
+            ...years.map((y) {
+              final counts = _rangeCounts[y.id] ?? {};
+              final total = _total(counts);
+              final count = counts[level] ?? 0;
+              final pct = _percent(count, total);
+              return dCell(
+                Text(
+                  '$count            ${pct.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: levelColors[level],
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                160,
+              );
+            }),
+          ],
+        ),
       );
     }).toList();
 
-    final totalRow = Row(children: [
-      dCell(const Text('Total', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor)), 130),
-      ...years.map((y) {
-        final counts = _rangeCounts[y.id] ?? {};
-        final total = _total(counts);
-        return dCell(
-          Text('$total            100.0%',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
-              textAlign: TextAlign.center),
-          160,
-        );
-      }),
-    ]);
+    final totalRow = Row(
+      children: [
+        dCell(
+          const Text(
+            'Total',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimaryColor,
+            ),
+          ),
+          130,
+        ),
+        ...years.map((y) {
+          final counts = _rangeCounts[y.id] ?? {};
+          final total = _total(counts);
+          return dCell(
+            Text(
+              '$total            100.0%',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            160,
+          );
+        }),
+      ],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,7 +1361,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     String mode = 'N/A';
     int modeCount = 0;
     if (grandTotal > 0) {
-      if (totalFrustration >= totalInstructional && totalFrustration >= totalIndependent) {
+      if (totalFrustration >= totalInstructional &&
+          totalFrustration >= totalIndependent) {
         mode = 'Frustration';
         modeCount = totalFrustration;
       } else if (totalInstructional >= totalIndependent) {
@@ -1009,11 +1395,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Descriptive Measures',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+          const Text(
+            'Descriptive Measures',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimaryColor,
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Summary statistics across selected range',
-              style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+          const Text(
+            'Summary statistics across selected range',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -1026,28 +1423,76 @@ class _AdminDashboardState extends State<AdminDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('MODE (DOMINANT LEVEL)',
-                    style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 1.0)),
+                const Text(
+                  'MODE (DOMINANT LEVEL)',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondaryColor,
+                    letterSpacing: 1.0,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(mode, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: modeColor)),
+                Text(
+                  mode,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: modeColor,
+                  ),
+                ),
                 if (grandTotal > 0)
-                  Text('$modeCount students · ${_percent(modeCount, grandTotal).toStringAsFixed(1)}%',
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor)),
+                  Text(
+                    '$modeCount students · ${_percent(modeCount, grandTotal).toStringAsFixed(1)}%',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                  ),
               ],
             ),
           ),
           const SizedBox(height: 14),
-          _philIriStatRow('Frustration', totalFrustration, frustPct, AppTheme.levelFrustration),
+          _philIriStatRow(
+            'Frustration',
+            totalFrustration,
+            frustPct,
+            AppTheme.levelFrustration,
+          ),
           const SizedBox(height: 8),
-          _philIriStatRow('Instructional', totalInstructional, instrPct, AppTheme.levelInstructional),
+          _philIriStatRow(
+            'Instructional',
+            totalInstructional,
+            instrPct,
+            AppTheme.levelInstructional,
+          ),
           const SizedBox(height: 8),
-          _philIriStatRow('Independent', totalIndependent, indPct, AppTheme.levelIndependent),
+          _philIriStatRow(
+            'Independent',
+            totalIndependent,
+            indPct,
+            AppTheme.levelIndependent,
+          ),
           const Divider(color: AppTheme.borderColor, height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total N', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
-              Text('$grandTotal', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textPrimaryColor)),
+              const Text(
+                'Total N',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              Text(
+                '$grandTotal',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
             ],
           ),
         ],
@@ -1058,15 +1503,40 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _philIriStatRow(String label, int count, double pct, Color color) {
     return Row(
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor))),
-        Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textPrimaryColor,
+            ),
+          ),
+        ),
+        Text(
+          '$count',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
         const SizedBox(width: 8),
         SizedBox(
           width: 48,
-          child: Text('${pct.toStringAsFixed(1)}%',
-              style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor), textAlign: TextAlign.right),
+          child: Text(
+            '${pct.toStringAsFixed(1)}%',
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: AppTheme.textSecondaryColor,
+            ),
+            textAlign: TextAlign.right,
+          ),
         ),
       ],
     );
@@ -1079,7 +1549,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      drawer: isDesktop ? null : Drawer(child: AdminSidebar(activeRoute: AdminRoute.dashboard)),
+      drawer: isDesktop
+          ? null
+          : Drawer(child: AdminSidebar(activeRoute: AdminRoute.dashboard)),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1090,18 +1562,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: [
                 const AdminTopHeader(
                   pageTitle: 'Dashboard Analytics',
-                  pageSubtitle: 'School-year performance and reading level trends at a glance',
+                  pageSubtitle:
+                      'School-year performance and reading level trends at a glance',
                 ),
                 Expanded(
                   child: StreamBuilder<List<SchoolYear>>(
                     stream: _fetchSchoolYears(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryColor,
+                          ),
+                        );
                       }
                       final schoolYears = snapshot.data!;
                       if (_startYear == null && schoolYears.isNotEmpty) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _autoLoadDashboard());
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _autoLoadDashboard(),
+                        );
                       }
 
                       return SingleChildScrollView(
@@ -1149,24 +1628,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                       backgroundColor: AppTheme.primaryColor,
                                       foregroundColor: Colors.white,
                                       elevation: 0,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      textStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                     onPressed: () async {
-                                      if (_startYear == null || _endYear == null) return;
-                                      final startVal = int.tryParse(_startYear!.schoolyearstart) ?? 0;
-                                      final endVal = int.tryParse(_endYear!.schoolyearstart) ?? 0;
+                                      if (_startYear == null ||
+                                          _endYear == null)
+                                        return;
+                                      final startVal =
+                                          int.tryParse(
+                                            _startYear!.schoolyearstart,
+                                          ) ??
+                                          0;
+                                      final endVal =
+                                          int.tryParse(
+                                            _endYear!.schoolyearstart,
+                                          ) ??
+                                          0;
                                       if (startVal >= endVal) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Invalid range'), backgroundColor: Colors.red),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Invalid range'),
+                                            backgroundColor: Colors.red,
+                                          ),
                                         );
                                         return;
                                       }
                                       setState(() => _loadingAnalysis = true);
                                       final years = schoolYears.where((y) {
-                                        final yVal = int.tryParse(y.schoolyearstart) ?? 0;
-                                        return yVal >= startVal && yVal <= endVal;
+                                        final yVal =
+                                            int.tryParse(y.schoolyearstart) ??
+                                            0;
+                                        return yVal >= startVal &&
+                                            yVal <= endVal;
                                       }).toList();
                                       await _analyzeRange(years);
                                       setState(() => _loadingAnalysis = false);
@@ -1177,15 +1681,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                 const Spacer(),
                                 if (_selectedRangeYears.isNotEmpty)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppTheme.backgroundColor,
                                       borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppTheme.borderColor),
+                                      border: Border.all(
+                                        color: AppTheme.borderColor,
+                                      ),
                                     ),
                                     child: Text(
                                       'Showing ${_selectedRangeYears.first.schoolyearstart}-${_selectedRangeYears.first.schoolyearend} → ${_selectedRangeYears.last.schoolyearstart}-${_selectedRangeYears.last.schoolyearend}',
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textSecondaryColor),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -1198,36 +1711,64 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             if (_loadingAnalysis)
                               const SizedBox(
                                 height: 300,
-                                child: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
                               )
                             else ...[
                               isMobile
-                                  ? Column(children: [
-                                      _buildLeftOverviewCard(),
-                                      const SizedBox(height: 16),
-                                      _buildChartCard('All Students — Reading Levels', _cachedMultiYearUrl, 300),
-                                    ])
-                                  : Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  ? Column(
                                       children: [
-                                        Expanded(flex: 1, child: _buildLeftOverviewCard()),
+                                        _buildLeftOverviewCard(),
+                                        const SizedBox(height: 16),
+                                        _buildChartCard(
+                                          'All Students — Reading Levels',
+                                          _cachedMultiYearUrl,
+                                          300,
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: _buildLeftOverviewCard(),
+                                        ),
                                         const SizedBox(width: 16),
-                                        Expanded(flex: 2, child: _buildChartCard('All Students — Reading Levels', _cachedMultiYearUrl, 340)),
+                                        Expanded(
+                                          flex: 2,
+                                          child: _buildChartCard(
+                                            'All Students — Reading Levels',
+                                            _cachedMultiYearUrl,
+                                            340,
+                                          ),
+                                        ),
                                       ],
                                     ),
                               const SizedBox(height: 16),
                               isMobile
-                                  ? Column(children: [
-                                      _buildGenderCard('Male'),
-                                      const SizedBox(height: 16),
-                                      _buildGenderCard('Female'),
-                                    ])
-                                  : Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  ? Column(
                                       children: [
-                                        Expanded(child: _buildGenderCard('Male')),
+                                        _buildGenderCard('Male'),
+                                        const SizedBox(height: 16),
+                                        _buildGenderCard('Female'),
+                                      ],
+                                    )
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: _buildGenderCard('Male'),
+                                        ),
                                         const SizedBox(width: 16),
-                                        Expanded(child: _buildGenderCard('Female')),
+                                        Expanded(
+                                          child: _buildGenderCard('Female'),
+                                        ),
                                       ],
                                     ),
                               const SizedBox(height: 24),

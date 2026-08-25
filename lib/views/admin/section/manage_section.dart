@@ -59,22 +59,21 @@ class _ManageSectionState extends State<ManageSection> {
     final percentFormatted = percentage.toStringAsFixed(1);
 
     String insight;
-
     if (independent >= instructional && independent >= frustration) {
       insight =
-          "Most students are classified under the Independent level. "
-          "This indicates a high average $_selectedReadType performance with a percentage of $percentFormatted%, and the majority "
-          "of learners can read and comprehend words independently.";
+          "Most students are classified under the Independent level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "indicating that the majority of learners comprehend material independently.";
     } else if (instructional >= independent && instructional >= frustration) {
       insight =
-          "Most students are at the Instructional level. "
-          "This suggests that $_selectedReadType performance remains stable with a percentage of $percentFormatted%, and learners "
-          "benefit from guided reading support to improve further.";
+          "Most students are at the Instructional level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "reflecting a distribution where learners typically require guided reading support.";
     } else {
       insight =
-          "Most students fall under the Frustration level. "
-          "This indicates a low average $_selectedReadType performance with a percentage of $percentFormatted% and highlights the "
-          "need for targeted reading interventions and support.";
+          "Most students fall under the Frustration level, "
+          "accounting for $percentFormatted% of $_selectedReadType performance, "
+          "highlighting a concentration of learners facing reading challenges.";
     }
 
     return insight;

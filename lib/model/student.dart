@@ -3,6 +3,7 @@ class Student {
   final String lrn;
   final String sectionid;
   final String schoolyearid;
+  final String? schoolid;
   final String firstname;
   final String? middlename;
   final String lastname;
@@ -19,6 +20,7 @@ class Student {
     required this.lrn,
     required this.sectionid,
     required this.schoolyearid,
+    this.schoolid,
     required this.firstname,
     this.middlename,
     required this.lastname,
@@ -37,6 +39,7 @@ class Student {
       lrn: map['lrn'] ?? "",
       sectionid: map['sectionid'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
+      schoolid: map['schoolid'] ?? "",
       firstname: map['firstname'] ?? "",
       middlename: map['middlename'],
       lastname: map['lastname'] ?? "",
@@ -55,6 +58,7 @@ class Student {
       'lrn': lrn,
       'sectionid': sectionid,
       'schoolyearid': schoolyearid,
+      'schoolid': schoolid,
       'firstname': firstname,
       'middlename': middlename,
       'lastname': lastname,
@@ -72,6 +76,7 @@ class Student {
     String? sectionid,
     String? lrn,
     String? schoolyearid,
+    String? schoolid,
     String? firstname,
     String? middlename,
     String? lastname,
@@ -88,6 +93,7 @@ class Student {
       lrn: lrn ?? this.lrn,
       sectionid: sectionid ?? this.sectionid,
       schoolyearid: schoolyearid ?? this.schoolyearid,
+      schoolid: schoolid ?? this.schoolid,
       firstname: firstname ?? this.firstname,
       middlename: middlename ?? this.middlename,
       lastname: lastname ?? this.lastname,
