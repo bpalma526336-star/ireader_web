@@ -58,13 +58,13 @@ class CompInsights {
   String get insightMessage {
     if (average >= 80) {
       return "The student demonstrates a high level of reading comprehension. "
-          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance is considered increasing/high. Continue providing challenging reading activities to sustain progress.";
+          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance reflects strong and consistent progress in literacy skills.";
     } else if (average >= 59) {
       return "The student demonstrates a moderate level of reading comprehension. "
-          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance is considered stable. Continued guided reading and comprehension practice are recommended to improve performance.";
+          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance remains stable and reflects steady reading capabilities.";
     } else {
       return "The student demonstrates a low level of reading comprehension. "
-          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance is considered declining/low. Additional interventions, guided reading, and targeted comprehension support are recommended.";
+          "With an average score of ${average.toStringAsFixed(1)}%, the student's performance indicates ongoing challenges and a need for further support in text comprehension.";
     }
   }
 }
@@ -203,7 +203,9 @@ Widget buildQuickChart(
 ) {
   final labels = results.map((e) => titles[e.assessmentid] ?? "").toList();
 
-  final scores = results.map((e) => double.tryParse(e.resultpercentage) ?? 0.0).toList();
+  final scores = results
+      .map((e) => double.tryParse(e.resultpercentage) ?? 0.0)
+      .toList();
 
   final chart = {
     "type": "bar",

@@ -323,6 +323,17 @@ class _AddParentStudentState extends State<AddParentStudent> {
                     builder: (context, constraints) {
                       final sectionFilter = DropdownButtonFormField<String>(
                         value: _selectedSectionId,
+                        onChanged: _selectedSchoolYearId == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedSectionId = value;
+                                  _selectedStudentIds = List<String?>.filled(
+                                    _selectedStudentIds.length,
+                                    null,
+                                  );
+                                });
+                              },
                         decoration: const InputDecoration(
                           labelText: 'Filter by section',
                           border: OutlineInputBorder(),
@@ -332,16 +343,19 @@ class _AddParentStudentState extends State<AddParentStudent> {
                             value: null,
                             child: Text('All sections'),
                           ),
-                          ..._sections.map(
-                            (section) => DropdownMenuItem<String>(
-                              value: section.id,
-                              child: Text(section.sectionname),
-                            ),
-                          ),
+                          ..._sections
+                              .where(
+                                (section) =>
+                                    section.schoolyearid ==
+                                    _selectedSchoolYearId,
+                              )
+                              .map(
+                                (section) => DropdownMenuItem<String>(
+                                  value: section.id,
+                                  child: Text(section.sectionname),
+                                ),
+                              ),
                         ],
-                        onChanged: (value) {
-                          setState(() => _selectedSectionId = value);
-                        },
                       );
                       final schoolYearFilter = DropdownButtonFormField<String>(
                         value: _selectedSchoolYearId,
@@ -365,7 +379,14 @@ class _AddParentStudentState extends State<AddParentStudent> {
                           ),
                         ],
                         onChanged: (value) {
-                          setState(() => _selectedSchoolYearId = value);
+                          setState(() {
+                            _selectedSchoolYearId = value;
+                            _selectedSectionId = null;
+                            _selectedStudentIds = List<String?>.filled(
+                              _selectedStudentIds.length,
+                              null,
+                            );
+                          });
                         },
                       );
 
@@ -461,6 +482,9 @@ class _AddParentStudentState extends State<AddParentStudent> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: selectedId,
+              onChanged: _selectedSectionId == null
+                  ? null
+                  : (value) => _changeStudent(index, value),
               decoration: InputDecoration(
                 labelText: 'Student ${index + 1}',
                 border: const OutlineInputBorder(),
@@ -504,10 +528,6 @@ class _AddParentStudentState extends State<AddParentStudent> {
                     );
                   })
                   .toList(),
-
-              onChanged: (value) {
-                _changeStudent(index, value);
-              },
             ),
           ),
 

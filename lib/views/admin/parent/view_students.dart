@@ -135,8 +135,8 @@ class _ViewParentStudentState extends State<ViewParentStudent> {
         ),
       ),
 
-      body: FutureBuilder<List<Student>>(
-        future: getStudentsUnderParent(),
+      body: StreamBuilder<List<Student>>(
+        stream: getStudentsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/teacher.dart';
+import 'package:ireader_web/views/teacher/parent/manage_parents.dart';
+import 'package:ireader_web/views/teacher/sections/teacher_manage_section.dart';
 
 class TeacherSidebar extends StatelessWidget {
   final Teacher teacher;
@@ -100,7 +102,9 @@ class TeacherSidebar extends StatelessWidget {
           ),
           Container(height: 1, color: const Color(0xFF1E293B)),
           const SizedBox(height: 6),
-          _sectionItem(),
+          _sectionItem(context),
+          const SizedBox(height: 6),
+          _manageparentitem(context),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),
           _logoutItem(context),
@@ -110,46 +114,121 @@ class TeacherSidebar extends StatelessWidget {
     );
   }
 
-  Widget _sectionItem() {
+  Widget _sectionItem(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: _activeBg,
+      child: Material(
+        color: _activeBg,
+        borderRadius: BorderRadius.circular(7),
+        child: InkWell(
           borderRadius: BorderRadius.circular(7),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: _accent.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: const Icon(Icons.class_outlined, color: _accent, size: 14),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Assigned Sections',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TeacherManageSection(
+                  teacher: teacher,
+                  schoolyear: schoolyear,
                 ),
               ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: _accent.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: const Icon(
+                    Icons.class_outlined,
+                    color: _accent,
+                    size: 14,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Assigned Sections',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: _accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
             ),
-            Container(
-              width: 5,
-              height: 5,
-              decoration: const BoxDecoration(
-                color: _accent,
-                shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _manageparentitem(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+      child: Material(
+        color: _activeBg,
+        borderRadius: BorderRadius.circular(7),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(7),
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    ManageParents(teacher: teacher, schoolyear: schoolyear),
               ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: _accent.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: const Icon(Icons.people, color: _accent, size: 14),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Manage Parents',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: _accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
