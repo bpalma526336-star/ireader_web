@@ -52,6 +52,8 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
   final List<QuestionFormItem> _questionItems = [];
   final List<String> visibility = ["View to Students", "Hide from Students"];
   String? selectedvisibility;
+  String? _selectedTestType;
+  final List<String> testTypes = ['Pre-test', 'Post-test'];
   final List<String> assessmenttitle = [
     "Stage 2 - Pre-Test",
     "Stage 3 - Midway/Mid-test",
@@ -203,6 +205,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
           readingpassagecontent: _readingpassagecontentcontroller.text.trim(),
           totalwords: _wordCount,
           questions: questions,
+          testtype: _selectedTestType,
         ).toMap(),
       );
 
@@ -492,6 +495,25 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                               }
                               return null;
                             },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Test Type dropdown
+                        _labelledField(
+                          label: "Test Type",
+                          field: DropdownButtonFormField<String>(
+                            value: _selectedTestType,
+                            decoration: _inputDecoration(
+                              hint: "Select test type (optional)",
+                            ),
+                            items: testTypes.map((t) {
+                              return DropdownMenuItem<String>(
+                                value: t,
+                                child: Text(t),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setState(() => _selectedTestType = value),
                           ),
                         ),
                         const SizedBox(height: 16),

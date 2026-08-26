@@ -53,6 +53,8 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
   ];
   late String? selectedassessmenttitle;
   String? selectedreadingcomplevel;
+  String? _selectedTestType;
+  final List<String> testTypes = ['Pre-test', 'Post-test'];
 
   final int _wordCount = 0;
 
@@ -138,6 +140,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
         readingpassagecontent: readingpassagecontentController.text.trim(),
         totalwords: wordCount,
         questions: questions,
+        testtype: _selectedTestType,
       );
 
       await _firestore
@@ -189,6 +192,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
 
     selectedvisibility = widget.assessment.visibility;
     selectedassessmenttitle = widget.assessment.assessmenttitle;
+    _selectedTestType = widget.assessment.testtype;
 
     questionFormItems = widget.assessment.questions.map((AssessmentContent) {
       return QuestionFormItem(
@@ -290,6 +294,19 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
                   Icons.visibility,
                   color: AppTheme.primaryColor,
                 ),
+              ),
+            ),
+            SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedTestType,
+              items: [
+                const DropdownMenuItem(value: null, child: Text('— No type —')),
+                ...testTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))),
+              ],
+              onChanged: (value) => setState(() => _selectedTestType = value),
+              decoration: InputDecoration(
+                labelText: "Test Type (for Pre/Post analytics)",
+                prefixIcon: Icon(Icons.compare_arrows, color: AppTheme.primaryColor),
               ),
             ),
             SizedBox(height: 16),

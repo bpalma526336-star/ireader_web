@@ -13,6 +13,7 @@ class Assessment {
   final String readingpassagecontent;
   final int totalwords;
   final List<AssessmentContent> questions;
+  final String? testtype;
 
   Assessment({
     required this.id,
@@ -27,6 +28,7 @@ class Assessment {
     required this.readingpassagecontent,
     required this.totalwords,
     required this.questions,
+    this.testtype,
   });
 
   factory Assessment.fromMap(String id, Map<String, dynamic> map) {
@@ -45,6 +47,7 @@ class Assessment {
       questions: ((map['questions'] ?? []) as List)
           .map((e) => AssessmentContent.fromMap(e))
           .toList(),
+      testtype: map['testtype'] as String?,
     );
   }
 
@@ -61,6 +64,7 @@ class Assessment {
       'readingpassagecontent': readingpassagecontent,
       'totalwords': totalwords,
       'questions': questions.map((e) => e.toMap()).toList(),
+      'testtype': testtype,
     };
   }
 
@@ -76,6 +80,7 @@ class Assessment {
     String? readingpassagecontent,
     int? totalwords,
     List<AssessmentContent>? questions,
+    String? testtype,
   }) {
     return Assessment(
       id: id,
@@ -91,6 +96,7 @@ class Assessment {
           readingpassagecontent ?? this.readingpassagecontent,
       totalwords: totalwords ?? this.totalwords,
       questions: questions ?? this.questions,
+      testtype: testtype ?? this.testtype,
     );
   }
 }

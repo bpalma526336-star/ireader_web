@@ -36,6 +36,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   String? _cachedMaleUrl;
   String? _cachedFemaleUrl;
   String? _cachedGradeUrl;
+  String? _cachedPrePostUrl;
+
+  // testtype ('Pre-test'/'Post-test') -> level -> count (aggregated across selected years)
+  Map<String, Map<String, int>> _prePostCounts = {};
 
   // yearId -> gradeLevel -> readingLevel -> count
   final Map<String, Map<String, Map<String, int>>> _gradeCounts = {};
@@ -148,18 +152,143 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _rangeCounts.clear();
     _genderCounts.clear();
     _gradeCounts.clear();
-    await Future.wait(
-      years.map(
-        (y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c),
-      ),
-    );
+    await Future.wait([
+      ...years.map((y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c)),
+      _computePrePostForYears(years),
+    ]);
     _selectedRangeYears = years;
     // Rebuild cached URLs once after all data is ready
     _cachedMultiYearUrl = _buildMultiYearChartUrl();
     _cachedMaleUrl = _buildGenderChartUrl('Male');
     _cachedFemaleUrl = _buildGenderChartUrl('Female');
     _cachedGradeUrl = _buildGradeChartUrl();
+    _cachedPrePostUrl = _buildPrePostChartUrl();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _computePrePostForYears(List<SchoolYear> years) async {
+    _prePostCounts = {
+      'Pre-test': {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+      'Post-test': {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+    };
+
+    if (years.isEmpty) return;
+
+    final yearIds = years.map((y) => y.id).toList();
+
+    // Fetch assessments in batches of 10 (Firestore whereIn limit)
+    final Map<String, String> assessmentTypeMap = {}; // id -> testtype
+    for (int i = 0; i < yearIds.length; i += 10) {
+      final end = (i + 10).clamp(0, yearIds.length);
+      final chunk = yearIds.sublist(i, end);
+      final snap = await _firestore
+          .collection('assessment')
+          .where('schoolyearid', whereIn: chunk)
+          .get();
+      for (final doc in snap.docs) {
+        final t = doc.data()['testtype'] as String?;
+        if (t == 'Pre-test' || t == 'Post-test') {
+          assessmentTypeMap[doc.id] = t!;
+        }
+      }
+    }
+
+    if (assessmentTypeMap.isEmpty) return;
+
+    final preIds = assessmentTypeMap.entries.where((e) => e.value == 'Pre-test').map((e) => e.key).toList();
+    final postIds = assessmentTypeMap.entries.where((e) => e.value == 'Post-test').map((e) => e.key).toList();
+
+    Future<void> fetchAndCount(List<String> ids, String type) async {
+      for (int i = 0; i < ids.length; i += 10) {
+        final end = (i + 10).clamp(0, ids.length);
+        final chunk = ids.sublist(i, end);
+        final snap = await _firestore
+            .collection('overallresult')
+            .where('assessmentid', whereIn: chunk)
+            .get();
+        for (final doc in snap.docs) {
+          final level = doc.data()['readlevel'] as String? ?? '';
+          if (_prePostCounts[type]!.containsKey(level)) {
+            _prePostCounts[type]![level] = (_prePostCounts[type]![level] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    await Future.wait([
+      if (preIds.isNotEmpty) fetchAndCount(preIds, 'Pre-test'),
+      if (postIds.isNotEmpty) fetchAndCount(postIds, 'Post-test'),
+    ]);
+  }
+
+  String _buildPrePostChartUrl() {
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    final preCounts = _prePostCounts['Pre-test'] ?? {};
+    final postCounts = _prePostCounts['Post-test'] ?? {};
+
+    final hasData = levels.any((l) => (preCounts[l] ?? 0) > 0 || (postCounts[l] ?? 0) > 0);
+    if (!hasData) return '';
+
+    final chart = {
+      'type': 'bar',
+      'data': {
+        'labels': levels,
+        'datasets': [
+          {
+            'label': 'Pre-test',
+            'data': levels.map((l) => preCounts[l] ?? 0).toList(),
+            'backgroundColor': '#3B82F6',
+            'borderWidth': 0,
+            'borderRadius': 4,
+            'borderSkipped': false,
+          },
+          {
+            'label': 'Post-test',
+            'data': levels.map((l) => postCounts[l] ?? 0).toList(),
+            'backgroundColor': '#10B981',
+            'borderWidth': 0,
+            'borderRadius': 4,
+            'borderSkipped': false,
+          },
+        ],
+      },
+      'options': {
+        'backgroundColor': '#FFFFFF',
+        'plugins': {
+          'legend': {
+            'position': 'top',
+            'labels': {
+              'font': {'size': 12, 'family': 'Inter, sans-serif'},
+              'usePointStyle': true,
+              'pointStyle': 'circle',
+              'padding': 20,
+            },
+          },
+          'datalabels': {
+            'anchor': 'end',
+            'align': 'top',
+            'font': {'size': 11, 'weight': 'bold'},
+            'color': '#374151',
+            'formatter': "function(v){return v>0?v:'';}",
+          },
+        },
+        'scales': {
+          'x': {
+            'grid': {'display': false},
+            'ticks': {'font': {'size': 12}, 'color': '#64748B'},
+          },
+          'y': {
+            'beginAtZero': true,
+            'grid': {'color': '#F1F5F9'},
+            'ticks': {'font': {'size': 11}, 'color': '#94A3B8', 'stepSize': 1},
+            'border': {'dash': [4, 4]},
+          },
+        },
+        'barPercentage': 0.7,
+        'categoryPercentage': 0.75,
+      },
+    };
+    return 'https://quickchart.io/chart?c=${Uri.encodeComponent(jsonEncode(chart))}&width=800&height=360&backgroundColor=white';
   }
 
   String _buildMultiYearChartUrl() {
@@ -1138,6 +1267,235 @@ class _AdminDashboardState extends State<AdminDashboard> {
             340,
           ),
         ],
+        const SizedBox(height: 16),
+        _buildPrePostSection(isMobile),
+      ],
+    );
+  }
+
+  Widget _buildPrePostSection(bool isMobile) {
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    final levelColors = {
+      'Frustration': AppTheme.levelFrustration,
+      'Instructional': AppTheme.levelInstructional,
+      'Independent': AppTheme.levelIndependent,
+    };
+    final preCounts = _prePostCounts['Pre-test'] ?? {};
+    final postCounts = _prePostCounts['Post-test'] ?? {};
+
+    final preTotal = (preCounts['Frustration'] ?? 0) + (preCounts['Instructional'] ?? 0) + (preCounts['Independent'] ?? 0);
+    final postTotal = (postCounts['Frustration'] ?? 0) + (postCounts['Instructional'] ?? 0) + (postCounts['Independent'] ?? 0);
+    final hasData = preTotal > 0 || postTotal > 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 4,
+              height: 18,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Pre-test vs Post-test Comparison',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Comparison of reading level distribution between pre-test and post-test assessments',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+        ),
+        const SizedBox(height: 16),
+        if (!hasData)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: const Center(
+              child: Text(
+                'No pre-test or post-test data yet.\nTag assessments with a Test Type to see this comparison.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondaryColor, height: 1.6),
+              ),
+            ),
+          )
+        else ...[
+          isMobile
+              ? Column(children: [_buildPrePostTable(levels, levelColors, preCounts, postCounts, preTotal, postTotal), const SizedBox(height: 16), _buildPrePostSummary(preCounts, postCounts, preTotal, postTotal)])
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: _buildPrePostTable(levels, levelColors, preCounts, postCounts, preTotal, postTotal)),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 2, child: _buildPrePostSummary(preCounts, postCounts, preTotal, postTotal)),
+                  ],
+                ),
+          if (_cachedPrePostUrl != null && _cachedPrePostUrl!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildChartCard('Reading Level Distribution: Pre-test vs Post-test', _cachedPrePostUrl, 360),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPrePostTable(
+    List<String> levels,
+    Map<String, Color> levelColors,
+    Map<String, int> preCounts,
+    Map<String, int> postCounts,
+    int preTotal,
+    int postTotal,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppTheme.borderColor)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Reading Level Count', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+          const SizedBox(height: 4),
+          const Text('n and % for pre-test and post-test', style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+          const SizedBox(height: 14),
+          // Header
+          Row(children: [
+            const Expanded(flex: 3, child: Text('Level', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.6))),
+            const Expanded(flex: 2, child: Text('Pre-test', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF3B82F6), letterSpacing: 0.6))),
+            const Expanded(flex: 2, child: Text('Post-test', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF10B981), letterSpacing: 0.6))),
+            const SizedBox(width: 60, child: Text('Change', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.6))),
+          ]),
+          const Divider(height: 12, color: AppTheme.borderColor),
+          ...levels.map((level) {
+            final pre = preCounts[level] ?? 0;
+            final post = postCounts[level] ?? 0;
+            final prePct = _percent(pre, preTotal);
+            final postPct = _percent(post, postTotal);
+            final diff = postPct - prePct;
+            final color = levelColors[level]!;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(children: [
+                Expanded(flex: 3, child: Row(children: [
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  Text(level, style: const TextStyle(fontSize: 12.5, color: AppTheme.textPrimaryColor)),
+                ])),
+                Expanded(flex: 2, child: Text('$pre  (${prePct.toStringAsFixed(1)}%)', style: const TextStyle(fontSize: 12, color: Color(0xFF3B82F6)))),
+                Expanded(flex: 2, child: Text('$post  (${postPct.toStringAsFixed(1)}%)', style: const TextStyle(fontSize: 12, color: Color(0xFF10B981)))),
+                SizedBox(width: 60, child: Text(
+                  diff == 0 ? '—' : '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(1)}%',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: diff > 0 ? const Color(0xFF16A34A) : diff < 0 ? const Color(0xFFDC2626) : AppTheme.textSecondaryColor),
+                )),
+              ]),
+            );
+          }),
+          const Divider(height: 16, color: AppTheme.borderColor),
+          Row(children: [
+            const Expanded(flex: 3, child: Text('Total N', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor))),
+            Expanded(flex: 2, child: Text('$preTotal', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF3B82F6)))),
+            Expanded(flex: 2, child: Text('$postTotal', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF10B981)))),
+            const SizedBox(width: 60),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrePostSummary(Map<String, int> preCounts, Map<String, int> postCounts, int preTotal, int postTotal) {
+    final preInd = preCounts['Independent'] ?? 0;
+    final postInd = postCounts['Independent'] ?? 0;
+    final preFru = preCounts['Frustration'] ?? 0;
+    final postFru = postCounts['Frustration'] ?? 0;
+
+    final preIndPct = _percent(preInd, preTotal);
+    final postIndPct = _percent(postInd, postTotal);
+    final preFruPct = _percent(preFru, preTotal);
+    final postFruPct = _percent(postFru, postTotal);
+
+    final indImproved = postIndPct > preIndPct;
+    final fruImproved = postFruPct < preFruPct;
+
+    String insight;
+    if (preTotal == 0 || postTotal == 0) {
+      insight = 'Insufficient data — both pre-test and post-test results are needed to generate an insight.';
+    } else if (indImproved && fruImproved) {
+      insight = 'Positive improvement: Independent readers grew from ${preIndPct.toStringAsFixed(1)}% to ${postIndPct.toStringAsFixed(1)}%, while Frustration level decreased from ${preFruPct.toStringAsFixed(1)}% to ${postFruPct.toStringAsFixed(1)}%.';
+    } else if (indImproved) {
+      insight = 'Independent readers increased from ${preIndPct.toStringAsFixed(1)}% (pre-test) to ${postIndPct.toStringAsFixed(1)}% (post-test), showing a positive trend.';
+    } else if (fruImproved) {
+      insight = 'Frustration level students decreased from ${preFruPct.toStringAsFixed(1)}% to ${postFruPct.toStringAsFixed(1)}%, suggesting some improvement.';
+    } else if (postIndPct < preIndPct) {
+      insight = 'Independent readers declined from ${preIndPct.toStringAsFixed(1)}% to ${postIndPct.toStringAsFixed(1)}%. Consider reviewing instructional strategies.';
+    } else {
+      insight = 'Reading levels remained relatively stable between pre-test and post-test.';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppTheme.borderColor)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Comparison Summary', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+          const SizedBox(height: 4),
+          const Text('Pre-test vs post-test outcomes', style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+          const SizedBox(height: 16),
+          _prePostMetric('Independent Rate', preIndPct, postIndPct, AppTheme.levelIndependent, higher: true),
+          const SizedBox(height: 10),
+          _prePostMetric('Frustration Rate', preFruPct, postFruPct, AppTheme.levelFrustration, higher: false),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.borderColor)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('INSIGHT', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 1.2)),
+                const SizedBox(height: 6),
+                Text(insight, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor, height: 1.55)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _prePostMetric(String label, double pre, double post, Color color, {required bool higher}) {
+    final improved = higher ? post > pre : post < pre;
+    final diff = post - pre;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 4),
+        Row(children: [
+          Text('${pre.toStringAsFixed(1)}%', style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w600)),
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward, size: 14, color: AppTheme.textSecondaryColor)),
+          Text('${post.toStringAsFixed(1)}%', style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w700)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: improved ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}%',
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: improved ? const Color(0xFF15803D) : const Color(0xFFB91C1C)),
+            ),
+          ),
+        ]),
       ],
     );
   }
