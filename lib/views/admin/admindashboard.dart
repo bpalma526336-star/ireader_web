@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/widgets/admin_sidebar.dart';
 import 'package:ireader_web/widgets/admin_top_header.dart';
 import 'package:ireader_web/model/schoolyear.dart';
@@ -40,6 +41,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // testtype ('Pre-test'/'Post-test') -> level -> count (aggregated across selected years)
   Map<String, Map<String, int>> _prePostCounts = {};
+
+  // Division comparison — loaded once, recomputed on year range change
+  List<Division> _dashboardDivisions = [];
+  Map<String, String> _schoolDivisionMap = {}; // schoolId -> divisionId
+  final Map<String, Map<String, int>> _divisionCounts = {}; // divisionId -> level -> count
+  String? _cachedDivisionUrl;
 
   // yearId -> gradeLevel -> readingLevel -> count
   final Map<String, Map<String, Map<String, int>>> _gradeCounts = {};
@@ -93,7 +100,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _endYear = years.last;
     _startYearId = _startYear!.id;
     _endYearId = _endYear!.id;
-    await _analyzeRange(years);
+    await Future.wait([_analyzeRange(years), _loadDivisionMetadata()]);
     setState(() => _loadingAnalysis = false);
   }
 
@@ -139,6 +146,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
         _gradeCounts[schoolyearId]![grade]![level] =
             (_gradeCounts[schoolyearId]![grade]![level] ?? 0) + 1;
       }
+
+      final divisionId = _schoolDivisionMap[student.schoolid ?? ''] ?? '';
+      if (divisionId.isNotEmpty) {
+        _divisionCounts.putIfAbsent(divisionId, () => {'Frustration': 0, 'Instructional': 0, 'Independent': 0});
+        _divisionCounts[divisionId]![level] = (_divisionCounts[divisionId]![level] ?? 0) + 1;
+      }
     }
 
     return {
@@ -152,6 +165,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _rangeCounts.clear();
     _genderCounts.clear();
     _gradeCounts.clear();
+    _divisionCounts.clear();
     await Future.wait([
       ...years.map((y) => _computeCounts(y.id).then((c) => _rangeCounts[y.id] = c)),
       _computePrePostForYears(years),
@@ -163,7 +177,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _cachedFemaleUrl = _buildGenderChartUrl('Female');
     _cachedGradeUrl = _buildGradeChartUrl();
     _cachedPrePostUrl = _buildPrePostChartUrl();
+    _cachedDivisionUrl = _buildDivisionChartUrl();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadDivisionMetadata() async {
+    final results = await Future.wait([
+      _firestore.collection('divisions').get(),
+      _firestore.collection('schools').get(),
+    ]);
+    _dashboardDivisions = results[0].docs.map((d) => Division.fromMap(d.id, d.data())).toList();
+    _schoolDivisionMap = {for (final doc in results[1].docs) doc.id: (doc.data()['divisionid'] as String? ?? '')};
   }
 
   Future<void> _computePrePostForYears(List<SchoolYear> years) async {
@@ -1273,6 +1297,157 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  String _buildDivisionChartUrl() {
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    final divisions = _dashboardDivisions.where((d) => _divisionCounts.containsKey(d.id)).toList();
+    if (divisions.isEmpty) return '';
+
+    const colors = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#0EA5E9'];
+    final datasets = divisions.asMap().entries.map((entry) {
+      final i = entry.key;
+      final div = entry.value;
+      final counts = _divisionCounts[div.id] ?? {};
+      return {
+        'label': div.name,
+        'data': levels.map((l) => counts[l] ?? 0).toList(),
+        'backgroundColor': colors[i % colors.length],
+        'borderWidth': 0,
+        'borderRadius': 4,
+        'borderSkipped': false,
+      };
+    }).toList();
+
+    final chart = {
+      'type': 'bar',
+      'data': {'labels': levels, 'datasets': datasets},
+      'options': {
+        'backgroundColor': '#FFFFFF',
+        'plugins': {
+          'legend': {
+            'position': 'top',
+            'labels': {'font': {'size': 12, 'family': 'Inter, sans-serif'}, 'usePointStyle': true, 'pointStyle': 'circle', 'padding': 20},
+          },
+          'datalabels': {
+            'anchor': 'end', 'align': 'top',
+            'font': {'size': 11, 'weight': 'bold'}, 'color': '#374151',
+            'formatter': "function(v){return v>0?v:'';}",
+          },
+        },
+        'scales': {
+          'x': {'grid': {'display': false}, 'ticks': {'font': {'size': 12}, 'color': '#64748B'}},
+          'y': {'beginAtZero': true, 'grid': {'color': '#F1F5F9'}, 'ticks': {'font': {'size': 11}, 'color': '#94A3B8', 'stepSize': 1}, 'border': {'dash': [4, 4]}},
+        },
+        'barPercentage': 0.7,
+        'categoryPercentage': 0.75,
+      },
+    };
+    return 'https://quickchart.io/chart?c=${Uri.encodeComponent(jsonEncode(chart))}&width=900&height=380&backgroundColor=white';
+  }
+
+  Widget _buildDivisionComparisonSection(bool isMobile) {
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    final levelColors = {
+      'Frustration': AppTheme.levelFrustration,
+      'Instructional': AppTheme.levelInstructional,
+      'Independent': AppTheme.levelIndependent,
+    };
+    const divColors = [Color(0xFF6366F1), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFFEF4444), Color(0xFF8B5CF6), Color(0xFF0EA5E9)];
+
+    final activeDivisions = _dashboardDivisions.where((d) => _divisionCounts.containsKey(d.id)).toList();
+    final hasData = activeDivisions.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Container(width: 4, height: 18, decoration: BoxDecoration(color: const Color(0xFF6366F1), borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 8),
+          const Text('Division Comparison', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimaryColor)),
+        ]),
+        const SizedBox(height: 4),
+        const Text('Reading level distribution across divisions for the selected school year range',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+        const SizedBox(height: 16),
+        if (!hasData)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppTheme.borderColor)),
+            child: const Center(
+              child: Text(
+                'No division data yet.\nGo to Schools → Migrate Data to assign existing records to a school and division.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondaryColor, height: 1.6),
+              ),
+            ),
+          )
+        else ...[
+          // Table
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppTheme.borderColor)),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Reading Level Count by Division', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
+                  const SizedBox(height: 4),
+                  const Text('n and % per level', style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+                  const SizedBox(height: 14),
+                  // Header row
+                  Row(children: [
+                    const SizedBox(width: 120, child: Text('Level', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondaryColor, letterSpacing: 0.6))),
+                    ...activeDivisions.asMap().entries.map((e) => SizedBox(
+                      width: 130,
+                      child: Text(e.value.name, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: divColors[e.key % divColors.length], letterSpacing: 0.6)),
+                    )),
+                  ]),
+                  const Divider(height: 12, color: AppTheme.borderColor),
+                  ...levels.map((level) {
+                    final color = levelColors[level]!;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(children: [
+                        SizedBox(width: 120, child: Row(children: [
+                          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                          const SizedBox(width: 6),
+                          Text(level, style: const TextStyle(fontSize: 12.5, color: AppTheme.textPrimaryColor)),
+                        ])),
+                        ...activeDivisions.asMap().entries.map((e) {
+                          final counts = _divisionCounts[e.value.id] ?? {};
+                          final n = counts[level] ?? 0;
+                          final total = _total(counts);
+                          final pct = _percent(n, total);
+                          return SizedBox(
+                            width: 130,
+                            child: Text('$n  (${pct.toStringAsFixed(1)}%)',
+                                style: TextStyle(fontSize: 12, color: divColors[e.key % divColors.length])),
+                          );
+                        }),
+                      ]),
+                    );
+                  }),
+                  const Divider(height: 12, color: AppTheme.borderColor),
+                  Row(children: [
+                    const SizedBox(width: 120, child: Text('Total N', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor))),
+                    ...activeDivisions.asMap().entries.map((e) {
+                      final total = _total(_divisionCounts[e.value.id] ?? {});
+                      return SizedBox(width: 130, child: Text('$total', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: divColors[e.key % divColors.length])));
+                    }),
+                  ]),
+                ],
+              ),
+            ),
+          ),
+          if (_cachedDivisionUrl != null && _cachedDivisionUrl!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildChartCard('Reading Level Distribution by Division', _cachedDivisionUrl, 380),
+          ],
+        ],
+      ],
+    );
+  }
+
   Widget _buildPrePostSection(bool isMobile) {
     final levels = ['Frustration', 'Instructional', 'Independent'];
     final levelColors = {
@@ -2131,6 +2306,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     ),
                               const SizedBox(height: 24),
                               _buildPhilIriSection(isMobile),
+                              const SizedBox(height: 24),
+                              _buildDivisionComparisonSection(isMobile),
                             ],
                           ],
                         ),

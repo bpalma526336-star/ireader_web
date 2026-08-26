@@ -5,6 +5,7 @@ import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/school/add_school_dialog.dart';
+import 'package:ireader_web/views/admin/school/migrate_school_dialog.dart';
 import 'package:ireader_web/widgets/admin_sidebar.dart';
 import 'package:ireader_web/widgets/admin_top_header.dart';
 
@@ -174,6 +175,26 @@ class _ManageSchoolScreenState extends State<ManageSchoolScreen> {
           _filterTab('ACTIVE', label: 'Active'),
           _filterTab('INACTIVE', label: 'Inactive'),
           const SizedBox(width: 12),
+          SizedBox(
+            height: 38,
+            child: OutlinedButton.icon(
+              onPressed: () => showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const MigrateSchoolDialog(),
+              ),
+              icon: const Icon(Icons.sync, size: 16),
+              label: const Text('Migrate Data'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+                side: const BorderSide(color: AppTheme.primaryColor),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           SizedBox(
             height: 38,
             child: ElevatedButton.icon(
