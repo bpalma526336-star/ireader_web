@@ -41,6 +41,10 @@ class _ViewParentStudentState extends State<ViewParentStudent> {
         });
   }
 
+  // Stream<List<Student>> getStudentsUnderParent() {
+
+  // }
+
   Future<List<Student>> getStudentsUnderParent() async {
     if (widget.parent == null) {
       return [];
