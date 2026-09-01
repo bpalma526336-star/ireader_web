@@ -9,6 +9,7 @@ import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/section/add_section_dialog.dart';
+import 'package:ireader_web/views/admin/section/compare_section.dart';
 import 'package:ireader_web/views/admin/section/edit_section.dart';
 import 'package:ireader_web/views/admin/section/edit_section_dialog.dart';
 import 'package:ireader_web/views/admin/student/manage_student.dart';
@@ -532,6 +533,35 @@ class _ManageSectionState extends State<ManageSection> {
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
                 elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            height: 38,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CompareSection(schoolYear: widget.schoolyear),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.compare_arrows, size: 16),
+              label: const Text('Compare Section'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.textPrimaryColor,
+                side: const BorderSide(color: AppTheme.borderColor),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
