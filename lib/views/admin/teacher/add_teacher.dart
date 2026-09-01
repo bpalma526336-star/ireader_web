@@ -60,6 +60,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
             .get();
 
         if (emailCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("A teacher with this email already exists."),
@@ -82,6 +83,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Teacher with same name already exists."),
@@ -113,6 +115,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Teacher added successfully!"),
@@ -141,6 +144,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
             .doc(widget.teacher!.id)
             .update(updateData);
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Teacher updated successfully!"),
@@ -151,6 +155,7 @@ class _AddTeacherScreenState extends State<AddTeacherScreen> {
 
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

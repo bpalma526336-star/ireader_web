@@ -161,10 +161,10 @@ class _EditStoryLinePSState extends State<EditStoryLinePS> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Storyline Practice Set Updated")),
         );
+        Navigator.pop(context, true);
       }
-
-      Navigator.pop(context, true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));

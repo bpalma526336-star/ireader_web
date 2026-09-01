@@ -58,6 +58,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
             .get();
 
         if (emailCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -84,6 +85,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -117,6 +119,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Reading Coordinator added successfully!"),
@@ -134,6 +137,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
               'email': emailController.text.trim(),
             });
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Reading Coordinator updated successfully!"),
@@ -144,6 +148,7 @@ class _AddRCScreenState extends State<AddRCScreen> {
 
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

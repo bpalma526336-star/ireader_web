@@ -151,10 +151,10 @@ class _EditWordRecognitionState extends State<EditWordRecognition> {
             content: Text("Word Recognition Practice Set Updated"),
           ),
         );
+        Navigator.pop(context, true);
       }
-
-      Navigator.pop(context, true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));

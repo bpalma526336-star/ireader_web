@@ -144,6 +144,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
           .doc(widget.assessment.id)
           .update(updateQuiz.toMap(isUpdate: true));
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Assessment Updated Successfully")),
       );
@@ -159,6 +160,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

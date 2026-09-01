@@ -74,6 +74,7 @@ class _AddSectionDialogState extends State<AddSectionDialog> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to add section: $e")));

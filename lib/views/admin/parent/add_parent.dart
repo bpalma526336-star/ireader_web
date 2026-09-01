@@ -61,6 +61,7 @@ class _AddParentState extends State<AddParent> {
             .get();
 
         if (accesscodeCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("A parent with this access code already exists."),
@@ -83,6 +84,7 @@ class _AddParentState extends State<AddParent> {
             .get();
 
         if (nameCheck.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Parent with same name already exists."),
@@ -114,6 +116,7 @@ class _AddParentState extends State<AddParent> {
               ).toMap(),
             );
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Parent added successfully!"),
@@ -142,6 +145,7 @@ class _AddParentState extends State<AddParent> {
             .doc(widget.parent!.id)
             .update(updateData);
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Parent updated successfully!"),
@@ -152,6 +156,7 @@ class _AddParentState extends State<AddParent> {
 
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),

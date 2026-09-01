@@ -146,6 +146,7 @@ class _AddSlpsState extends State<AddSlps> {
             ).toMap(),
           );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -157,6 +158,7 @@ class _AddSlpsState extends State<AddSlps> {
       );
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -199,6 +201,7 @@ class _AddSlpsState extends State<AddSlps> {
     );
 
     if (shouldDiscard == true) {
+      if (!mounted) return;
       Navigator.pop(context);
     }
   }

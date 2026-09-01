@@ -155,10 +155,10 @@ class _EditSentencesState extends State<EditSentences> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Phrase/Sentence Practice Set Updated")),
         );
+        Navigator.pop(context, true);
       }
-
-      Navigator.pop(context, true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));

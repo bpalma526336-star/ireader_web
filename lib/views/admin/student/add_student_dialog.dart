@@ -143,6 +143,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
             .get();
 
         if (existingStudent.docs.isNotEmpty || existinglrn.docs.isNotEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

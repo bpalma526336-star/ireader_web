@@ -156,6 +156,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
           .get();
 
       if (assessmentexist.docs.isNotEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -167,6 +168,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
         return;
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to validate assessment title: $e'),
@@ -215,6 +217,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to save assessment: $e'),
@@ -252,6 +255,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
     );
 
     if (shouldDiscard == true) {
+      if (!mounted) return;
       Navigator.pop(context);
     }
   }

@@ -81,6 +81,7 @@ class _AddSchoolyearScreenState extends State<AddSchoolyearScreen> {
           .get();
 
       if (duplicate.docs.isNotEmpty && widget.schoolyear == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("This school year already exists."),
@@ -103,6 +104,7 @@ class _AddSchoolyearScreenState extends State<AddSchoolyearScreen> {
             .doc(widget.schoolyear!.id)
             .update(updated.toMap());
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("School Year updated successfully")),
         );
@@ -129,6 +131,7 @@ class _AddSchoolyearScreenState extends State<AddSchoolyearScreen> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error saving School Year: $e")));
