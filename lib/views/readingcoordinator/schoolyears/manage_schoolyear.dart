@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/studentoverallresult.dart';
 import 'package:ireader_web/theme.dart';
@@ -17,7 +18,9 @@ import 'package:open_file/open_file.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
 
 class RCManageSchoolyearScreen extends StatefulWidget {
-  const RCManageSchoolyearScreen({super.key});
+  final String schoolId;
+
+  const RCManageSchoolyearScreen({super.key, required this.schoolId});
 
   @override
   State<RCManageSchoolyearScreen> createState() =>
@@ -38,14 +41,28 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
   void initState() {
     super.initState();
     _schoolYearsStream = _firestore
-        .collection('schoolyears')
-        .orderBy('schoolyearstart', descending: true)
+        .collection('schools')
+        .doc(widget.schoolId)
         .snapshots()
-        .map(
-          (s) => s.docs
+        .asyncMap((schoolSnapshot) async {
+          if (!schoolSnapshot.exists) return <SchoolYear>[];
+          final schoolYearIds =
+              School.fromMap(
+                schoolSnapshot.id,
+                schoolSnapshot.data()!,
+              ).schoolyearids?.toSet() ??
+              <String>{};
+          if (schoolYearIds.isEmpty) return <SchoolYear>[];
+
+          final schoolYearsSnapshot = await _firestore
+              .collection('schoolyears')
+              .orderBy('schoolyearstart', descending: true)
+              .get();
+          return schoolYearsSnapshot.docs
+              .where((doc) => schoolYearIds.contains(doc.id))
               .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+              .toList();
+        });
   }
 
   Stream<List<Map<String, dynamic>>> _studentStream(String schoolyearid) {
@@ -54,6 +71,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       () => _firestore
           .collection('students')
           .where('schoolyearid', isEqualTo: schoolyearid)
+          .where('schoolid', isEqualTo: widget.schoolId)
           .where('status', isEqualTo: 'ACTIVE')
           .snapshots()
           .map((s) => s.docs.map((d) => d.data()).toList()),
@@ -120,6 +138,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final sections = await _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: schoolYearId)
+        .where('schoolid', isEqualTo: widget.schoolId)
         .get();
 
     void buildHeaders(Worksheet sheet, String stageTitle) {
@@ -332,6 +351,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final sectionsSnap = await _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: schoolyearid)
+        .where('schoolid', isEqualTo: widget.schoolId)
         .get();
     final sectionMap = <String, String>{
       for (final s in sectionsSnap.docs)
@@ -345,6 +365,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final snap = await _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearid)
+        .where('schoolid', isEqualTo: widget.schoolId)
         .where(levelField, isEqualTo: level)
         .where('status', isEqualTo: 'ACTIVE')
         .get();
@@ -856,11 +877,20 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     return Scaffold(
       drawer: isDesktop
           ? null
-          : Drawer(child: RCSidebar(activeRoute: RCRoute.schoolYears)),
+          : Drawer(
+              child: RCSidebar(
+                activeRoute: RCRoute.schoolYears,
+                schoolId: widget.schoolId,
+              ),
+            ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isDesktop) const RCSidebar(activeRoute: RCRoute.schoolYears),
+          if (isDesktop)
+            RCSidebar(
+              activeRoute: RCRoute.schoolYears,
+              schoolId: widget.schoolId,
+            ),
           Expanded(
             child: StreamBuilder<List<SchoolYear>>(
               stream: _schoolYearsStream,
@@ -1329,6 +1359,8 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                         RCManageSection(
                                                           schoolyear:
                                                               schoolyear,
+                                                          schoolId:
+                                                              widget.schoolId,
                                                         ),
                                                   ),
                                                 ),

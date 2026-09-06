@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
@@ -7,11 +9,15 @@ import 'package:ireader_web/theme.dart';
 class EditSectionDialog extends StatefulWidget {
   final Section section;
   final Teacher teacher;
+  final Division division;
+  final School school;
 
   const EditSectionDialog({
     super.key,
     required this.section,
     required this.teacher,
+    required this.division,
+    required this.school,
   });
 
   @override
@@ -48,6 +54,8 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
 
     try {
       await firestore.collection('sections').doc(widget.section.id).update({
+        'schoolid': widget.school.id,
+        'divisionid': widget.division.id,
         'sectionname': sectionname.text.trim(),
         'teacherid': _selectedTeacherId,
       });

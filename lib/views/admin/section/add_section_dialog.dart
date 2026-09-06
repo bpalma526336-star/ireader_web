@@ -1,13 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddSectionDialog extends StatefulWidget {
   final SchoolYear schoolyear;
+  final Division? division;
+  final School? school;
 
-  const AddSectionDialog({super.key, required this.schoolyear});
+  const AddSectionDialog({
+    super.key,
+    required this.schoolyear,
+    this.division,
+    this.school,
+  });
 
   @override
   State<AddSectionDialog> createState() => _AddSectionDialogState();
@@ -31,6 +40,8 @@ class _AddSectionDialogState extends State<AddSectionDialog> {
   Future<void> _fetchTeachers() async {
     final snapshot = await firestore
         .collection("teachers")
+        .where('divisionid', isEqualTo: widget.division?.id)
+        .where('schoolid', isEqualTo: widget.school?.id)
         .where('status', isEqualTo: 'ACTIVE')
         .get();
 
@@ -62,6 +73,8 @@ class _AddSectionDialogState extends State<AddSectionDialog> {
               id: newsection,
               sectionname: sectionname.text.trim(),
               schoolyearid: widget.schoolyear.id,
+              schoolid: widget.school?.id,
+              divisionid: widget.division?.id,
               teacherid: _selectedTeacherId!,
             ).toMap(),
           );

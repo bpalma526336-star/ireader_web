@@ -135,13 +135,13 @@ class AdminSidebar extends StatelessWidget {
             AdminRoute.dashboard,
             const AdminDashboard(),
           ),
-          _navItem(
-            context,
-            'Y',
-            'School Years',
-            AdminRoute.schoolYears,
-            const ManageSchoolyearScreen(),
-          ),
+          // _navItem(
+          //   context,
+          //   'Y',
+          //   'School Years',
+          //   AdminRoute.schoolYears,
+          //   const ManageSchoolyearScreen(),
+          // ),
           _navItem(
             context,
             'V',
@@ -149,13 +149,13 @@ class AdminSidebar extends StatelessWidget {
             AdminRoute.divisions,
             const ManageDivisionScreen(),
           ),
-          _navItem(
-            context,
-            'S',
-            'Schools',
-            AdminRoute.schools,
-            const ManageSchoolScreen(),
-          ),
+          // _navItem(
+          //   context,
+          //   'S',
+          //   'Schools',
+          //   AdminRoute.schools,
+          //   const ManageSchoolScreen(),
+          // ),
           _navItem(
             context,
             'A',

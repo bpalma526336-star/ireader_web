@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/widgets/admin_sidebar.dart';
 import 'package:ireader_web/widgets/admin_top_header.dart';
 import 'package:ireader_web/model/schoolyear.dart';
@@ -19,7 +21,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io';
 
 class ManageSchoolyearScreen extends StatefulWidget {
-  const ManageSchoolyearScreen({super.key});
+  final Division division;
+  final School school;
+  const ManageSchoolyearScreen({
+    super.key,
+    required this.division,
+    required this.school,
+  });
 
   @override
   State<ManageSchoolyearScreen> createState() => _ManageSchoolyearScreenState();
@@ -109,6 +117,8 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
     return _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearid)
+        .where('schoolid', isEqualTo: widget.school.id)
+        .where('divisionid', isEqualTo: widget.division.id)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
         .map((snapshot) {
@@ -146,12 +156,15 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
 
   /// Fetches all school years from Firestore
   Stream<List<SchoolYear>> _fetchSchoolYears() {
+    final schoolYearIds = widget.school.schoolyearids?.toSet() ?? <String>{};
+
     return _firestore
         .collection('schoolyears')
         .orderBy('schoolyearstart', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
+              .where((doc) => schoolYearIds.contains(doc.id))
               .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
               .toList(),
         );
@@ -504,17 +517,26 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
+    // final isDesktop = screenWidth > 900;
 
     return Scaffold(
-      drawer: isDesktop
-          ? null
-          : Drawer(child: AdminSidebar(activeRoute: AdminRoute.schoolYears)),
+      // drawer: isDesktop
+      //     ? null
+      //     : Drawer(child: AdminSidebar(activeRoute: AdminRoute.schoolYears)),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimaryColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isDesktop)
-            const AdminSidebar(activeRoute: AdminRoute.schoolYears),
+          // if (isDesktop)
+          //   const AdminSidebar(activeRoute: AdminRoute.schoolYears),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,28 +545,28 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                   pageTitle: 'School Years',
                   pageSubtitle:
                       'Per-year results, sections, assessments and exports',
-                  trailing: ElevatedButton.icon(
-                    onPressed: () =>
-                        AddSchoolyearDialog.show(context, schoolyear: null),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add School Year'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  // trailing: ElevatedButton.icon(
+                  //   onPressed: () =>
+                  //       AddSchoolyearDialog.show(context, schoolyear: null),
+                  //   icon: const Icon(Icons.add, size: 16),
+                  //   label: const Text('Add School Year'),
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: AppTheme.primaryColor,
+                  //     foregroundColor: Colors.white,
+                  //     elevation: 0,
+                  //     padding: const EdgeInsets.symmetric(
+                  //       horizontal: 14,
+                  //       vertical: 10,
+                  //     ),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(8),
+                  //     ),
+                  //     textStyle: const TextStyle(
+                  //       fontSize: 13,
+                  //       fontWeight: FontWeight.w600,
+                  //     ),
+                  //   ),
+                  // ),
                 ),
                 Expanded(
                   child: StreamBuilder<List<SchoolYear>>(
@@ -751,6 +773,10 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                                           ManageSection(
                                                             schoolyear:
                                                                 schoolyear,
+                                                            school:
+                                                                widget.school,
+                                                            division:
+                                                                widget.division,
                                                           ),
                                                     ),
                                                   );
@@ -790,6 +816,10 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                                           ManageAssessment(
                                                             schoolyear:
                                                                 schoolyear,
+                                                            division:
+                                                                widget.division,
+                                                            school:
+                                                                widget.school,
                                                           ),
                                                     ),
                                                   );
@@ -834,6 +864,8 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                                 MaterialPageRoute(
                                                   builder: (_) => ManageSection(
                                                     schoolyear: schoolyear,
+                                                    division: widget.division,
+                                                    school: widget.school,
                                                   ),
                                                 ),
                                               );

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/theme.dart';
@@ -7,8 +9,16 @@ import 'package:ireader_web/theme.dart';
 class AddSectionScreen extends StatefulWidget {
   final Section? section;
   final SchoolYear schoolyear;
+  final Division? division;
+  final School? school;
 
-  const AddSectionScreen({super.key, required this.schoolyear, this.section});
+  const AddSectionScreen({
+    super.key,
+    required this.schoolyear,
+    this.section,
+    this.division,
+    this.school,
+  });
 
   @override
   State<AddSectionScreen> createState() => _AddSectionScreenState();
@@ -62,6 +72,8 @@ class _AddSectionScreenState extends State<AddSectionScreen> {
               id: newsection,
               sectionname: sectionname.text.trim(),
               schoolyearid: widget.schoolyear.id,
+              schoolid: widget.school?.id,
+              divisionid: widget.division?.id,
               teacherid: _selectedTeacherId!,
             ).toMap(),
           );

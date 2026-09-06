@@ -2,14 +2,18 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
 
 class RCDashboard extends StatefulWidget {
-  final String? divisionId;
-  const RCDashboard({super.key, this.divisionId});
+  final RC? rc;
+  final String schoolId;
+
+  const RCDashboard({super.key, this.rc, required this.schoolId});
 
   @override
   State<RCDashboard> createState() => _RCDashboardState();
@@ -17,6 +21,7 @@ class RCDashboard extends StatefulWidget {
 
 class _RCDashboardState extends State<RCDashboard> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  RC? _activeRc;
 
   // Range selection
   SchoolYear? _startYear;
@@ -60,35 +65,75 @@ class _RCDashboardState extends State<RCDashboard> {
   @override
   void initState() {
     super.initState();
-    _autoLoadDashboard();
+    _resolveCoordinatorAndLoad();
+  }
+
+  Future<void> _resolveCoordinatorAndLoad() async {
+    _activeRc = widget.rc;
+
+    if (_activeRc == null) {
+      final email = FirebaseAuth.instance.currentUser?.email;
+      if (email != null && email.isNotEmpty) {
+        final snapshot = await _firestore
+            .collection('readingcoordinators')
+            .where('email', isEqualTo: email)
+            .limit(1)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          _activeRc = RC.fromMap(
+            snapshot.docs.first.id,
+            snapshot.docs.first.data(),
+          );
+        }
+      }
+    }
+
+    if (mounted) await _autoLoadDashboard();
   }
 
   // =========================================================
   // FETCH SCHOOL YEARS
   // =========================================================
-  Stream<List<SchoolYear>> _fetchSchoolYears() {
-    return _firestore
+  Future<List<SchoolYear>> _loadDivisionSchoolYears() async {
+    final schoolSnapshot = await _firestore
+        .collection('schools')
+        .doc(widget.schoolId)
+        .get();
+    if (!schoolSnapshot.exists) return [];
+    final schoolYearIds =
+        School.fromMap(
+          schoolSnapshot.id,
+          schoolSnapshot.data()!,
+        ).schoolyearids?.toSet() ??
+        <String>{};
+
+    if (schoolYearIds.isEmpty) return [];
+
+    final schoolYearsSnapshot = await _firestore
         .collection('schoolyears')
         .orderBy('schoolyearstart')
+        .get();
+    return schoolYearsSnapshot.docs
+        .where((doc) => schoolYearIds.contains(doc.id))
+        .map((doc) => SchoolYear.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
+  Stream<List<SchoolYear>> _fetchSchoolYears() {
+    return _firestore
+        .collection('schools')
+        .doc(widget.schoolId)
         .snapshots()
-        .map(
-          (s) => s.docs.map((d) => SchoolYear.fromMap(d.id, d.data())).toList(),
-        );
+        .asyncMap((_) => _loadDivisionSchoolYears());
   }
 
   Future<void> _autoLoadDashboard() async {
     setState(() => _loadingAnalysis = true);
-    final snap = await _firestore
-        .collection('schoolyears')
-        .orderBy('schoolyearstart')
-        .get();
-    if (snap.docs.isEmpty) {
+    final years = await _loadDivisionSchoolYears();
+    if (years.isEmpty) {
       setState(() => _loadingAnalysis = false);
       return;
     }
-    final years = snap.docs
-        .map((d) => SchoolYear.fromMap(d.id, d.data()))
-        .toList();
     years.sort(
       (a, b) => (int.tryParse(a.schoolyearstart) ?? 0).compareTo(
         int.tryParse(b.schoolyearstart) ?? 0,
@@ -106,11 +151,25 @@ class _RCDashboardState extends State<RCDashboard> {
   // COUNT STUDENTS PER LEVEL
   // =========================================================
   Future<Map<String, int>> _computeCounts(String schoolyearId) async {
-    final snap = await _firestore
+    final divisionId = _activeRc?.divisionid;
+    if (divisionId == null || divisionId.isEmpty) {
+      _genderCounts[schoolyearId] = {
+        'Frustration': {'Male': 0, 'Female': 0},
+        'Instructional': {'Male': 0, 'Female': 0},
+        'Independent': {'Male': 0, 'Female': 0},
+      };
+      _gradeCounts[schoolyearId] = {};
+      return {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
+    }
+
+    Query<Map<String, dynamic>> studentsQuery = _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearId)
-        .where('status', isEqualTo: 'ACTIVE')
-        .get();
+        .where('schoolid', isEqualTo: _activeRc?.schoolid ?? widget.schoolId)
+        .where('status', isEqualTo: 'ACTIVE');
+
+    studentsQuery = studentsQuery.where('divisionid', isEqualTo: divisionId);
+    final snap = await studentsQuery.get();
 
     int frustration = 0, instructional = 0, independent = 0;
 
@@ -1701,11 +1760,20 @@ class _RCDashboardState extends State<RCDashboard> {
     return Scaffold(
       drawer: isDesktop
           ? null
-          : Drawer(child: RCSidebar(activeRoute: RCRoute.dashboard)),
+          : Drawer(
+              child: RCSidebar(
+                activeRoute: RCRoute.dashboard,
+                schoolId: widget.schoolId,
+              ),
+            ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isDesktop) const RCSidebar(activeRoute: RCRoute.dashboard),
+          if (isDesktop)
+            RCSidebar(
+              activeRoute: RCRoute.dashboard,
+              schoolId: widget.schoolId,
+            ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

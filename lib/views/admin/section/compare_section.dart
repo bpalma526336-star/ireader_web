@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -10,8 +12,15 @@ import 'package:ireader_web/theme.dart';
 
 class CompareSection extends StatefulWidget {
   final SchoolYear schoolYear;
+  final Division? division;
+  final School? school;
 
-  const CompareSection({super.key, required this.schoolYear});
+  const CompareSection({
+    super.key,
+    required this.schoolYear,
+    this.division,
+    this.school,
+  });
 
   @override
   State<CompareSection> createState() => _CompareSectionState();
@@ -19,9 +28,13 @@ class CompareSection extends StatefulWidget {
 
 class _CompareSectionState extends State<CompareSection> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final List<String> _comparisonTypes = const ['Pre-test', 'Post-test'];
+  final List<String> _comparisonTypes = const [
+    'Stage 2 - Pre-Test',
+    'Stage 3 - Midway/Mid-test',
+    'Stage 4 - Post-Test',
+  ];
 
-  String _selectedType = 'Pre-test';
+  String _selectedType = 'Stage 2 - Pre-Test';
   String? _selectedSectionId;
   String? _selectedSectionId2;
   bool _loading = true;
@@ -141,7 +154,7 @@ class _CompareSectionState extends State<CompareSection> {
       final assessmentSnapshot = await _firestore
           .collection('assessment')
           .where('schoolyearid', isEqualTo: widget.schoolYear.id)
-          .where('testtype', isEqualTo: _selectedType)
+          .where('assessmenttitle', isEqualTo: _selectedType)
           .get();
 
       final assessmentIds = assessmentSnapshot.docs
@@ -294,8 +307,13 @@ class _CompareSectionState extends State<CompareSection> {
         {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
   }
 
-  Widget _buildSectionCompareCard(Section section, Map<String, int> counts, Color accentColor) {
-    final total = (counts['Frustration'] ?? 0) +
+  Widget _buildSectionCompareCard(
+    Section section,
+    Map<String, int> counts,
+    Color accentColor,
+  ) {
+    final total =
+        (counts['Frustration'] ?? 0) +
         (counts['Instructional'] ?? 0) +
         (counts['Independent'] ?? 0);
 
@@ -305,7 +323,10 @@ class _CompareSectionState extends State<CompareSection> {
         decoration: BoxDecoration(
           color: AppTheme.backgroundColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accentColor.withValues(alpha: 0.35), width: 1.5),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,11 +355,23 @@ class _CompareSectionState extends State<CompareSection> {
               ),
             ),
             const SizedBox(height: 10),
-            _buildMetricRow('Frustration', counts['Frustration'] ?? 0, AppTheme.levelFrustration),
+            _buildMetricRow(
+              'Frustration',
+              counts['Frustration'] ?? 0,
+              AppTheme.levelFrustration,
+            ),
             const SizedBox(height: 6),
-            _buildMetricRow('Instructional', counts['Instructional'] ?? 0, AppTheme.levelInstructional),
+            _buildMetricRow(
+              'Instructional',
+              counts['Instructional'] ?? 0,
+              AppTheme.levelInstructional,
+            ),
             const SizedBox(height: 6),
-            _buildMetricRow('Independent', counts['Independent'] ?? 0, AppTheme.levelIndependent),
+            _buildMetricRow(
+              'Independent',
+              counts['Independent'] ?? 0,
+              AppTheme.levelIndependent,
+            ),
             const Divider(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -397,7 +430,11 @@ class _CompareSectionState extends State<CompareSection> {
     );
   }
 
-  Widget _buildDropdown(String? value, String hint, void Function(String?) onChanged) {
+  Widget _buildDropdown(
+    String? value,
+    String hint,
+    void Function(String?) onChanged,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -411,7 +448,10 @@ class _CompareSectionState extends State<CompareSection> {
             value: value,
             isExpanded: true,
             hint: Text(hint, style: const TextStyle(fontSize: 13)),
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimaryColor),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.textPrimaryColor,
+            ),
             items: _sections
                 .map(
                   (section) => DropdownMenuItem(
@@ -445,7 +485,8 @@ class _CompareSectionState extends State<CompareSection> {
     final counts1 = _countsForSection(_selectedSectionId);
     final counts2 = _countsForSection(_selectedSectionId2);
 
-    final canCompare = !_comparing &&
+    final canCompare =
+        !_comparing &&
         _selectedSectionId != null &&
         _selectedSectionId2 != null &&
         _selectedSectionId != _selectedSectionId2;
@@ -515,16 +556,16 @@ class _CompareSectionState extends State<CompareSection> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            _buildDropdown(
-                              _selectedSectionId,
-                              'Section A',
-                              (value) {
-                                if (value == null) return;
-                                setState(() => _selectedSectionId = value);
-                              },
-                            ),
+                            _buildDropdown(_selectedSectionId, 'Section A', (
+                              value,
+                            ) {
+                              if (value == null) return;
+                              setState(() => _selectedSectionId = value);
+                            }),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               child: Text(
                                 'vs',
                                 style: TextStyle(
@@ -534,14 +575,12 @@ class _CompareSectionState extends State<CompareSection> {
                                 ),
                               ),
                             ),
-                            _buildDropdown(
-                              _selectedSectionId2,
-                              'Section B',
-                              (value) {
-                                if (value == null) return;
-                                setState(() => _selectedSectionId2 = value);
-                              },
-                            ),
+                            _buildDropdown(_selectedSectionId2, 'Section B', (
+                              value,
+                            ) {
+                              if (value == null) return;
+                              setState(() => _selectedSectionId2 = value);
+                            }),
                             const SizedBox(width: 10),
                             SizedBox(
                               height: 42,
@@ -563,7 +602,10 @@ class _CompareSectionState extends State<CompareSection> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Compare', style: TextStyle(fontSize: 13)),
+                                    : const Text(
+                                        'Compare',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
                               ),
                             ),
                           ],
@@ -575,7 +617,10 @@ class _CompareSectionState extends State<CompareSection> {
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               'Please select two different sections.',
-                              style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.red.shade400,
+                              ),
                             ),
                           ),
                       ],
@@ -583,7 +628,7 @@ class _CompareSectionState extends State<CompareSection> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Pre-test / Post-test toggle
+                  // Assessment stage toggle
                   Center(
                     child: Container(
                       padding: const EdgeInsets.all(4),
@@ -656,9 +701,14 @@ class _CompareSectionState extends State<CompareSection> {
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -811,17 +861,21 @@ class _CompareSectionState extends State<CompareSection> {
                               final isB = section.id == _selectedSectionId2;
 
                               return DataRow(
-                                color: WidgetStateProperty.resolveWith<Color?>(
-                                  (_) {
-                                    if (isA) {
-                                      return AppTheme.primaryColor.withValues(alpha: 0.08);
-                                    }
-                                    if (isB) {
-                                      return const Color(0xFF3B82F6).withValues(alpha: 0.08);
-                                    }
-                                    return null;
-                                  },
-                                ),
+                                color: WidgetStateProperty.resolveWith<Color?>((
+                                  _,
+                                ) {
+                                  if (isA) {
+                                    return AppTheme.primaryColor.withValues(
+                                      alpha: 0.08,
+                                    );
+                                  }
+                                  if (isB) {
+                                    return const Color(
+                                      0xFF3B82F6,
+                                    ).withValues(alpha: 0.08);
+                                  }
+                                  return null;
+                                }),
                                 cells: [
                                   DataCell(
                                     Row(
@@ -843,10 +897,15 @@ class _CompareSectionState extends State<CompareSection> {
                                         if (isA) ...[
                                           const SizedBox(width: 5),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 1,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                                              borderRadius: BorderRadius.circular(3),
+                                              color: AppTheme.primaryColor
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
                                             ),
                                             child: const Text(
                                               'A',
@@ -861,10 +920,16 @@ class _CompareSectionState extends State<CompareSection> {
                                         if (isB) ...[
                                           const SizedBox(width: 5),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 1,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
-                                              borderRadius: BorderRadius.circular(3),
+                                              color: const Color(
+                                                0xFF3B82F6,
+                                              ).withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
                                             ),
                                             child: const Text(
                                               'B',
@@ -879,9 +944,15 @@ class _CompareSectionState extends State<CompareSection> {
                                       ],
                                     ),
                                   ),
-                                  DataCell(Text('${counts['Frustration'] ?? 0}')),
-                                  DataCell(Text('${counts['Instructional'] ?? 0}')),
-                                  DataCell(Text('${counts['Independent'] ?? 0}')),
+                                  DataCell(
+                                    Text('${counts['Frustration'] ?? 0}'),
+                                  ),
+                                  DataCell(
+                                    Text('${counts['Instructional'] ?? 0}'),
+                                  ),
+                                  DataCell(
+                                    Text('${counts['Independent'] ?? 0}'),
+                                  ),
                                   DataCell(Text('$total')),
                                 ],
                               );

@@ -35,6 +35,11 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
     setState(() => _isLoading = true);
 
     try {
+      final schoolYears = await _firestore
+          .collection(FirestoreCollections.schoolYears)
+          .get();
+      final schoolyearids = schoolYears.docs.map((doc) => doc.id).toList();
+
       if (widget.division == null) {
         final existing = await _firestore
             .collection(FirestoreCollections.divisions)
@@ -53,24 +58,44 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
           return;
         }
 
-        final docId = _firestore.collection(FirestoreCollections.divisions).doc().id;
-        await _firestore.collection(FirestoreCollections.divisions).doc(docId).set(
-          Division(id: docId, name: _nameController.text.trim(), status: 'ACTIVE').toMap(),
-        );
+        final docId = _firestore
+            .collection(FirestoreCollections.divisions)
+            .doc()
+            .id;
+        await _firestore
+            .collection(FirestoreCollections.divisions)
+            .doc(docId)
+            .set(
+              Division(
+                id: docId,
+                name: _nameController.text.trim(),
+                status: 'ACTIVE',
+                schoolyearids: schoolyearids,
+              ).toMap(),
+            );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Division added successfully!'), behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Division added successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } else {
         await _firestore
             .collection(FirestoreCollections.divisions)
             .doc(widget.division!.id)
-            .update({'name': _nameController.text.trim()});
+            .update({
+              'name': _nameController.text.trim(),
+              'schoolyearids': schoolyearids,
+            });
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Division updated successfully!'), behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Division updated successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
 
@@ -79,7 +104,10 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text('Error: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -104,7 +132,9 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
                   children: [
                     Expanded(
                       child: Text(
-                        widget.division != null ? 'Edit Division' : 'Add Division',
+                        widget.division != null
+                            ? 'Edit Division'
+                            : 'Add Division',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -126,7 +156,9 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
                     hintText: 'e.g. Division Z',
                     prefixIcon: Icon(Icons.account_tree_outlined),
                   ),
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Enter division name' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Enter division name'
+                      : null,
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -136,12 +168,22 @@ class _AddDivisionDialogState extends State<AddDivisionDialog> {
                     icon: const Icon(Icons.save),
                     onPressed: _isLoading ? null : _save,
                     label: _isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text(widget.division != null ? 'Update Division' : 'Add Division'),
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            widget.division != null
+                                ? 'Update Division'
+                                : 'Add Division',
+                          ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),

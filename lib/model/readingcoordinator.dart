@@ -6,6 +6,7 @@ class RC {
   final String email;
   final String status;
   final String? divisionid;
+  final String? schoolid;
 
   RC({
     required this.id,
@@ -15,6 +16,7 @@ class RC {
     required this.email,
     required this.status,
     this.divisionid,
+    this.schoolid,
   });
 
   factory RC.fromMap(String id, Map<String, dynamic> map) {
@@ -26,6 +28,7 @@ class RC {
       email: map['email'] ?? "",
       status: map['status'] ?? "",
       divisionid: map['divisionid'],
+      schoolid: map['schoolid'],
     );
   }
 
@@ -37,6 +40,7 @@ class RC {
       'email': email,
       'status': status,
       'divisionid': divisionid,
+      'schoolid': schoolid,
     };
   }
 
@@ -47,6 +51,7 @@ class RC {
     String? email,
     String? status,
     String? divisionid,
+    String? schoolid,
   }) {
     return RC(
       id: id,
@@ -56,6 +61,7 @@ class RC {
       email: email ?? this.email,
       status: status ?? this.status,
       divisionid: divisionid ?? this.divisionid,
+      schoolid: schoolid ?? this.schoolid,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/core/firestore_collections.dart';
+import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
@@ -24,7 +25,10 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
   bool _isLoading = false;
   List<School> _schools = [];
   String? _selectedSchoolId;
+  String? _selectedDivisionId;
+  List<Division> _divisions = [];
   bool _loadingSchools = true;
+  bool _loadingDivisions = true;
 
   @override
   void initState() {
@@ -40,7 +44,9 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     );
     emailController = TextEditingController(text: widget.teacher?.email ?? '');
     _selectedSchoolId = widget.teacher?.schoolid;
+    _selectedDivisionId = widget.teacher?.divisionid;
     _loadSchools();
+    _loadDivisions();
   }
 
   @override
@@ -52,6 +58,13 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     super.dispose();
   }
 
+  List<School> get _schoolsForSelectedDivision {
+    if (_selectedDivisionId == null) return [];
+    return _schools
+        .where((school) => school.divisionid == _selectedDivisionId)
+        .toList();
+  }
+
   Future<void> _loadSchools() async {
     final snap = await _firestore
         .collection(FirestoreCollections.schools)
@@ -61,6 +74,20 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     setState(() {
       _schools = snap.docs.map((d) => School.fromMap(d.id, d.data())).toList();
       _loadingSchools = false;
+    });
+  }
+
+  Future<void> _loadDivisions() async {
+    final snap = await _firestore
+        .collection(FirestoreCollections.divisions)
+        .where('status', isEqualTo: 'ACTIVE')
+        .get();
+    if (!mounted) return;
+    setState(() {
+      _divisions = snap.docs
+          .map((d) => Division.fromMap(d.id, d.data()))
+          .toList();
+      _loadingDivisions = false;
     });
   }
 
@@ -131,6 +158,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                 email: emailController.text.trim(),
                 status: 'ACTIVE',
                 schoolid: _selectedSchoolId,
+                divisionid: _selectedDivisionId,
               ).toMap(),
             );
 
@@ -151,6 +179,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
           lastname: lastnameController.text.trim(),
           email: emailController.text.trim(),
           schoolid: _selectedSchoolId,
+          divisionid: _selectedDivisionId,
         );
 
         Map<String, dynamic> updateData = teacherUpdate.toMap();
@@ -268,9 +297,53 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                 ),
 
                 const SizedBox(height: 16),
+                _loadingDivisions
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : DropdownButtonFormField<String>(
+                        value: _selectedDivisionId,
+                        decoration: const InputDecoration(
+                          labelText: 'Division',
+                          prefixIcon: Icon(Icons.account_tree_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('— No division assigned —'),
+                          ),
+                          ..._divisions.map(
+                            (d) => DropdownMenuItem(
+                              value: d.id,
+                              child: Text(d.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          setState(() {
+                            _selectedDivisionId = v;
+                            if (v == null ||
+                                !_schoolsForSelectedDivision.any(
+                                  (school) => school.id == _selectedSchoolId,
+                                )) {
+                              _selectedSchoolId = null;
+                            }
+                          });
+                        },
+                      ),
+
+                const SizedBox(height: 16),
 
                 _loadingSchools
-                    ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
                     : DropdownButtonFormField<String>(
                         value: _selectedSchoolId,
                         decoration: const InputDecoration(
@@ -278,8 +351,16 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                           prefixIcon: Icon(Icons.school_outlined),
                         ),
                         items: [
-                          const DropdownMenuItem(value: null, child: Text('— No school assigned —')),
-                          ..._schools.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))),
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('— No school assigned —'),
+                          ),
+                          ..._schools.map(
+                            (s) => DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.name),
+                            ),
+                          ),
                         ],
                         onChanged: (v) => setState(() => _selectedSchoolId = v),
                       ),

@@ -6,6 +6,7 @@ class Teacher {
   final String email;
   final String status;
   final String? schoolid;
+  final String? divisionid;
 
   Teacher({
     required this.id,
@@ -15,6 +16,7 @@ class Teacher {
     required this.email,
     required this.status,
     this.schoolid,
+    this.divisionid,
   });
 
   factory Teacher.fromMap(String id, Map<String, dynamic> map) {
@@ -26,6 +28,7 @@ class Teacher {
       email: map['email'] ?? "",
       status: map['status'] ?? "",
       schoolid: map['schoolid'],
+      divisionid: map['divisionid'],
     );
   }
 
@@ -37,6 +40,7 @@ class Teacher {
       'email': email,
       'status': status,
       'schoolid': schoolid,
+      'divisionid': divisionid,
     };
   }
 
@@ -47,6 +51,7 @@ class Teacher {
     String? email,
     String? status,
     String? schoolid,
+    String? divisionid,
   }) {
     return Teacher(
       id: id,
@@ -56,6 +61,7 @@ class Teacher {
       email: email ?? this.email,
       status: status ?? this.status,
       schoolid: schoolid ?? this.schoolid,
+      divisionid: divisionid ?? this.divisionid,
     );
   }
 }

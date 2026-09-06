@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -9,11 +11,15 @@ class AddStudentDialog extends StatefulWidget {
   final Student? student;
   final Section section;
   final SchoolYear schoolyear;
+  final School school;
+  final Division division;
   const AddStudentDialog({
     super.key,
     required this.section,
     required this.schoolyear,
     required this.student,
+    required this.school,
+    required this.division,
   });
 
   @override
@@ -33,7 +39,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
   String? selectedgender;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final String status = "active";
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -69,9 +75,10 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     }
   }
 
-  Future<void> SaveStudent() async {
+  Future<void> saveStudent() async {
+    if (_isLoading) return;
+
     if (!_formKey.currentState!.validate()) {
-      int gst = int.tryParse(gstscorecontroller.text.trim()) ?? 0;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Please fill in all required fields"),
@@ -92,10 +99,16 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       return; // STOP COMPLETELY — NO FIREBASE SAVE
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       if (widget.student != null) {
         // Update the existing student
         final studentupdate = widget.student!.copyWith(
+          schoolid: widget.school.id,
+          divisionid: widget.division.id,
           lrn: lrncontroller.text.trim(),
           firstname: _firstnamecontroller.text.trim(),
           middlename: _middlenamecontroller.text.trim().isEmpty
@@ -164,6 +177,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
             .set(
               Student(
                 id: studentadd,
+                schoolid: widget.school.id,
+                divisionid: widget.division.id,
                 lrn: lrncontroller.text.trim(),
                 sectionid: widget.section.id,
                 schoolyearid: widget.schoolyear.id,
@@ -207,6 +222,12 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
           backgroundColor: Colors.redAccent,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -326,7 +347,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
           child: const Text("Cancel"),
         ),
         ElevatedButton(
-          onPressed: _isLoading ? null : SaveStudent,
+          onPressed: _isLoading ? null : saveStudent,
           child: _isLoading
               ? const SizedBox(
                   width: 20,

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -9,11 +11,16 @@ class AddStudentScreen extends StatefulWidget {
   final Student? student;
   final Section section;
   final SchoolYear schoolyear;
+  final School school;
+  final Division division;
+
   const AddStudentScreen({
     super.key,
     required this.section,
     required this.schoolyear,
     required this.student,
+    required this.school,
+    required this.division,
   });
 
   @override
@@ -99,6 +106,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       if (widget.student != null) {
         // Update the existing student
         final studentupdate = widget.student!.copyWith(
+          schoolid: widget.school.id,
+          divisionid: widget.division.id,
           lrn: lrncontroller.text.trim(),
           firstname: _firstnamecontroller.text.trim(),
           middlename: _middlenamecontroller.text.trim().isEmpty
@@ -167,6 +176,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             .set(
               Student(
                 id: studentadd,
+                schoolid: widget.school.id,
+                divisionid: widget.division.id,
                 lrn: lrncontroller.text.trim(),
                 sectionid: widget.section.id,
                 schoolyearid: widget.schoolyear.id,

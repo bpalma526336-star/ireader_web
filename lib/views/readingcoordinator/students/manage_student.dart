@@ -5,14 +5,12 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/theme.dart';
-import 'package:ireader_web/views/admin/student/add_student.dart';
-import 'package:ireader_web/views/admin/student/add_student_dialog.dart';
 import 'package:ireader_web/views/readingcoordinator/students/student_profile.dart';
-import 'package:ireader_web/shared/import_students_dialog.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
 
 class RCManageStudentScreen extends StatefulWidget {
+  final String schoolId;
   final SchoolYear schoolyear;
   final Section section;
 
@@ -20,6 +18,7 @@ class RCManageStudentScreen extends StatefulWidget {
     super.key,
     required this.section,
     required this.schoolyear,
+    required this.schoolId,
   });
 
   @override
@@ -72,9 +71,11 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -86,9 +87,11 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet.getRangeByName('A4').setText(
-      'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-    );
+    sheet
+        .getRangeByName('A4')
+        .setText(
+          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+        );
     sheet.getRangeByName('A4').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -116,9 +119,11 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
     );
 
     for (var student in students) {
-      sheet.getRangeByName('A$rowIndex').setText(
-        "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-      );
+      sheet
+          .getRangeByName('A$rowIndex')
+          .setText(
+            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+          );
       sheet.getRangeByName('B$rowIndex').setText(student.gender);
       sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
       sheet
@@ -137,43 +142,6 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
       )
       ..setAttribute('download', 'Phil-IRI_Student_List(Stage_2).xlsx')
       ..click();
-  }
-
-  void _openImportStudents() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => ImportStudentsDialog(
-        section: widget.section,
-        schoolyear: widget.schoolyear,
-      ),
-    );
-  }
-
-  void _openAddStudent() {
-    final isMobile = MediaQuery.of(context).size.width <= 768;
-    if (isMobile) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AddStudentScreen(
-            section: widget.section,
-            schoolyear: widget.schoolyear,
-            student: null,
-          ),
-        ),
-      );
-    } else {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AddStudentDialog(
-          section: widget.section,
-          schoolyear: widget.schoolyear,
-          student: null,
-        ),
-      );
-    }
   }
 
   // ─── Reading level badge ───────────────────────────────────────────────────
@@ -372,10 +340,7 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
           ),
 
           // READING LEVEL
-          Expanded(
-            flex: 3,
-            child: _readingLevelBadge(student.readlevel),
-          ),
+          Expanded(flex: 3, child: _readingLevelBadge(student.readlevel)),
 
           // ACTIONS
           SizedBox(
@@ -441,8 +406,10 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
                   ),
                   filled: true,
                   fillColor: AppTheme.backgroundColor,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -468,44 +435,6 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
             style: const TextStyle(
               fontSize: 12,
               color: AppTheme.textSecondaryColor,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            height: 38,
-            child: OutlinedButton.icon(
-              onPressed: _openImportStudents,
-              icon: const Icon(Icons.upload_file, size: 16),
-              label: const Text('Import'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primaryColor,
-                side: const BorderSide(color: AppTheme.primaryColor),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 38,
-            child: ElevatedButton.icon(
-              onPressed: _openAddStudent,
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Student'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ),
         ],
@@ -559,6 +488,7 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
             .collection('students')
             .where('sectionid', isEqualTo: widget.section.id)
             .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+            .where('schoolid', isEqualTo: widget.schoolId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -573,10 +503,8 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
 
           var students = (snapshot.data?.docs ?? [])
               .map(
-                (doc) => Student.fromMap(
-                  doc.id,
-                  doc.data() as Map<String, dynamic>,
-                ),
+                (doc) =>
+                    Student.fromMap(doc.id, doc.data() as Map<String, dynamic>),
               )
               .toList();
 
@@ -590,10 +518,10 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
           final query = _searchController.text.trim().toLowerCase();
           if (query.isNotEmpty) {
             students = students.where((s) {
-              final name =
-                  '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
-                      .toLowerCase();
-              return name.contains(query) || s.lrn.toLowerCase().contains(query);
+              final name = '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
+                  .toLowerCase();
+              return name.contains(query) ||
+                  s.lrn.toLowerCase().contains(query);
             }).toList();
           }
 
@@ -609,8 +537,9 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
                         Icon(
                           Icons.person_outline,
                           size: 52,
-                          color:
-                              AppTheme.textSecondaryColor.withValues(alpha: 0.4),
+                          color: AppTheme.textSecondaryColor.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -622,18 +551,6 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
                             fontSize: 15,
                           ),
                         ),
-                        if (total == 0) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _openAddStudent,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add Student'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -651,8 +568,7 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
                             height: 1,
                             color: AppTheme.borderColor,
                           ),
-                          itemBuilder: (_, index) =>
-                              _buildRow(students[index]),
+                          itemBuilder: (_, index) => _buildRow(students[index]),
                         ),
                       ),
                     ],

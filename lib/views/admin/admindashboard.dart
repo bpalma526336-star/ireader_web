@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/views/admin/schoolyear/add_schoolyear_dialog.dart';
 import 'package:ireader_web/widgets/admin_sidebar.dart';
 import 'package:ireader_web/widgets/admin_top_header.dart';
 import 'package:ireader_web/model/schoolyear.dart';
@@ -39,8 +40,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
   String? _cachedGradeUrl;
   String? _cachedPrePostUrl;
 
-  // testtype ('Pre-test'/'Post-test') -> level -> count (aggregated across selected years)
+  // assessment stage -> reading level -> count (aggregated across selected years)
   Map<String, Map<String, int>> _prePostCounts = {};
+
+  static const _assessmentStages = [
+    'Stage 2 - Pre-Test',
+    'Stage 3 - Midway/Mid-test',
+    'Stage 4 - Post-Test',
+  ];
 
   // Division comparison — loaded once, recomputed on year range change
   List<Division> _dashboardDivisions = [];
@@ -204,16 +211,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Future<void> _computePrePostForYears(List<SchoolYear> years) async {
     _prePostCounts = {
-      'Pre-test': {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
-      'Post-test': {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+      for (final stage in _assessmentStages)
+        stage: {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
     };
 
     if (years.isEmpty) return;
 
     final yearIds = years.map((y) => y.id).toList();
 
-    // Fetch assessments in batches of 10 (Firestore whereIn limit)
-    final Map<String, String> assessmentTypeMap = {}; // id -> testtype
+    // Fetch assessments in batches of 10 (Firestore whereIn limit).
+    final Map<String, String> assessmentStageMap = {};
     for (int i = 0; i < yearIds.length; i += 10) {
       final end = (i + 10).clamp(0, yearIds.length);
       final chunk = yearIds.sublist(i, end);
@@ -222,25 +229,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
           .where('schoolyearid', whereIn: chunk)
           .get();
       for (final doc in snap.docs) {
-        final t = doc.data()['testtype'] as String?;
-        if (t == 'Pre-test' || t == 'Post-test') {
-          assessmentTypeMap[doc.id] = t!;
+        final title = doc.data()['assessmenttitle'] as String?;
+        if (_assessmentStages.contains(title)) {
+          assessmentStageMap[doc.id] = title!;
         }
       }
     }
 
-    if (assessmentTypeMap.isEmpty) return;
+    if (assessmentStageMap.isEmpty) return;
 
-    final preIds = assessmentTypeMap.entries
-        .where((e) => e.value == 'Pre-test')
-        .map((e) => e.key)
-        .toList();
-    final postIds = assessmentTypeMap.entries
-        .where((e) => e.value == 'Post-test')
-        .map((e) => e.key)
-        .toList();
+    final stageIds = <String, List<String>>{
+      for (final stage in _assessmentStages)
+        stage: assessmentStageMap.entries
+            .where((entry) => entry.value == stage)
+            .map((entry) => entry.key)
+            .toList(),
+    };
 
-    Future<void> fetchAndCount(List<String> ids, String type) async {
+    Future<void> fetchAndCount(List<String> ids, String stage) async {
       for (int i = 0; i < ids.length; i += 10) {
         final end = (i + 10).clamp(0, ids.length);
         final chunk = ids.sublist(i, end);
@@ -250,27 +256,27 @@ class _AdminDashboardState extends State<AdminDashboard> {
             .get();
         for (final doc in snap.docs) {
           final level = doc.data()['readlevel'] as String? ?? '';
-          if (_prePostCounts[type]!.containsKey(level)) {
-            _prePostCounts[type]![level] =
-                (_prePostCounts[type]![level] ?? 0) + 1;
+          if (_prePostCounts[stage]!.containsKey(level)) {
+            _prePostCounts[stage]![level] =
+                (_prePostCounts[stage]![level] ?? 0) + 1;
           }
         }
       }
     }
 
     await Future.wait([
-      if (preIds.isNotEmpty) fetchAndCount(preIds, 'Pre-test'),
-      if (postIds.isNotEmpty) fetchAndCount(postIds, 'Post-test'),
+      for (final stage in _assessmentStages)
+        if (stageIds[stage]!.isNotEmpty) fetchAndCount(stageIds[stage]!, stage),
     ]);
   }
 
   String _buildPrePostChartUrl() {
     final levels = ['Frustration', 'Instructional', 'Independent'];
-    final preCounts = _prePostCounts['Pre-test'] ?? {};
-    final postCounts = _prePostCounts['Post-test'] ?? {};
 
     final hasData = levels.any(
-      (l) => (preCounts[l] ?? 0) > 0 || (postCounts[l] ?? 0) > 0,
+      (level) => _assessmentStages.any(
+        (stage) => (_prePostCounts[stage]?[level] ?? 0) > 0,
+      ),
     );
     if (!hasData) return '';
 
@@ -278,24 +284,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'type': 'bar',
       'data': {
         'labels': levels,
-        'datasets': [
-          {
-            'label': 'Pre-test',
-            'data': levels.map((l) => preCounts[l] ?? 0).toList(),
-            'backgroundColor': '#3B82F6',
+        'datasets': _assessmentStages.asMap().entries.map((entry) {
+          const colors = ['#3B82F6', '#F59E0B', '#10B981'];
+          final stage = entry.value;
+          return {
+            'label': stage,
+            'data': levels
+                .map((level) => _prePostCounts[stage]?[level] ?? 0)
+                .toList(),
+            'backgroundColor': colors[entry.key],
             'borderWidth': 0,
             'borderRadius': 4,
             'borderSkipped': false,
-          },
-          {
-            'label': 'Post-test',
-            'data': levels.map((l) => postCounts[l] ?? 0).toList(),
-            'backgroundColor': '#10B981',
-            'borderWidth': 0,
-            'borderRadius': 4,
-            'borderSkipped': false,
-          },
-        ],
+          };
+        }).toList(),
       },
       'options': {
         'backgroundColor': '#FFFFFF',
@@ -1316,7 +1318,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         if (_cachedGradeUrl != null && _cachedGradeUrl!.isNotEmpty) ...[
           const SizedBox(height: 16),
           _buildChartCard(
-            'Grade 4 Students Grade Level Reading Distribution',
+            'Grade 4 Students Grade Level Reading Recommendation Distribution',
             _cachedGradeUrl,
             340,
           ),
@@ -1717,18 +1719,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'Instructional': AppTheme.levelInstructional,
       'Independent': AppTheme.levelIndependent,
     };
-    final preCounts = _prePostCounts['Pre-test'] ?? {};
-    final postCounts = _prePostCounts['Post-test'] ?? {};
-
-    final preTotal =
-        (preCounts['Frustration'] ?? 0) +
-        (preCounts['Instructional'] ?? 0) +
-        (preCounts['Independent'] ?? 0);
-    final postTotal =
-        (postCounts['Frustration'] ?? 0) +
-        (postCounts['Instructional'] ?? 0) +
-        (postCounts['Independent'] ?? 0);
-    final hasData = preTotal > 0 || postTotal > 0;
+    final stageTotals = {
+      for (final stage in _assessmentStages)
+        stage: _total(_prePostCounts[stage] ?? {}),
+    };
+    final hasData = stageTotals.values.any((total) => total > 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1745,7 +1740,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             const SizedBox(width: 8),
             const Text(
-              'Pre-test vs Post-test Comparison',
+              'Assessment Stage Comparison',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -1756,7 +1751,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         const SizedBox(height: 4),
         const Text(
-          'Comparison of reading level distribution between pre-test and post-test assessments',
+          'Comparison of reading level distribution across the three assessment stages',
           style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
         ),
         const SizedBox(height: 16),
@@ -1770,7 +1765,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             child: const Center(
               child: Text(
-                'No pre-test or post-test data yet.\nTag assessments with a Test Type to see this comparison.',
+                'No assessment stage data yet.\nAdd one of the supported assessment titles to see this comparison.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -1787,18 +1782,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     _buildPrePostTable(
                       levels,
                       levelColors,
-                      preCounts,
-                      postCounts,
-                      preTotal,
-                      postTotal,
+                      _prePostCounts,
+                      stageTotals,
                     ),
                     const SizedBox(height: 16),
-                    _buildPrePostSummary(
-                      preCounts,
-                      postCounts,
-                      preTotal,
-                      postTotal,
-                    ),
+                    _buildPrePostSummary(_prePostCounts, stageTotals),
                   ],
                 )
               : Row(
@@ -1809,28 +1797,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       child: _buildPrePostTable(
                         levels,
                         levelColors,
-                        preCounts,
-                        postCounts,
-                        preTotal,
-                        postTotal,
+                        _prePostCounts,
+                        stageTotals,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       flex: 2,
-                      child: _buildPrePostSummary(
-                        preCounts,
-                        postCounts,
-                        preTotal,
-                        postTotal,
-                      ),
+                      child: _buildPrePostSummary(_prePostCounts, stageTotals),
                     ),
                   ],
                 ),
           if (_cachedPrePostUrl != null && _cachedPrePostUrl!.isNotEmpty) ...[
             const SizedBox(height: 16),
             _buildChartCard(
-              'Reading Level Distribution: Pre-test vs Post-test',
+              'Reading Level Distribution by Assessment Stage',
               _cachedPrePostUrl,
               360,
             ),
@@ -1843,10 +1824,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildPrePostTable(
     List<String> levels,
     Map<String, Color> levelColors,
-    Map<String, int> preCounts,
-    Map<String, int> postCounts,
-    int preTotal,
-    int postTotal,
+    Map<String, Map<String, int>> stageCounts,
+    Map<String, int> stageTotals,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1868,7 +1847,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'n and % for pre-test and post-test',
+            'n and % for each assessment stage',
             style: TextStyle(
               fontSize: 11.5,
               color: AppTheme.textSecondaryColor,
@@ -1890,39 +1869,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
               ),
-              const Expanded(
-                flex: 2,
-                child: Text(
-                  'Pre-test',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF3B82F6),
-                    letterSpacing: 0.6,
-                  ),
-                ),
-              ),
-              const Expanded(
-                flex: 2,
-                child: Text(
-                  'Post-test',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF10B981),
-                    letterSpacing: 0.6,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 60,
-                child: Text(
-                  'Change',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textSecondaryColor,
-                    letterSpacing: 0.6,
+              ..._assessmentStages.map(
+                (stage) => Expanded(
+                  flex: 2,
+                  child: Text(
+                    stage.replaceFirst(' - ', '\n'),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondaryColor,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ),
@@ -1930,11 +1887,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           const Divider(height: 12, color: AppTheme.borderColor),
           ...levels.map((level) {
-            final pre = preCounts[level] ?? 0;
-            final post = postCounts[level] ?? 0;
-            final prePct = _percent(pre, preTotal);
-            final postPct = _percent(post, postTotal);
-            final diff = postPct - prePct;
             final color = levelColors[level]!;
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1963,43 +1915,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ],
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '$pre  (${prePct.toStringAsFixed(1)}%)',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF3B82F6),
+                  ..._assessmentStages.map((stage) {
+                    final count = stageCounts[stage]?[level] ?? 0;
+                    final percent = _percent(count, stageTotals[stage] ?? 0);
+                    return Expanded(
+                      flex: 2,
+                      child: Text(
+                        '$count (${percent.toStringAsFixed(1)}%)',
+                        style: TextStyle(fontSize: 11, color: color),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '$post  (${postPct.toStringAsFixed(1)}%)',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF10B981),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      diff == 0
-                          ? '—'
-                          : '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: diff > 0
-                            ? const Color(0xFF16A34A)
-                            : diff < 0
-                            ? const Color(0xFFDC2626)
-                            : AppTheme.textSecondaryColor,
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             );
@@ -2018,29 +1944,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  '$preTotal',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF3B82F6),
+              ..._assessmentStages.map(
+                (stage) => Expanded(
+                  flex: 2,
+                  child: Text(
+                    '${stageTotals[stage] ?? 0}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                    ),
                   ),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  '$postTotal',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF10B981),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 60),
             ],
           ),
         ],
@@ -2049,11 +1965,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildPrePostSummary(
-    Map<String, int> preCounts,
-    Map<String, int> postCounts,
-    int preTotal,
-    int postTotal,
+    Map<String, Map<String, int>> stageCounts,
+    Map<String, int> stageTotals,
   ) {
+    final preCounts = stageCounts[_assessmentStages.first] ?? {};
+    final postCounts = stageCounts[_assessmentStages.last] ?? {};
+    final preTotal = stageTotals[_assessmentStages.first] ?? 0;
+    final postTotal = stageTotals[_assessmentStages.last] ?? 0;
+    final midwayCounts = stageCounts[_assessmentStages[1]] ?? {};
+    final midwayTotal = stageTotals[_assessmentStages[1]] ?? 0;
+
     final preInd = preCounts['Independent'] ?? 0;
     final postInd = postCounts['Independent'] ?? 0;
     final preFru = preCounts['Frustration'] ?? 0;
@@ -2070,13 +1991,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
     String insight;
     if (preTotal == 0 || postTotal == 0) {
       insight =
-          'Insufficient data — both pre-test and post-test results are needed to generate an insight.';
+          'Insufficient data — Stage 2 and Stage 4 results are needed to generate an insight.';
     } else if (indImproved && fruImproved) {
       insight =
           'Positive improvement: Independent readers grew from ${preIndPct.toStringAsFixed(1)}% to ${postIndPct.toStringAsFixed(1)}%, while Frustration level decreased from ${preFruPct.toStringAsFixed(1)}% to ${postFruPct.toStringAsFixed(1)}%.';
     } else if (indImproved) {
       insight =
-          'Independent readers increased from ${preIndPct.toStringAsFixed(1)}% (pre-test) to ${postIndPct.toStringAsFixed(1)}% (post-test), showing a positive trend.';
+          'Independent readers increased from ${preIndPct.toStringAsFixed(1)}% (Stage 2) to ${postIndPct.toStringAsFixed(1)}% (Stage 4), showing a positive trend.';
     } else if (fruImproved) {
       insight =
           'Frustration level students decreased from ${preFruPct.toStringAsFixed(1)}% to ${postFruPct.toStringAsFixed(1)}%, suggesting some improvement.';
@@ -2085,7 +2006,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           'Independent readers declined from ${preIndPct.toStringAsFixed(1)}% to ${postIndPct.toStringAsFixed(1)}%. Consider reviewing instructional strategies.';
     } else {
       insight =
-          'Reading levels remained relatively stable between pre-test and post-test.';
+          'Reading levels remained relatively stable from Stage 2 through Stage 4.';
     }
 
     return Container(
@@ -2108,7 +2029,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Pre-test vs post-test outcomes',
+            'Stage 2 to Stage 4 outcomes',
             style: TextStyle(
               fontSize: 11.5,
               color: AppTheme.textSecondaryColor,
@@ -2121,6 +2042,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
             postIndPct,
             AppTheme.levelIndependent,
             higher: true,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Midway Independent Rate: ${_percent(midwayCounts['Independent'] ?? 0, midwayTotal).toStringAsFixed(1)}%',
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: AppTheme.textSecondaryColor,
+            ),
           ),
           const SizedBox(height: 10),
           _prePostMetric(
@@ -2828,6 +2757,61 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     child: const Text('Generate'),
                                   ),
                                 ),
+                                const SizedBox(width: 12),
+                                SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      AddSchoolyearDialog.show(
+                                        context,
+                                        schoolyear: null,
+                                      );
+                                    },
+                                    child: const Text('Add School Year'),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 12),
+                                SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      //List of School Years
+                                    },
+                                    child: const Text('Lists of School Years'),
+                                  ),
+                                ),
+
                                 const Spacer(),
                                 if (_selectedRangeYears.isNotEmpty)
                                   Container(

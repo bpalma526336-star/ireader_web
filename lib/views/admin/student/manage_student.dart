@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -15,11 +17,15 @@ import 'package:universal_html/html.dart' show AnchorElement;
 class ManageStudentScreen extends StatefulWidget {
   final SchoolYear schoolyear;
   final Section section;
+  final School school;
+  final Division division;
 
   const ManageStudentScreen({
     super.key,
     required this.section,
     required this.schoolyear,
+    required this.school,
+    required this.division,
   });
 
   @override
@@ -72,9 +78,11 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -86,9 +94,11 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet.getRangeByName('A4').setText(
-      'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-    );
+    sheet
+        .getRangeByName('A4')
+        .setText(
+          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+        );
     sheet.getRangeByName('A4').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -116,9 +126,11 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
     );
 
     for (var student in students) {
-      sheet.getRangeByName('A$rowIndex').setText(
-        "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-      );
+      sheet
+          .getRangeByName('A$rowIndex')
+          .setText(
+            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+          );
       sheet.getRangeByName('B$rowIndex').setText(student.gender);
       sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
       sheet
@@ -150,7 +162,7 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
     );
   }
 
-  void _openAddStudent() {
+  void _openAddStudent(Student? student) {
     final isMobile = MediaQuery.of(context).size.width <= 768;
     if (isMobile) {
       Navigator.push(
@@ -159,7 +171,9 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
           builder: (_) => AddStudentScreen(
             section: widget.section,
             schoolyear: widget.schoolyear,
-            student: null,
+            student: student,
+            school: widget.school,
+            division: widget.division,
           ),
         ),
       );
@@ -170,7 +184,9 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
         builder: (_) => AddStudentDialog(
           section: widget.section,
           schoolyear: widget.schoolyear,
-          student: null,
+          student: student,
+          school: widget.school,
+          division: widget.division,
         ),
       );
     }
@@ -385,6 +401,26 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
             width: 100,
             child: Row(
               children: [
+                Tooltip(
+                  message: 'Edit Student',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: () => _openAddStudent(student),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.backgroundColor,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        size: 15,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                  ),
+                ),
                 // View profile
                 InkWell(
                   borderRadius: BorderRadius.circular(6),
@@ -454,9 +490,19 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 4),
-        Text('$label ($count)', style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+        Text(
+          '$label ($count)',
+          style: const TextStyle(
+            fontSize: 11.5,
+            color: AppTheme.textSecondaryColor,
+          ),
+        ),
       ],
     );
   }
@@ -488,8 +534,10 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                   ),
                   filled: true,
                   fillColor: AppTheme.backgroundColor,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -528,8 +576,13 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                 foregroundColor: AppTheme.primaryColor,
                 side: const BorderSide(color: AppTheme.primaryColor),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -537,7 +590,7 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
           SizedBox(
             height: 38,
             child: ElevatedButton.icon(
-              onPressed: _openAddStudent,
+              onPressed: () => _openAddStudent(null),
               icon: const Icon(Icons.add, size: 16),
               label: const Text('Add Student'),
               style: ElevatedButton.styleFrom(
@@ -620,10 +673,8 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
 
           var students = (snapshot.data?.docs ?? [])
               .map(
-                (doc) => Student.fromMap(
-                  doc.id,
-                  doc.data() as Map<String, dynamic>,
-                ),
+                (doc) =>
+                    Student.fromMap(doc.id, doc.data() as Map<String, dynamic>),
               )
               .toList();
 
@@ -637,10 +688,10 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
           final query = _searchController.text.trim().toLowerCase();
           if (query.isNotEmpty) {
             students = students.where((s) {
-              final name =
-                  '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
-                      .toLowerCase();
-              return name.contains(query) || s.lrn.toLowerCase().contains(query);
+              final name = '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
+                  .toLowerCase();
+              return name.contains(query) ||
+                  s.lrn.toLowerCase().contains(query);
             }).toList();
           }
 
@@ -656,8 +707,9 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                         Icon(
                           Icons.person_outline,
                           size: 52,
-                          color:
-                              AppTheme.textSecondaryColor.withValues(alpha: 0.4),
+                          color: AppTheme.textSecondaryColor.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -672,7 +724,7 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                         if (total == 0) ...[
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: _openAddStudent,
+                            onPressed: () => _openAddStudent(null),
                             icon: const Icon(Icons.add),
                             label: const Text('Add Student'),
                             style: ElevatedButton.styleFrom(
@@ -700,27 +752,56 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                               height: 1,
                               color: AppTheme.borderColor,
                             ),
-                            itemBuilder: (_, index) => _buildRow(students[index]),
+                            itemBuilder: (_, index) =>
+                                _buildRow(students[index]),
                           ),
                         ),
                         // footer summary
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 10,
+                          ),
                           decoration: const BoxDecoration(
-                            border: Border(top: BorderSide(color: AppTheme.borderColor)),
+                            border: Border(
+                              top: BorderSide(color: AppTheme.borderColor),
+                            ),
                           ),
                           child: Row(
                             children: [
                               Text(
                                 '${students.length} student${students.length == 1 ? '' : 's'}',
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondaryColor,
+                                ),
                               ),
                               const SizedBox(width: 16),
-                              _levelDot(AppTheme.levelFrustration, 'Frustration', students.where((s) => s.readlevel == 'Frustration').length),
+                              _levelDot(
+                                AppTheme.levelFrustration,
+                                'Frustration',
+                                students
+                                    .where((s) => s.readlevel == 'Frustration')
+                                    .length,
+                              ),
                               const SizedBox(width: 12),
-                              _levelDot(AppTheme.levelInstructional, 'Instructional', students.where((s) => s.readlevel == 'Instructional').length),
+                              _levelDot(
+                                AppTheme.levelInstructional,
+                                'Instructional',
+                                students
+                                    .where(
+                                      (s) => s.readlevel == 'Instructional',
+                                    )
+                                    .length,
+                              ),
                               const SizedBox(width: 12),
-                              _levelDot(AppTheme.levelIndependent, 'Independent', students.where((s) => s.readlevel == 'Independent').length),
+                              _levelDot(
+                                AppTheme.levelIndependent,
+                                'Independent',
+                                students
+                                    .where((s) => s.readlevel == 'Independent')
+                                    .length,
+                              ),
                             ],
                           ),
                         ),

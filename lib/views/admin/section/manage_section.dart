@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -21,8 +23,15 @@ import 'package:open_file/open_file.dart';
 
 class ManageSection extends StatefulWidget {
   final SchoolYear schoolyear;
+  final Division division;
+  final School school;
 
-  const ManageSection({super.key, required this.schoolyear});
+  const ManageSection({
+    super.key,
+    required this.schoolyear,
+    required this.division,
+    required this.school,
+  });
 
   @override
   State<ManageSection> createState() => _ManageSectionState();
@@ -263,13 +272,33 @@ class _ManageSectionState extends State<ManageSection> {
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
 
+    // final teacherSnap = await _firestore
+    //     .collection('teachers')
+    //     .doc(section.teacherid)
+    //     .get();
+    // final teacherName = teacherSnap.exists
+    //     ? "${teacherSnap['firstname']} ${teacherSnap['middlename']} ${teacherSnap['lastname']}"
+    //     : 'Unknown';
     final teacherSnap = await _firestore
         .collection('teachers')
         .doc(section.teacherid)
         .get();
-    final teacherName = teacherSnap.exists
-        ? "${teacherSnap['firstname']} ${teacherSnap['middlename']} ${teacherSnap['lastname']}"
-        : 'Unknown';
+
+    String teacherName = 'Unknown';
+
+    if (teacherSnap.exists) {
+      final data = teacherSnap.data() as Map<String, dynamic>;
+
+      final firstName = (data['firstname'] ?? '').toString().trim();
+      final middleName = (data['middlename'] ?? '').toString().trim();
+      final lastName = (data['lastname'] ?? '').toString().trim();
+
+      teacherName = [
+        firstName,
+        middleName,
+        lastName,
+      ].where((name) => name.isNotEmpty).join(' ');
+    }
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
     sheet.getRangeByName('A3').setText('Teacher: $teacherName');
@@ -366,13 +395,23 @@ class _ManageSectionState extends State<ManageSection> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => EditSection(section: section, teacher: teacher),
+          builder: (_) => EditSection(
+            section: section,
+            teacher: teacher,
+            division: widget.division,
+            school: widget.school,
+          ),
         ),
       );
     } else {
       showDialog(
         context: context,
-        builder: (_) => EditSectionDialog(section: section, teacher: teacher),
+        builder: (_) => EditSectionDialog(
+          section: section,
+          teacher: teacher,
+          division: widget.division,
+          school: widget.school,
+        ),
       );
     }
   }
@@ -523,8 +562,11 @@ class _ManageSectionState extends State<ManageSection> {
                 showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (_) =>
-                      AddSectionDialog(schoolyear: widget.schoolyear),
+                  builder: (_) => AddSectionDialog(
+                    schoolyear: widget.schoolyear,
+                    division: widget.division,
+                    school: widget.school,
+                  ),
                 );
               },
               icon: const Icon(Icons.add, size: 16),
@@ -552,8 +594,11 @@ class _ManageSectionState extends State<ManageSection> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        CompareSection(schoolYear: widget.schoolyear),
+                    builder: (_) => CompareSection(
+                      schoolYear: widget.schoolyear,
+                      division: widget.division,
+                      school: widget.school,
+                    ),
                   ),
                 );
               },
@@ -704,6 +749,8 @@ class _ManageSectionState extends State<ManageSection> {
                         builder: (_) => ManageStudentScreen(
                           section: section,
                           schoolyear: widget.schoolyear,
+                          school: widget.school,
+                          division: widget.division,
                         ),
                       ),
                     );
