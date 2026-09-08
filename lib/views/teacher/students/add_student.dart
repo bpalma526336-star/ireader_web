@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddStudentScreen extends StatefulWidget {
   final Student? student;
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher teacher;
   const AddStudentScreen({
     super.key,
     required this.section,
     required this.schoolyear,
+    required this.teacher,
     required this.student,
   });
 
@@ -108,6 +111,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           gstscore: gstscorecontroller.text.trim(),
           gradelevelread: gradelevelread(),
           gender: selectedgender,
+          divisionid: widget.teacher.divisionid,
+          schoolid: widget.teacher.schoolid,
         );
 
         Map<String, dynamic> updateData = studentupdate.toMap();
@@ -136,6 +141,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             .where("lastname", isEqualTo: _lastnamecontroller.text.trim())
             .where("schoolyearid", isEqualTo: widget.schoolyear.id)
             .where("sectionid", isEqualTo: widget.section.id)
+            .where("schoolid", isEqualTo: widget.teacher.schoolid)
+            .where("divisionid", isEqualTo: widget.teacher.divisionid)
             .get();
 
         final existinglrn = await firestore
@@ -143,6 +150,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             .where("lrn", isEqualTo: lrncontroller.text.trim())
             .where("schoolyearid", isEqualTo: widget.schoolyear.id)
             .where("sectionid", isEqualTo: widget.section.id)
+            .where("schoolid", isEqualTo: widget.teacher.schoolid)
+            .where("divisionid", isEqualTo: widget.teacher.divisionid)
             .get();
 
         if (existingStudent.docs.isNotEmpty || existinglrn.docs.isNotEmpty) {
@@ -182,6 +191,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 readingresult: "Not Started",
                 comprehensionresult: "Not Started",
                 status: "ACTIVE",
+                schoolid: widget.teacher.schoolid,
+                divisionid: widget.teacher.divisionid,
               ).toMap(),
             );
 

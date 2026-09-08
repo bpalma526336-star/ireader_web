@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddStudentDialog extends StatefulWidget {
   final Student? student;
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher teacher;
   const AddStudentDialog({
     super.key,
     required this.section,
     required this.schoolyear,
     required this.student,
+    required this.teacher,
   });
 
   @override
@@ -105,6 +108,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
           gstscore: gstscorecontroller.text.trim(),
           gradelevelread: gradelevelread(),
           gender: selectedgender,
+          schoolid: widget.teacher.schoolid,
+          divisionid: widget.teacher.divisionid,
         );
 
         Map<String, dynamic> updateData = studentupdate.toMap();
@@ -133,6 +138,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
             .where("lastname", isEqualTo: _lastnamecontroller.text.trim())
             .where("schoolyearid", isEqualTo: widget.schoolyear.id)
             .where("sectionid", isEqualTo: widget.section.id)
+            .where("schoolid", isEqualTo: widget.teacher.schoolid)
+            .where("divisionid", isEqualTo: widget.teacher.divisionid)
             .get();
 
         final existinglrn = await firestore
@@ -140,6 +147,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
             .where("lrn", isEqualTo: lrncontroller.text.trim())
             .where("schoolyearid", isEqualTo: widget.schoolyear.id)
             .where("sectionid", isEqualTo: widget.section.id)
+            .where("schoolid", isEqualTo: widget.teacher.schoolid)
+            .where("divisionid", isEqualTo: widget.teacher.divisionid)
             .get();
 
         if (existingStudent.docs.isNotEmpty || existinglrn.docs.isNotEmpty) {
@@ -179,6 +188,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                 readingresult: "Not Started",
                 comprehensionresult: "Not Started",
                 status: "ACTIVE",
+                schoolid: widget.teacher.schoolid,
+                divisionid: widget.teacher.divisionid,
               ).toMap(),
             );
 

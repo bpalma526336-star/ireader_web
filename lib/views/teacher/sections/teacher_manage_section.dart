@@ -72,6 +72,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
     return _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearid)
+        .where('schoolid', isEqualTo: widget.teacher.schoolid)
+        .where('divisionid', isEqualTo: widget.teacher.divisionid)
         .where('sectionid', isEqualTo: sectionid)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
@@ -163,6 +165,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
         .collection('students')
         .where('sectionid', isEqualTo: section.id)
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.teacher.schoolid)
+        .where('divisionid', isEqualTo: widget.teacher.divisionid)
         .get();
     final students = snapshot.docs
         .map((doc) => Student.fromMap(doc.id, doc.data()))
@@ -583,6 +587,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
             builder: (context) => TeacherManageStudentScreen(
               section: section,
               schoolyear: correctSchoolYear,
+              teacher: widget.teacher,
             ),
           ),
         );

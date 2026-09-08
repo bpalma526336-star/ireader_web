@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -41,11 +42,12 @@ class _ParsedRow {
 class ImportStudentsDialog extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
-
+  final Teacher teacher;
   const ImportStudentsDialog({
     super.key,
     required this.section,
     required this.schoolyear,
+    required this.teacher,
   });
 
   @override
@@ -107,11 +109,18 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
       final parts = dataLines[i].split(',');
 
       if (parts.length < 6) {
-        rows.add(_ParsedRow(
-          rowNumber: i + 2,
-          lrn: '', firstname: '', middlename: '', lastname: '', gender: '', gstscore: '',
-          error: 'Invalid format — expected 6 columns',
-        ));
+        rows.add(
+          _ParsedRow(
+            rowNumber: i + 2,
+            lrn: '',
+            firstname: '',
+            middlename: '',
+            lastname: '',
+            gender: '',
+            gstscore: '',
+            error: 'Invalid format — expected 6 columns',
+          ),
+        );
         continue;
       }
 
@@ -140,16 +149,18 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
         }
       }
 
-      rows.add(_ParsedRow(
-        rowNumber: i + 2,
-        lrn: lrn,
-        firstname: firstname,
-        middlename: middlename,
-        lastname: lastname,
-        gender: gender,
-        gstscore: gstscore,
-        error: error,
-      ));
+      rows.add(
+        _ParsedRow(
+          rowNumber: i + 2,
+          lrn: lrn,
+          firstname: firstname,
+          middlename: middlename,
+          lastname: lastname,
+          gender: gender,
+          gstscore: gstscore,
+          error: error,
+        ),
+      );
     }
 
     return rows;
@@ -172,6 +183,8 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
             .where('lrn', isEqualTo: row.lrn)
             .where('schoolyearid', isEqualTo: widget.schoolyear.id)
             .where('sectionid', isEqualTo: widget.section.id)
+            .where('divisionid', isEqualTo: widget.teacher.divisionid)
+            .where('schoolid', isEqualTo: widget.teacher.schoolid)
             .get();
 
         if (existing.docs.isNotEmpty) {
@@ -180,24 +193,29 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
         }
 
         final docId = firestore.collection('students').doc().id;
-        await firestore.collection('students').doc(docId).set(
-          Student(
-            id: docId,
-            lrn: row.lrn,
-            sectionid: widget.section.id,
-            schoolyearid: widget.schoolyear.id,
-            firstname: row.firstname,
-            middlename: row.middlename.isEmpty ? null : row.middlename,
-            lastname: row.lastname,
-            gstscore: row.gstscore,
-            gradelevelread: row.gradelevelread,
-            gender: row.gender,
-            readlevel: 'Not Started',
-            readingresult: 'Not Started',
-            comprehensionresult: 'Not Started',
-            status: 'ACTIVE',
-          ).toMap(),
-        );
+        await firestore
+            .collection('students')
+            .doc(docId)
+            .set(
+              Student(
+                id: docId,
+                lrn: row.lrn,
+                sectionid: widget.section.id,
+                schoolyearid: widget.schoolyear.id,
+                firstname: row.firstname,
+                middlename: row.middlename.isEmpty ? null : row.middlename,
+                lastname: row.lastname,
+                gstscore: row.gstscore,
+                gradelevelread: row.gradelevelread,
+                gender: row.gender,
+                readlevel: 'Not Started',
+                readingresult: 'Not Started',
+                comprehensionresult: 'Not Started',
+                status: 'ACTIVE',
+                schoolid: widget.teacher.schoolid,
+                divisionid: widget.teacher.divisionid,
+              ).toMap(),
+            );
         imported++;
       } catch (_) {
         skipped++;
@@ -268,7 +286,11 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                 ),
                 IconButton(
                   onPressed: _importing ? null : () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, size: 18, color: AppTheme.textSecondaryColor),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 18,
+                    color: AppTheme.textSecondaryColor,
+                  ),
                 ),
               ],
             ),
@@ -288,9 +310,17 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.primaryColor,
                   side: const BorderSide(color: AppTheme.primaryColor),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -311,19 +341,34 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   if (_filePicked) ...[
                     const SizedBox(width: 10),
-                    const Icon(Icons.check_circle, size: 15, color: Color(0xFF22C55E)),
+                    const Icon(
+                      Icons.check_circle,
+                      size: 15,
+                      color: Color(0xFF22C55E),
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         _fileName,
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondaryColor,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -339,13 +384,26 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                 children: [
                   const Text(
                     'Preview',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimaryColor,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  if (validCount > 0) _badge('$validCount ready', const Color(0xFFDCFCE7), const Color(0xFF15803D)),
+                  if (validCount > 0)
+                    _badge(
+                      '$validCount ready',
+                      const Color(0xFFDCFCE7),
+                      const Color(0xFF15803D),
+                    ),
                   if (errorCount > 0) ...[
                     const SizedBox(width: 6),
-                    _badge('$errorCount will be skipped', const Color(0xFFFEE2E2), const Color(0xFFB91C1C)),
+                    _badge(
+                      '$errorCount will be skipped',
+                      const Color(0xFFFEE2E2),
+                      const Color(0xFFB91C1C),
+                    ),
                   ],
                 ],
               ),
@@ -360,19 +418,42 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: const BoxDecoration(
                           color: AppTheme.backgroundColor,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(7)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(7),
+                          ),
                         ),
                         child: const Row(
                           children: [
-                            SizedBox(width: 30, child: Text('#', style: _headerStyle)),
-                            Expanded(flex: 3, child: Text('LRN', style: _headerStyle)),
-                            Expanded(flex: 5, child: Text('NAME', style: _headerStyle)),
-                            Expanded(flex: 2, child: Text('GENDER', style: _headerStyle)),
-                            Expanded(flex: 2, child: Text('GST', style: _headerStyle)),
-                            SizedBox(width: 100, child: Text('STATUS', style: _headerStyle)),
+                            SizedBox(
+                              width: 30,
+                              child: Text('#', style: _headerStyle),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text('LRN', style: _headerStyle),
+                            ),
+                            Expanded(
+                              flex: 5,
+                              child: Text('NAME', style: _headerStyle),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('GENDER', style: _headerStyle),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('GST', style: _headerStyle),
+                            ),
+                            SizedBox(
+                              width: 100,
+                              child: Text('STATUS', style: _headerStyle),
+                            ),
                           ],
                         ),
                       ),
@@ -381,44 +462,78 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                         child: ListView.separated(
                           shrinkWrap: true,
                           itemCount: _rows.length,
-                          separatorBuilder: (_, __) => const Divider(color: AppTheme.borderColor, height: 1),
+                          separatorBuilder: (_, __) => const Divider(
+                            color: AppTheme.borderColor,
+                            height: 1,
+                          ),
                           itemBuilder: (_, i) {
                             final row = _rows[i];
                             final isError = !row.isValid;
                             return Container(
-                              color: isError ? const Color(0xFFFFF5F5) : Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                              color: isError
+                                  ? const Color(0xFFFFF5F5)
+                                  : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 9,
+                              ),
                               child: Row(
                                 children: [
                                   SizedBox(
                                     width: 30,
-                                    child: Text('${row.rowNumber}',
-                                        style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor)),
+                                    child: Text(
+                                      '${row.rowNumber}',
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
                                   ),
                                   Expanded(
                                     flex: 3,
-                                    child: Text(row.lrn,
-                                        style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor)),
+                                    child: Text(
+                                      row.lrn,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textPrimaryColor,
+                                      ),
+                                    ),
                                   ),
                                   Expanded(
                                     flex: 5,
                                     child: Text(
-                                      [row.firstname, if (row.middlename.isNotEmpty) row.middlename, row.lastname]
-                                          .where((s) => s.isNotEmpty)
-                                          .join(' '),
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textPrimaryColor),
+                                      [
+                                        row.firstname,
+                                        if (row.middlename.isNotEmpty)
+                                          row.middlename,
+                                        row.lastname,
+                                      ].where((s) => s.isNotEmpty).join(' '),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textPrimaryColor,
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   Expanded(
                                     flex: 2,
-                                    child: Text(row.gender,
-                                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+                                    child: Text(
+                                      row.gender,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
                                   ),
                                   Expanded(
                                     flex: 2,
-                                    child: Text(row.gstscore,
-                                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor)),
+                                    child: Text(
+                                      row.gstscore,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
                                   ),
                                   SizedBox(
                                     width: 100,
@@ -427,13 +542,21 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                                             message: row.error ?? '',
                                             child: Row(
                                               children: [
-                                                const Icon(Icons.error_outline, size: 13, color: Color(0xFFEF4444)),
+                                                const Icon(
+                                                  Icons.error_outline,
+                                                  size: 13,
+                                                  color: Color(0xFFEF4444),
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
                                                     row.error ?? '',
-                                                    style: const TextStyle(fontSize: 10.5, color: Color(0xFFEF4444)),
-                                                    overflow: TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 10.5,
+                                                      color: Color(0xFFEF4444),
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ],
@@ -441,10 +564,19 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                                           )
                                         : const Row(
                                             children: [
-                                              Icon(Icons.check_circle, size: 13, color: Color(0xFF22C55E)),
+                                              Icon(
+                                                Icons.check_circle,
+                                                size: 13,
+                                                color: Color(0xFF22C55E),
+                                              ),
                                               SizedBox(width: 4),
-                                              Text('Ready',
-                                                  style: TextStyle(fontSize: 11, color: Color(0xFF22C55E))),
+                                              Text(
+                                                'Ready',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF22C55E),
+                                                ),
+                                              ),
                                             ],
                                           ),
                                   ),
@@ -469,10 +601,16 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.warning_amber_outlined, size: 16, color: Color(0xFF92400E)),
+                    Icon(
+                      Icons.warning_amber_outlined,
+                      size: 16,
+                      color: Color(0xFF92400E),
+                    ),
                     SizedBox(width: 8),
-                    Text('No data rows found. Make sure the file has data below the header row.',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF92400E))),
+                    Text(
+                      'No data rows found. Make sure the file has data below the header row.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                    ),
                   ],
                 ),
               ),
@@ -485,12 +623,19 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
             // ── Footer ──────────────────────────────────────────────────────
             Row(
               children: [
-                const Icon(Icons.info_outline, size: 13, color: AppTheme.textSecondaryColor),
+                const Icon(
+                  Icons.info_outline,
+                  size: 13,
+                  color: AppTheme.textSecondaryColor,
+                ),
                 const SizedBox(width: 6),
                 const Expanded(
                   child: Text(
                     'Duplicate students (same LRN in this section & school year) will be skipped automatically.',
-                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondaryColor),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondaryColor,
+                    ),
                   ),
                 ),
               ],
@@ -501,27 +646,45 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
               children: [
                 TextButton(
                   onPressed: _importing ? null : () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondaryColor)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: AppTheme.textSecondaryColor),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
-                  onPressed: (_filePicked && validCount > 0 && !_importing) ? _importStudents : null,
+                  onPressed: (_filePicked && validCount > 0 && !_importing)
+                      ? _importStudents
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                     disabledBackgroundColor: AppTheme.borderColor,
                   ),
                   child: _importing
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
-                      : Text('Import $validCount Student${validCount == 1 ? "" : "s"}'),
+                      : Text(
+                          'Import $validCount Student${validCount == 1 ? "" : "s"}',
+                        ),
                 ),
               ],
             ),
@@ -538,11 +701,18 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
         Container(
           width: 22,
           height: 22,
-          decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle),
+          decoration: const BoxDecoration(
+            color: AppTheme.primaryColor,
+            shape: BoxShape.circle,
+          ),
           child: Center(
             child: Text(
               step,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -551,10 +721,22 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimaryColor)),
-              Text(subtitle,
-                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondaryColor, height: 1.4)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: AppTheme.textSecondaryColor,
+                  height: 1.4,
+                ),
+              ),
               const SizedBox(height: 8),
               action,
             ],
@@ -567,8 +749,14 @@ class _ImportStudentsDialogState extends State<ImportStudentsDialog> {
   Widget _badge(String text, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
-      child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+      ),
     );
   }
 }
