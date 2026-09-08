@@ -960,292 +960,268 @@ class _CompareSectionState extends State<CompareSection> {
                     ),
                   const SizedBox(height: 16),
 
-                  // ── Chart ───────────────────────────────────────────────
-                  if (_chartUrl != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.borderColor),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.bar_chart_rounded,
-                                size: 16,
-                                color: AppTheme.primaryColor,
+                  // ── Summary + Chart ─────────────────────────────────────
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final summaryTable = Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppTheme.borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Section Summary',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimaryColor,
                               ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Reading Level Comparison by Section',
-                                style: TextStyle(
-                                  fontSize: 14,
+                            ),
+                            const SizedBox(height: 8),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingTextStyle: const TextStyle(
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.textPrimaryColor,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Image.network(
-                            _chartUrl!,
-                            fit: BoxFit.contain,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const SizedBox(
-                                height: 180,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppTheme.primaryColor,
-                                  ),
+                                dataTextStyle: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textPrimaryColor,
                                 ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox(
-                                  height: 140,
-                                  child: Center(
-                                    child: Text(
-                                      'Unable to load chart.',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                  ),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-
-                  // ── Section Summary Table ───────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppTheme.borderColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Section Summary',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            headingTextStyle: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimaryColor,
-                            ),
-                            dataTextStyle: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.textPrimaryColor,
-                            ),
-                            headingRowHeight: 38,
-                            dataRowMinHeight: 34,
-                            dataRowMaxHeight: 42,
-                            horizontalMargin: 12,
-                            columnSpacing: 24,
-                            columns: [
-                              const DataColumn(label: Text('Section')),
-                              DataColumn(
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: AppTheme.levelFrustration,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    const Text('Frustration'),
-                                  ],
-                                ),
-                              ),
-                              DataColumn(
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: AppTheme.levelInstructional,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    const Text('Instructional'),
-                                  ],
-                                ),
-                              ),
-                              DataColumn(
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: AppTheme.levelIndependent,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    const Text('Independent'),
-                                  ],
-                                ),
-                              ),
-                              const DataColumn(label: Text('Total')),
-                            ],
-                            rows: _sections.map((section) {
-                              final counts =
-                                  _sectionCounts[section.id] ??
-                                  {
-                                    'Frustration': 0,
-                                    'Instructional': 0,
-                                    'Independent': 0,
-                                  };
-                              final total =
-                                  (counts['Frustration'] ?? 0) +
-                                  (counts['Instructional'] ?? 0) +
-                                  (counts['Independent'] ?? 0);
-                              final isA = section.id == _selectedSectionId;
-                              final isB = section.id == _selectedSectionId2;
-
-                              return DataRow(
-                                color: WidgetStateProperty.resolveWith<Color?>((
-                                  _,
-                                ) {
-                                  if (isA) {
-                                    return AppTheme.primaryColor.withValues(
-                                      alpha: 0.08,
-                                    );
-                                  }
-                                  if (isB) {
-                                    return const Color(
-                                      0xFF3B82F6,
-                                    ).withValues(alpha: 0.08);
-                                  }
-                                  return null;
-                                }),
-                                cells: [
-                                  DataCell(
-                                    Row(
+                                headingRowHeight: 36,
+                                dataRowMinHeight: 32,
+                                dataRowMaxHeight: 40,
+                                horizontalMargin: 12,
+                                columnSpacing: 24,
+                                columns: [
+                                  const DataColumn(label: Text('Section')),
+                                  DataColumn(
+                                    label: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          section.sectionname,
-                                          style: TextStyle(
-                                            fontWeight: (isA || isB)
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
-                                            color: isA
-                                                ? AppTheme.primaryColor
-                                                : isB
-                                                ? const Color(0xFF3B82F6)
-                                                : AppTheme.textPrimaryColor,
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.levelFrustration,
+                                            shape: BoxShape.circle,
                                           ),
                                         ),
-                                        if (isA) ...[
-                                          const SizedBox(width: 5),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 5,
-                                              vertical: 1,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.primaryColor
-                                                  .withValues(alpha: 0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(3),
-                                            ),
-                                            child: const Text(
-                                              'A',
-                                              style: TextStyle(
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w700,
-                                                color: AppTheme.primaryColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                        if (isB) ...[
-                                          const SizedBox(width: 5),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 5,
-                                              vertical: 1,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(
-                                                0xFF3B82F6,
-                                              ).withValues(alpha: 0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(3),
-                                            ),
-                                            child: const Text(
-                                              'B',
-                                              style: TextStyle(
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF3B82F6),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        const SizedBox(width: 5),
+                                        const Text('Frustration'),
                                       ],
                                     ),
                                   ),
-                                  DataCell(
-                                    Text('${counts['Frustration'] ?? 0}'),
+                                  DataColumn(
+                                    label: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.levelInstructional,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        const Text('Instructional'),
+                                      ],
+                                    ),
                                   ),
-                                  DataCell(
-                                    Text('${counts['Instructional'] ?? 0}'),
+                                  DataColumn(
+                                    label: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.levelIndependent,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        const Text('Independent'),
+                                      ],
+                                    ),
                                   ),
-                                  DataCell(
-                                    Text('${counts['Independent'] ?? 0}'),
-                                  ),
-                                  DataCell(Text('$total')),
+                                  const DataColumn(label: Text('Total')),
                                 ],
-                              );
-                            }).toList(),
-                          ),
+                                rows: _sections.map((section) {
+                                  final counts =
+                                      _sectionCounts[section.id] ??
+                                      {
+                                        'Frustration': 0,
+                                        'Instructional': 0,
+                                        'Independent': 0,
+                                      };
+                                  final total =
+                                      (counts['Frustration'] ?? 0) +
+                                      (counts['Instructional'] ?? 0) +
+                                      (counts['Independent'] ?? 0);
+                                  final isA = section.id == _selectedSectionId;
+                                  final isB = section.id == _selectedSectionId2;
+
+                                  return DataRow(
+                                    color: WidgetStateProperty.resolveWith<Color?>((states) {
+                                      if (isA) return AppTheme.primaryColor.withValues(alpha: 0.08);
+                                      if (isB) return const Color(0xFF3B82F6).withValues(alpha: 0.08);
+                                      return null;
+                                    }),
+                                    cells: [
+                                      DataCell(
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              section.sectionname,
+                                              style: TextStyle(
+                                                fontWeight: (isA || isB) ? FontWeight.w700 : FontWeight.w500,
+                                                color: isA
+                                                    ? AppTheme.primaryColor
+                                                    : isB
+                                                    ? const Color(0xFF3B82F6)
+                                                    : AppTheme.textPrimaryColor,
+                                              ),
+                                            ),
+                                            if (isA) ...[
+                                              const SizedBox(width: 5),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(3),
+                                                ),
+                                                child: const Text('A', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
+                                              ),
+                                            ],
+                                            if (isB) ...[
+                                              const SizedBox(width: 5),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(3),
+                                                ),
+                                                child: const Text('B', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF3B82F6))),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                      DataCell(Text('${counts['Frustration'] ?? 0}')),
+                                      DataCell(Text('${counts['Instructional'] ?? 0}')),
+                                      DataCell(Text('${counts['Independent'] ?? 0}')),
+                                      DataCell(Text('$total')),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+
+                      final chartCard = _chartUrl == null
+                          ? const SizedBox.shrink()
+                          : Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppTheme.borderColor),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.bar_chart_rounded,
+                                        size: 16,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Expanded(
+                                        child: Text(
+                                          'Reading Level Comparison by Section',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.textPrimaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    height: 260,
+                                    child: Image.network(
+                                      _chartUrl!,
+                                      width: double.infinity,
+                                      fit: BoxFit.contain,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) => const Center(
+                                        child: Text('Unable to load chart.', style: TextStyle(fontSize: 13)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                      if (constraints.maxWidth < 800) {
+                        return Column(
+                          children: [
+                            summaryTable,
+                            if (_chartUrl != null) ...[
+                              const SizedBox(height: 16),
+                              chartCard,
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 1, child: summaryTable),
+                          if (_chartUrl != null) ...[
+                            const SizedBox(width: 16),
+                            Expanded(flex: 2, child: chartCard),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
