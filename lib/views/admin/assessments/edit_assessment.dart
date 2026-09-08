@@ -312,23 +312,23 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
               ),
             ),
             SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedTestType,
-              items: [
-                const DropdownMenuItem(value: null, child: Text('— No type —')),
-                ...testTypes.map(
-                  (t) => DropdownMenuItem(value: t, child: Text(t)),
-                ),
-              ],
-              onChanged: (value) => setState(() => _selectedTestType = value),
-              decoration: InputDecoration(
-                labelText: "Test Type (for Pre/Post analytics)",
-                prefixIcon: Icon(
-                  Icons.compare_arrows,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-            ),
+            // DropdownButtonFormField<String>(
+            //   initialValue: _selectedTestType,
+            //   items: [
+            //     const DropdownMenuItem(value: null, child: Text('— No type —')),
+            //     ...testTypes.map(
+            //       (t) => DropdownMenuItem(value: t, child: Text(t)),
+            //     ),
+            //   ],
+            //   onChanged: (value) => setState(() => _selectedTestType = value),
+            //   decoration: InputDecoration(
+            //     labelText: "Test Type (for Pre/Post analytics)",
+            //     prefixIcon: Icon(
+            //       Icons.compare_arrows,
+            //       color: AppTheme.primaryColor,
+            //     ),
+            //   ),
+            // ),
             SizedBox(height: 16),
             TextFormField(
               controller: titlereadingController,
