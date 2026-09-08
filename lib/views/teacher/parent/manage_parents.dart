@@ -60,6 +60,7 @@ class _ManageParentsState extends State<ManageParents> {
           ? null
           : Drawer(
               child: TeacherSidebar(
+                activeRoute: TeacherRoute.parents,
                 teacher: widget.teacher,
                 schoolyear: widget.schoolyear,
               ),
@@ -69,6 +70,7 @@ class _ManageParentsState extends State<ManageParents> {
         children: [
           if (isDesktop)
             TeacherSidebar(
+              activeRoute: TeacherRoute.parents,
               teacher: widget.teacher,
               schoolyear: widget.schoolyear,
             ),
@@ -511,7 +513,10 @@ class _ManageParentsState extends State<ManageParents> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ViewParentStudent(parent: parent),
+                        builder: (_) => ViewParentStudent(
+                          parent: parent,
+                          teacher: widget.teacher,
+                        ),
                       ),
                     );
                   },
@@ -528,7 +533,10 @@ class _ManageParentsState extends State<ManageParents> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => AddParent(parent: parent),
+                          builder: (_) => AddParent(
+                            parent: parent,
+                            teacher: widget.teacher,
+                          ),
                         ),
                       );
                     } else {

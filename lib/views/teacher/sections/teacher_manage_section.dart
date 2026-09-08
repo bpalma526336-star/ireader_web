@@ -704,6 +704,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
           ? null
           : Drawer(
               child: TeacherSidebar(
+                activeRoute: TeacherRoute.sections,
                 teacher: widget.teacher,
                 schoolyear: widget.schoolyear,
               ),
@@ -713,6 +714,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
         children: [
           if (isDesktop)
             TeacherSidebar(
+              activeRoute: TeacherRoute.sections,
               teacher: widget.teacher,
               schoolyear: widget.schoolyear,
             ),
