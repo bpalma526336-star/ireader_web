@@ -331,6 +331,67 @@ class _CompareSectionState extends State<CompareSection> {
         {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
   }
 
+  Widget _analyticsInsight(String subject, Map<String, int> counts) {
+    final total =
+        (counts['Frustration'] ?? 0) +
+        (counts['Instructional'] ?? 0) +
+        (counts['Independent'] ?? 0);
+    if (total == 0) {
+      return _insightBox(
+        'No assessment results are available for $subject in this stage.',
+      );
+    }
+
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    levels.sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
+    final leadingLevel = levels.first;
+    final leadingCount = counts[leadingLevel] ?? 0;
+    final leadingPercent = (leadingCount / total * 100).round();
+    final interpretation = switch (leadingLevel) {
+      'Independent' => 'most learners can work with minimal support',
+      'Instructional' => 'many learners may benefit from guided support',
+      _ => 'many learners may need targeted intervention',
+    };
+
+    return _insightBox(
+      '$subject has mostly $leadingLevel readers ($leadingCount of $total, '
+      '$leadingPercent%); $interpretation.',
+    );
+  }
+
+  Widget _insightBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.insights_outlined,
+            size: 16,
+            color: AppTheme.primaryColor,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.35,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionCompareCard(
     Section section,
     Map<String, int> counts,
@@ -496,6 +557,10 @@ class _CompareSectionState extends State<CompareSection> {
                   ),
                 ],
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: _analyticsInsight(section.sectionname, counts),
             ),
           ],
         ),
@@ -1232,6 +1297,25 @@ class _CompareSectionState extends State<CompareSection> {
                                     ],
                                   );
                                 }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _analyticsInsight(
+                              'all sections',
+                              _sections.fold<Map<String, int>>(
+                                {
+                                  'Frustration': 0,
+                                  'Instructional': 0,
+                                  'Independent': 0,
+                                },
+                                (summary, section) {
+                                  final counts = _countsForSection(section.id);
+                                  for (final level in summary.keys) {
+                                    summary[level] =
+                                        summary[level]! + (counts[level] ?? 0);
+                                  }
+                                  return summary;
+                                },
                               ),
                             ),
                           ],

@@ -231,6 +231,64 @@ class _CompareDivisionState extends State<CompareDivision> {
       (counts['Instructional'] ?? 0) +
       (counts['Independent'] ?? 0);
 
+  Widget _analyticsInsight(String subject, Map<String, int> counts) {
+    final total = _total(counts);
+    if (total == 0) {
+      return _insightBox(
+        'No assessment results are available for $subject in this stage.',
+      );
+    }
+
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    levels.sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
+    final leadingLevel = levels.first;
+    final leadingCount = counts[leadingLevel] ?? 0;
+    final leadingPercent = (leadingCount / total * 100).round();
+    final interpretation = switch (leadingLevel) {
+      'Independent' => 'most learners can work with minimal support',
+      'Instructional' => 'many learners may benefit from guided support',
+      _ => 'many learners may need targeted intervention',
+    };
+
+    return _insightBox(
+      '$subject has mostly $leadingLevel readers ($leadingCount of $total, '
+      '$leadingPercent%); $interpretation.',
+    );
+  }
+
+  Widget _insightBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.insights_outlined,
+            size: 16,
+            color: AppTheme.primaryColor,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.35,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Division? _divisionById(String? id) {
     for (final division in _divisions) {
       if (division.id == id) return division;
@@ -435,6 +493,10 @@ class _CompareDivisionState extends State<CompareDivision> {
                   ),
                 ],
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: _analyticsInsight(division.name, counts),
             ),
           ],
         ),
@@ -653,6 +715,20 @@ class _CompareDivisionState extends State<CompareDivision> {
                   ],
                 );
               }).toList(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _analyticsInsight(
+            'all divisions',
+            _divisions.fold<Map<String, int>>(
+              {'Frustration': 0, 'Instructional': 0, 'Independent': 0},
+              (summary, division) {
+                final counts = _countsFor(division.id);
+                for (final level in summary.keys) {
+                  summary[level] = summary[level]! + (counts[level] ?? 0);
+                }
+                return summary;
+              },
             ),
           ),
         ],

@@ -322,6 +322,67 @@ class _CompareSectionState extends State<CompareSection> {
         {'Frustration': 0, 'Instructional': 0, 'Independent': 0};
   }
 
+  Widget _analyticsInsight(String subject, Map<String, int> counts) {
+    final total =
+        (counts['Frustration'] ?? 0) +
+        (counts['Instructional'] ?? 0) +
+        (counts['Independent'] ?? 0);
+    if (total == 0) {
+      return _insightBox(
+        'No assessment results are available for $subject in this stage.',
+      );
+    }
+
+    final levels = ['Frustration', 'Instructional', 'Independent'];
+    levels.sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
+    final leadingLevel = levels.first;
+    final leadingCount = counts[leadingLevel] ?? 0;
+    final leadingPercent = (leadingCount / total * 100).round();
+    final interpretation = switch (leadingLevel) {
+      'Independent' => 'most learners can work with minimal support',
+      'Instructional' => 'many learners may benefit from guided support',
+      _ => 'many learners may need targeted intervention',
+    };
+
+    return _insightBox(
+      '$subject has mostly $leadingLevel readers ($leadingCount of $total, '
+      '$leadingPercent%); $interpretation.',
+    );
+  }
+
+  Widget _insightBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.insights_outlined,
+            size: 16,
+            color: AppTheme.primaryColor,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.35,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionCompareCard(
     Section section,
     Map<String, int> counts,
@@ -488,13 +549,22 @@ class _CompareSectionState extends State<CompareSection> {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: _analyticsInsight(section.sectionname, counts),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMetricRow(String label, int value, Color color, {int total = 0}) {
+  Widget _buildMetricRow(
+    String label,
+    int value,
+    Color color, {
+    int total = 0,
+  }) {
     final pct = total > 0 ? (value / total * 100).round() : 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,7 +746,10 @@ class _CompareSectionState extends State<CompareSection> {
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           border: Border(
-                            left: BorderSide(color: AppTheme.primaryColor, width: 4),
+                            left: BorderSide(
+                              color: AppTheme.primaryColor,
+                              width: 4,
+                            ),
                             right: BorderSide(color: AppTheme.borderColor),
                             top: BorderSide(color: AppTheme.borderColor),
                             bottom: BorderSide(color: AppTheme.borderColor),
@@ -686,195 +759,231 @@ class _CompareSectionState extends State<CompareSection> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(
-                                Icons.tune,
-                                size: 14,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Comparison Settings',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isNarrow = constraints.maxWidth < 600;
-                            final sectionADd = _buildDropdown(
-                              _selectedSectionId,
-                              'Section A',
-                              (value) {
-                                if (value == null) return;
-                                setState(() => _selectedSectionId = value);
-                              },
-                            );
-                            final vsBadge = Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: AppTheme.borderColor),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'vs',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                ),
-                              ),
-                            );
-                            final sectionBDd = _buildDropdown(
-                              _selectedSectionId2,
-                              'Section B',
-                              (value) {
-                                if (value == null) return;
-                                setState(() => _selectedSectionId2 = value);
-                              },
-                            );
-                            final compareBtn = SizedBox(
-                              height: 42,
-                              child: ElevatedButton(
-                                onPressed: canCompare ? _runComparison : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: _comparing
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Compare',
-                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                      ),
-                              ),
-                            );
-
-                            if (isNarrow) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(children: [Expanded(child: sectionADd), vsBadge, Expanded(child: sectionBDd)]),
-                                  const SizedBox(height: 8),
-                                  compareBtn,
-                                ],
-                              );
-                            }
-                            return Row(
+                            Row(
                               children: [
-                                Expanded(child: sectionADd),
-                                vsBadge,
-                                Expanded(child: sectionBDd),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(
+                                    Icons.tune,
+                                    size: 14,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                compareBtn,
-                              ],
-                            );
-                          },
-                        ),
-                        if (_selectedSectionId != null &&
-                            _selectedSectionId2 != null &&
-                            _selectedSectionId == _selectedSectionId2)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline, size: 12, color: Colors.red.shade400),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Please select two different sections.',
-                                  style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+                                const Text(
+                                  'Comparison Settings',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimaryColor,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        const SizedBox(height: 14),
-                        const Divider(height: 1),
-                        const SizedBox(height: 14),
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: AppTheme.borderColor),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: _comparisonTypes.map((type) {
-                                final isSelected = _selectedType == type;
-                                return GestureDetector(
-                                  onTap: () async {
-                                    if (isSelected) return;
-                                    setState(() => _selectedType = type);
-                                    await _runComparison();
-                                    if (!mounted) return;
+                            const SizedBox(height: 12),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isNarrow = constraints.maxWidth < 600;
+                                final sectionADd = _buildDropdown(
+                                  _selectedSectionId,
+                                  'Section A',
+                                  (value) {
+                                    if (value == null) return;
+                                    setState(() => _selectedSectionId = value);
                                   },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 180),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 18,
-                                    ),
+                                );
+                                final vsBadge = Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
                                     decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppTheme.primaryColor
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(30),
-                                      boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                color: AppTheme.primaryColor.withValues(alpha: 0.25),
-                                                blurRadius: 6,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : [],
+                                      color: Colors.grey.shade100,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppTheme.borderColor,
+                                      ),
                                     ),
+                                    alignment: Alignment.center,
                                     child: Text(
-                                      type,
+                                      'vs',
                                       style: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppTheme.textSecondaryColor,
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                        fontSize: 12,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.grey.shade500,
                                       ),
                                     ),
                                   ),
                                 );
-                              }).toList(),
+                                final sectionBDd = _buildDropdown(
+                                  _selectedSectionId2,
+                                  'Section B',
+                                  (value) {
+                                    if (value == null) return;
+                                    setState(() => _selectedSectionId2 = value);
+                                  },
+                                );
+                                final compareBtn = SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    onPressed: canCompare
+                                        ? _runComparison
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: _comparing
+                                        ? const SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Compare',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                  ),
+                                );
+
+                                if (isNarrow) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(child: sectionADd),
+                                          vsBadge,
+                                          Expanded(child: sectionBDd),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      compareBtn,
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    Expanded(child: sectionADd),
+                                    vsBadge,
+                                    Expanded(child: sectionBDd),
+                                    const SizedBox(width: 8),
+                                    compareBtn,
+                                  ],
+                                );
+                              },
                             ),
-                          ),
-                        ),
+                            if (_selectedSectionId != null &&
+                                _selectedSectionId2 != null &&
+                                _selectedSectionId == _selectedSectionId2)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 12,
+                                      color: Colors.red.shade400,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Please select two different sections.',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.red.shade400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 14),
+                            const Divider(height: 1),
+                            const SizedBox(height: 14),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color: AppTheme.borderColor,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: _comparisonTypes.map((type) {
+                                    final isSelected = _selectedType == type;
+                                    return GestureDetector(
+                                      onTap: () async {
+                                        if (isSelected) return;
+                                        setState(() => _selectedType = type);
+                                        await _runComparison();
+                                        if (!mounted) return;
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                          horizontal: 18,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? AppTheme.primaryColor
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                          boxShadow: isSelected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: AppTheme.primaryColor
+                                                        .withValues(
+                                                          alpha: 0.25,
+                                                        ),
+                                                    blurRadius: 6,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ]
+                                              : [],
+                                        ),
+                                        child: Text(
+                                          type,
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : AppTheme.textSecondaryColor,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -919,7 +1028,9 @@ class _CompareSectionState extends State<CompareSection> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -1078,11 +1189,19 @@ class _CompareSectionState extends State<CompareSection> {
                                   final isB = section.id == _selectedSectionId2;
 
                                   return DataRow(
-                                    color: WidgetStateProperty.resolveWith<Color?>((states) {
-                                      if (isA) return AppTheme.primaryColor.withValues(alpha: 0.08);
-                                      if (isB) return const Color(0xFF3B82F6).withValues(alpha: 0.08);
-                                      return null;
-                                    }),
+                                    color:
+                                        WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                            if (isA)
+                                              return AppTheme.primaryColor
+                                                  .withValues(alpha: 0.08);
+                                            if (isB)
+                                              return const Color(
+                                                0xFF3B82F6,
+                                              ).withValues(alpha: 0.08);
+                                            return null;
+                                          },
+                                        ),
                                     cells: [
                                       DataCell(
                                         Row(
@@ -1091,7 +1210,9 @@ class _CompareSectionState extends State<CompareSection> {
                                             Text(
                                               section.sectionname,
                                               style: TextStyle(
-                                                fontWeight: (isA || isB) ? FontWeight.w700 : FontWeight.w500,
+                                                fontWeight: (isA || isB)
+                                                    ? FontWeight.w700
+                                                    : FontWeight.w500,
                                                 color: isA
                                                     ? AppTheme.primaryColor
                                                     : isB
@@ -1102,35 +1223,88 @@ class _CompareSectionState extends State<CompareSection> {
                                             if (isA) ...[
                                               const SizedBox(width: 5),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
+                                                      vertical: 1,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                                                  borderRadius: BorderRadius.circular(3),
+                                                  color: AppTheme.primaryColor
+                                                      .withValues(alpha: 0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
                                                 ),
-                                                child: const Text('A', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
+                                                child: const Text(
+                                                  'A',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w700,
+                                                    color:
+                                                        AppTheme.primaryColor,
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                             if (isB) ...[
                                               const SizedBox(width: 5),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
+                                                      vertical: 1,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
-                                                  borderRadius: BorderRadius.circular(3),
+                                                  color: const Color(
+                                                    0xFF3B82F6,
+                                                  ).withValues(alpha: 0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
                                                 ),
-                                                child: const Text('B', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF3B82F6))),
+                                                child: const Text(
+                                                  'B',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Color(0xFF3B82F6),
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ],
                                         ),
                                       ),
-                                      DataCell(Text('${counts['Frustration'] ?? 0}')),
-                                      DataCell(Text('${counts['Instructional'] ?? 0}')),
-                                      DataCell(Text('${counts['Independent'] ?? 0}')),
+                                      DataCell(
+                                        Text('${counts['Frustration'] ?? 0}'),
+                                      ),
+                                      DataCell(
+                                        Text('${counts['Instructional'] ?? 0}'),
+                                      ),
+                                      DataCell(
+                                        Text('${counts['Independent'] ?? 0}'),
+                                      ),
                                       DataCell(Text('$total')),
                                     ],
                                   );
                                 }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _analyticsInsight(
+                              'all sections',
+                              _sections.fold<Map<String, int>>(
+                                {
+                                  'Frustration': 0,
+                                  'Instructional': 0,
+                                  'Independent': 0,
+                                },
+                                (summary, section) {
+                                  final counts = _countsForSection(section.id);
+                                  for (final level in summary.keys) {
+                                    summary[level] =
+                                        summary[level]! + (counts[level] ?? 0);
+                                  }
+                                  return summary;
+                                },
                               ),
                             ),
                           ],
@@ -1184,15 +1358,26 @@ class _CompareSectionState extends State<CompareSection> {
                                       _chartUrl!,
                                       width: double.infinity,
                                       fit: BoxFit.contain,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return const Center(
-                                          child: CircularProgressIndicator(color: AppTheme.primaryColor),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) => const Center(
-                                        child: Text('Unable to load chart.', style: TextStyle(fontSize: 13)),
-                                      ),
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return const Center(
+                                              child: CircularProgressIndicator(
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Center(
+                                                child: Text(
+                                                  'Unable to load chart.',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
                                     ),
                                   ),
                                 ],
