@@ -67,6 +67,8 @@ class _AddParentStudentState extends State<AddParentStudent> {
         firestore.collection('students').get(),
         firestore.collection('sections').get(),
         firestore.collection('schoolyears').get(),
+        firestore.collection('divisions').get(),
+        firestore.collection('schools').get(),
       ]);
 
       final studentsSnapshot =
@@ -75,9 +77,10 @@ class _AddParentStudentState extends State<AddParentStudent> {
           results[1] as QuerySnapshot<Map<String, dynamic>>;
       final schoolYearsSnapshot =
           results[2] as QuerySnapshot<Map<String, dynamic>>;
-
-      final divisionsSnapshot = await firestore.collection('divisions').get();
-      final schoolsSnapshot = await firestore.collection('schools').get();
+      final divisionsSnapshot =
+          results[3] as QuerySnapshot<Map<String, dynamic>>;
+      final schoolsSnapshot =
+          results[4] as QuerySnapshot<Map<String, dynamic>>;
 
       final students = studentsSnapshot.docs.map((doc) {
         return Student.fromMap(doc.id, doc.data());

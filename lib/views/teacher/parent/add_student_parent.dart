@@ -358,6 +358,39 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
                   LayoutBuilder(
                     builder: (context, constraints) {
+                      final schoolYearFilter = DropdownButtonFormField<String>(
+                        value: _selectedSchoolYearId,
+                        decoration: const InputDecoration(
+                          labelText: 'Filter by school year',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All school years'),
+                          ),
+                          ..._schoolYears.map(
+                            (schoolYear) => DropdownMenuItem<String>(
+                              value: schoolYear.id,
+                              child: Text(
+                                '${schoolYear.schoolyearstart} - '
+                                '${schoolYear.schoolyearend}',
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSchoolYearId = value;
+                            _selectedSectionId = null;
+                            _selectedStudentIds = List<String?>.filled(
+                              _selectedStudentIds.length,
+                              null,
+                              growable: true,
+                            );
+                          });
+                        },
+                      );
                       final sectionFilter = DropdownButtonFormField<String>(
                         value: _selectedSectionId,
                         onChanged: _selectedSchoolYearId == null
@@ -395,55 +428,22 @@ class _AddParentStudentState extends State<AddParentStudent> {
                               ),
                         ],
                       );
-                      final schoolYearFilter = DropdownButtonFormField<String>(
-                        value: _selectedSchoolYearId,
-                        decoration: const InputDecoration(
-                          labelText: 'Filter by school year',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: [
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('All school years'),
-                          ),
-                          ..._schoolYears.map(
-                            (schoolYear) => DropdownMenuItem<String>(
-                              value: schoolYear.id,
-                              child: Text(
-                                '${schoolYear.schoolyearstart} - '
-                                '${schoolYear.schoolyearend}',
-                              ),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSchoolYearId = value;
-                            _selectedSectionId = null;
-                            _selectedStudentIds = List<String?>.filled(
-                              _selectedStudentIds.length,
-                              null,
-                              growable: true,
-                            );
-                          });
-                        },
-                      );
 
                       if (constraints.maxWidth < 600) {
                         return Column(
                           children: [
-                            sectionFilter,
-                            const SizedBox(height: 12),
                             schoolYearFilter,
+                            const SizedBox(height: 12),
+                            sectionFilter,
                           ],
                         );
                       }
 
                       return Row(
                         children: [
-                          Expanded(child: sectionFilter),
-                          const SizedBox(width: 12),
                           Expanded(child: schoolYearFilter),
+                          const SizedBox(width: 12),
+                          Expanded(child: sectionFilter),
                         ],
                       );
                     },

@@ -43,12 +43,12 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
     setState(() => _isLoading = true);
 
     try {
-      final schoolYears = await _firestore
-          .collection(FirestoreCollections.schoolYears)
-          .get();
-      final schoolyearids = schoolYears.docs.map((doc) => doc.id).toList();
-
       if (widget.school == null) {
+        final schoolYears = await _firestore
+            .collection(FirestoreCollections.schoolYears)
+            .get();
+        final schoolyearids = schoolYears.docs.map((doc) => doc.id).toList();
+
         final existing = await _firestore
             .collection(FirestoreCollections.schools)
             .where('name', isEqualTo: _nameController.text.trim())
@@ -103,7 +103,6 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
             .update({
               'name': _nameController.text.trim(),
               'divisionid': widget.division.id,
-              'schoolyearids': schoolyearids,
               'address': _addressController.text.trim().isEmpty
                   ? null
                   : _addressController.text.trim(),

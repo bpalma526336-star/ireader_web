@@ -59,10 +59,24 @@ class _CompareSectionState extends State<CompareSection> {
     });
 
     try {
-      final sectionsSnapshot = await _firestore
+      Query<Map<String, dynamic>> sectionsQuery = _firestore
           .collection('sections')
-          .where('schoolyearid', isEqualTo: widget.schoolYear.id)
-          .get();
+          .where('schoolyearid', isEqualTo: widget.schoolYear.id);
+
+      if (widget.division != null) {
+        sectionsQuery = sectionsQuery.where(
+          'divisionid',
+          isEqualTo: widget.division!.id,
+        );
+      }
+      if (widget.school != null) {
+        sectionsQuery = sectionsQuery.where(
+          'schoolid',
+          isEqualTo: widget.school!.id,
+        );
+      }
+
+      final sectionsSnapshot = await sectionsQuery.get();
 
       final sections = sectionsSnapshot.docs
           .map((doc) => Section.fromMap(doc.id, doc.data()))
@@ -109,6 +123,7 @@ class _CompareSectionState extends State<CompareSection> {
 
       if (_selectedSectionId != null) {
         await _runComparison();
+        if (!mounted) return;
       } else {
         setState(() {
           _loading = false;
@@ -310,8 +325,9 @@ class _CompareSectionState extends State<CompareSection> {
   Widget _buildSectionCompareCard(
     Section section,
     Map<String, int> counts,
-    Color accentColor,
-  ) {
+    Color accentColor, {
+    String label = 'A',
+  }) {
     final total =
         (counts['Frustration'] ?? 0) +
         (counts['Instructional'] ?? 0) +
@@ -319,80 +335,158 @@ class _CompareSectionState extends State<CompareSection> {
 
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: accentColor.withValues(alpha: 0.35),
-            width: 1.5,
-          ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: accentColor.withValues(alpha: 0.18)),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.10),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Gradient header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
               decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                section.sectionname,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
+                gradient: LinearGradient(
+                  colors: [accentColor, accentColor.withValues(alpha: 0.72)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _sectionTeacherNames[section.id] ?? 'Unknown Teacher',
-              style: const TextStyle(
-                fontSize: 10.5,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _buildMetricRow(
-              'Frustration',
-              counts['Frustration'] ?? 0,
-              AppTheme.levelFrustration,
-            ),
-            const SizedBox(height: 6),
-            _buildMetricRow(
-              'Instructional',
-              counts['Instructional'] ?? 0,
-              AppTheme.levelInstructional,
-            ),
-            const SizedBox(height: 6),
-            _buildMetricRow(
-              'Independent',
-              counts['Independent'] ?? 0,
-              AppTheme.levelIndependent,
-            ),
-            const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondaryColor,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Section $label',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          section.sectionname,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.person_outline,
+                              size: 11,
+                              color: Colors.white70,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                _sectionTeacherNames[section.id] ??
+                                    'Unknown Teacher',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white70,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text(
-                  '$total',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimaryColor,
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '$total',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'total',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            // Metrics body
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  _buildMetricRow(
+                    'Frustration',
+                    counts['Frustration'] ?? 0,
+                    AppTheme.levelFrustration,
+                    total: total,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMetricRow(
+                    'Instructional',
+                    counts['Instructional'] ?? 0,
+                    AppTheme.levelInstructional,
+                    total: total,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMetricRow(
+                    'Independent',
+                    counts['Independent'] ?? 0,
+                    AppTheme.levelIndependent,
+                    total: total,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -400,30 +494,62 @@ class _CompareSectionState extends State<CompareSection> {
     );
   }
 
-  Widget _buildMetricRow(String label, int value, Color color) {
-    return Row(
+  Widget _buildMetricRow(String label, int value, Color color, {int total = 0}) {
+    final pct = total > 0 ? (value / total * 100).round() : 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppTheme.textSecondaryColor,
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-          ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ),
+            Text(
+              '$value',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '$pct%',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
         ),
-        Text(
-          '$value',
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimaryColor,
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: total > 0 ? value / total : 0,
+            minHeight: 6,
+            backgroundColor: Colors.grey.shade100,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
       ],
@@ -469,18 +595,14 @@ class _CompareSectionState extends State<CompareSection> {
 
   @override
   Widget build(BuildContext context) {
-    final section1 = _selectedSectionId == null || _sections.isEmpty
-        ? null
-        : _sections.firstWhere(
-            (s) => s.id == _selectedSectionId,
-            orElse: () => _sections.first,
-          );
-    final section2 = _selectedSectionId2 == null || _sections.isEmpty
-        ? null
-        : _sections.firstWhere(
-            (s) => s.id == _selectedSectionId2,
-            orElse: () => _sections.first,
-          );
+    final section1 = _sections.cast<Section?>().firstWhere(
+      (s) => s?.id == _selectedSectionId,
+      orElse: () => null,
+    );
+    final section2 = _sections.cast<Section?>().firstWhere(
+      (s) => s?.id == _selectedSectionId2,
+      orElse: () => null,
+    );
 
     final counts1 = _countsForSection(_selectedSectionId);
     final counts2 = _countsForSection(_selectedSectionId2);
@@ -497,12 +619,17 @@ class _CompareSectionState extends State<CompareSection> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'SY ${widget.schoolYear.schoolyearstart}–${widget.schoolYear.schoolyearend}',
-            ),
             const Text(
               'Compare Section',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            Text(
+              [
+                'SY ${widget.schoolYear.schoolyearstart}–${widget.schoolYear.schoolyearend}',
+                if (widget.division != null) widget.division!.name,
+                if (widget.school != null) widget.school!.name,
+              ].join(' · '),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
             ),
           ],
         ),
@@ -529,60 +656,108 @@ class _CompareSectionState extends State<CompareSection> {
           : _sections.isEmpty
           ? const Center(child: Text('No sections found for this school year.'))
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Filter bar — two dropdowns with vs label
+                  // ── Filter + Stage Toggle Card ──────────────────────────
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppTheme.borderColor),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Select two sections to compare',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textSecondaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                        const SizedBox(height: 8),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              width: 4,
+                              color: AppTheme.primaryColor,
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                         Row(
                           children: [
-                            _buildDropdown(_selectedSectionId, 'Section A', (
-                              value,
-                            ) {
-                              if (value == null) return;
-                              setState(() => _selectedSectionId = value);
-                            }),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(
-                                'vs',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.grey.shade500,
-                                ),
+                              child: const Icon(
+                                Icons.tune,
+                                size: 14,
+                                color: AppTheme.primaryColor,
                               ),
                             ),
-                            _buildDropdown(_selectedSectionId2, 'Section B', (
-                              value,
-                            ) {
-                              if (value == null) return;
-                              setState(() => _selectedSectionId2 = value);
-                            }),
-                            const SizedBox(width: 10),
-                            SizedBox(
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Comparison Settings',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isNarrow = constraints.maxWidth < 600;
+                            final sectionADd = _buildDropdown(
+                              _selectedSectionId,
+                              'Section A',
+                              (value) {
+                                if (value == null) return;
+                                setState(() => _selectedSectionId = value);
+                              },
+                            );
+                            final vsBadge = Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppTheme.borderColor),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'vs',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ),
+                            );
+                            final sectionBDd = _buildDropdown(
+                              _selectedSectionId2,
+                              'Section B',
+                              (value) {
+                                if (value == null) return;
+                                setState(() => _selectedSectionId2 = value);
+                              },
+                            );
+                            final compareBtn = SizedBox(
                               height: 42,
                               child: ElevatedButton(
                                 onPressed: canCompare ? _runComparison : null,
@@ -604,87 +779,133 @@ class _CompareSectionState extends State<CompareSection> {
                                       )
                                     : const Text(
                                         'Compare',
-                                        style: TextStyle(fontSize: 13),
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                                       ),
                               ),
-                            ),
-                          ],
+                            );
+
+                            if (isNarrow) {
+                              return Column(
+                                children: [
+                                  Row(children: [sectionADd, vsBadge, sectionBDd]),
+                                  const SizedBox(height: 8),
+                                  SizedBox(width: double.infinity, child: compareBtn),
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                sectionADd,
+                                vsBadge,
+                                sectionBDd,
+                                const SizedBox(width: 8),
+                                compareBtn,
+                              ],
+                            );
+                          },
                         ),
                         if (_selectedSectionId != null &&
                             _selectedSectionId2 != null &&
                             _selectedSectionId == _selectedSectionId2)
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              'Please select two different sections.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.red.shade400,
-                              ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline, size: 12, color: Colors.red.shade400),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Please select two different sections.',
+                                  style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Assessment stage toggle
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: _comparisonTypes.map((type) {
-                          final isSelected = _selectedType == type;
-                          return GestureDetector(
-                            onTap: () async {
-                              if (isSelected) return;
-                              setState(() => _selectedType = type);
-                              await _runComparison();
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppTheme.primaryColor
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Text(
-                                type,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppTheme.textSecondaryColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                              ),
+                        const SizedBox(height: 14),
+                        const Divider(height: 1),
+                        const SizedBox(height: 14),
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(color: AppTheme.borderColor),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: _comparisonTypes.map((type) {
+                                final isSelected = _selectedType == type;
+                                return GestureDetector(
+                                  onTap: () async {
+                                    if (isSelected) return;
+                                    setState(() => _selectedType = type);
+                                    await _runComparison();
+                                    if (!mounted) return;
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 18,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.primaryColor
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(30),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : [],
+                                    ),
+                                    child: Text(
+                                      type,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.textSecondaryColor,
+                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                                  ],
+                                ),               // Column
+                              ),                 // Padding
+                            ),                   // Expanded
+                          ],
+                        ),                       // Row
+                      ),                         // IntrinsicHeight
+                    ),                           // ClipRRect
+                  ),                             // outer Container
+                  const SizedBox(height: 16),
 
-                  // Side-by-side comparison cards
+                  // ── Side-by-side Section Cards ──────────────────────────
                   if (section1 != null || section2 != null)
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppTheme.borderColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -694,7 +915,7 @@ class _CompareSectionState extends State<CompareSection> {
                               const Text(
                                 'Section Comparison',
                                 style: TextStyle(
-                                  fontSize: 13.5,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.textPrimaryColor,
                                 ),
@@ -702,19 +923,17 @@ class _CompareSectionState extends State<CompareSection> {
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2,
+                                  horizontal: 8,
+                                  vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   _selectedType,
                                   style: const TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     color: AppTheme.primaryColor,
                                   ),
@@ -722,7 +941,7 @@ class _CompareSectionState extends State<CompareSection> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -731,44 +950,63 @@ class _CompareSectionState extends State<CompareSection> {
                                   section1,
                                   counts1,
                                   AppTheme.primaryColor,
+                                  label: 'A',
                                 ),
                               if (section1 != null && section2 != null)
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 12),
                               if (section2 != null)
                                 _buildSectionCompareCard(
                                   section2,
                                   counts2,
                                   const Color(0xFF3B82F6),
+                                  label: 'B',
                                 ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  // Chart — all sections overview
+                  // ── Chart ───────────────────────────────────────────────
                   if (_chartUrl != null) ...[
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppTheme.borderColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Reading Level Comparison by Section',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimaryColor,
-                            ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.bar_chart_rounded,
+                                size: 16,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Reading Level Comparison by Section',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimaryColor,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Image.network(
                             _chartUrl!,
                             fit: BoxFit.contain,
@@ -798,16 +1036,23 @@ class _CompareSectionState extends State<CompareSection> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  // Section Summary table
+                  // ── Section Summary Table ───────────────────────────────
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: AppTheme.borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -815,12 +1060,12 @@ class _CompareSectionState extends State<CompareSection> {
                         const Text(
                           'Section Summary',
                           style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.textPrimaryColor,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
@@ -833,17 +1078,65 @@ class _CompareSectionState extends State<CompareSection> {
                               fontSize: 12,
                               color: AppTheme.textPrimaryColor,
                             ),
-                            headingRowHeight: 36,
-                            dataRowMinHeight: 32,
-                            dataRowMaxHeight: 40,
+                            headingRowHeight: 38,
+                            dataRowMinHeight: 34,
+                            dataRowMaxHeight: 42,
                             horizontalMargin: 12,
                             columnSpacing: 24,
-                            columns: const [
-                              DataColumn(label: Text('Section')),
-                              DataColumn(label: Text('Frustration')),
-                              DataColumn(label: Text('Instructional')),
-                              DataColumn(label: Text('Independent')),
-                              DataColumn(label: Text('Total')),
+                            columns: [
+                              const DataColumn(label: Text('Section')),
+                              DataColumn(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.levelFrustration,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    const Text('Frustration'),
+                                  ],
+                                ),
+                              ),
+                              DataColumn(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.levelInstructional,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    const Text('Instructional'),
+                                  ],
+                                ),
+                              ),
+                              DataColumn(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.levelIndependent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    const Text('Independent'),
+                                  ],
+                                ),
+                              ),
+                              const DataColumn(label: Text('Total')),
                             ],
                             rows: _sections.map((section) {
                               final counts =
