@@ -448,22 +448,20 @@ class _CompareDivisionState extends State<CompareDivision> {
     required List<DropdownMenuItem<T>> items,
     required ValueChanged<T?> onChanged,
   }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderColor),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<T>(
-            value: value,
-            isExpanded: true,
-            hint: Text(hint, style: const TextStyle(fontSize: 13)),
-            items: items,
-            onChanged: onChanged,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          hint: Text(hint, style: const TextStyle(fontSize: 13)),
+          items: items,
+          onChanged: onChanged,
         ),
       ),
     );
@@ -703,11 +701,8 @@ class _CompareDivisionState extends State<CompareDivision> {
                 children: [
                   // ── Filter + Stage Toggle Card ──────────────────────────
                   Container(
-                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.borderColor),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -717,21 +712,21 @@ class _CompareDivisionState extends State<CompareDivision> {
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(11),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            left: BorderSide(color: AppTheme.primaryColor, width: 4),
+                            right: BorderSide(color: AppTheme.borderColor),
+                            top: BorderSide(color: AppTheme.borderColor),
+                            bottom: BorderSide(color: AppTheme.borderColor),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 4,
-                              color: AppTheme.primaryColor,
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
                         Row(
                           children: [
                             Container(
@@ -856,28 +851,29 @@ class _CompareDivisionState extends State<CompareDivision> {
 
                             if (isNarrow) {
                               return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   schoolYearDd,
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      divADd,
+                                      Expanded(child: divADd),
                                       vsBadge,
-                                      divBDd,
+                                      Expanded(child: divBDd),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
-                                  SizedBox(width: double.infinity, child: compareBtn),
+                                  compareBtn,
                                 ],
                               );
                             }
                             return Row(
                               children: [
-                                schoolYearDd,
+                                Expanded(child: schoolYearDd),
                                 const SizedBox(width: 8),
-                                divADd,
+                                Expanded(child: divADd),
                                 vsBadge,
-                                divBDd,
+                                Expanded(child: divBDd),
                                 const SizedBox(width: 8),
                                 compareBtn,
                               ],
@@ -959,15 +955,11 @@ class _CompareDivisionState extends State<CompareDivision> {
                             ),
                           ),
                         ),
-                                  ],
-                                ),               // Column
-                              ),                 // Padding
-                            ),                   // Expanded
                           ],
-                        ),                       // Row
-                      ),                         // IntrinsicHeight
-                    ),                           // ClipRRect
-                  ),                             // outer Container
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // ── Side-by-side Division Cards ─────────────────────────
