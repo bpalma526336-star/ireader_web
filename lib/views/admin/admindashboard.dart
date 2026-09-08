@@ -2808,7 +2808,142 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      //List of School Years
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 480,
+                                              maxHeight: 520,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(24),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.all(6),
+                                                        decoration: BoxDecoration(
+                                                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                                          borderRadius: BorderRadius.circular(6),
+                                                        ),
+                                                        child: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primaryColor),
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      const Expanded(
+                                                        child: Text(
+                                                          'School Years',
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w700,
+                                                            color: AppTheme.textPrimaryColor,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(Icons.close, size: 18),
+                                                        onPressed: () => Navigator.pop(ctx),
+                                                        tooltip: 'Close',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  const Text(
+                                                    'Tap a school year to edit it.',
+                                                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  const Divider(height: 1),
+                                                  const SizedBox(height: 4),
+                                                  schoolYears.isEmpty
+                                                      ? const Padding(
+                                                          padding: EdgeInsets.all(16),
+                                                          child: Center(
+                                                            child: Text('No school years found.', style: TextStyle(color: AppTheme.textSecondaryColor)),
+                                                          ),
+                                                        )
+                                                      : Flexible(
+                                                          child: ListView.separated(
+                                                            shrinkWrap: true,
+                                                            itemCount: schoolYears.length,
+                                                            separatorBuilder: (_, __) => const Divider(height: 1),
+                                                            itemBuilder: (_, index) {
+                                                              final year = schoolYears[index];
+                                                              return ListTile(
+                                                                contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                                                                leading: Container(
+                                                                  width: 36,
+                                                                  height: 36,
+                                                                  alignment: Alignment.center,
+                                                                  decoration: BoxDecoration(
+                                                                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                                                    borderRadius: BorderRadius.circular(8),
+                                                                  ),
+                                                                  child: Text(
+                                                                    '${index + 1}',
+                                                                    style: const TextStyle(
+                                                                      fontSize: 12,
+                                                                      fontWeight: FontWeight.w700,
+                                                                      color: AppTheme.primaryColor,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                title: Text(
+                                                                  '${year.schoolyearstart} – ${year.schoolyearend}',
+                                                                  style: const TextStyle(
+                                                                    fontWeight: FontWeight.w600,
+                                                                    fontSize: 14,
+                                                                    color: AppTheme.textPrimaryColor,
+                                                                  ),
+                                                                ),
+                                                                trailing: IconButton(
+                                                                  icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryColor),
+                                                                  tooltip: 'Edit',
+                                                                  onPressed: () {
+                                                                    Navigator.pop(ctx);
+                                                                    AddSchoolyearDialog.show(context, schoolyear: year);
+                                                                  },
+                                                                ),
+                                                                onTap: () {
+                                                                  Navigator.pop(ctx);
+                                                                  AddSchoolyearDialog.show(context, schoolyear: year);
+                                                                },
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                  const SizedBox(height: 8),
+                                                  const Divider(height: 1),
+                                                  const SizedBox(height: 12),
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: OutlinedButton.icon(
+                                                      icon: const Icon(Icons.add, size: 16),
+                                                      label: const Text('Add School Year'),
+                                                      style: OutlinedButton.styleFrom(
+                                                        foregroundColor: AppTheme.primaryColor,
+                                                        side: const BorderSide(color: AppTheme.primaryColor),
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                      ),
+                                                      onPressed: () {
+                                                        Navigator.pop(ctx);
+                                                        AddSchoolyearDialog.show(context);
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
                                     },
                                     child: const Text('Lists of School Years'),
                                   ),
