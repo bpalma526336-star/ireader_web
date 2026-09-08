@@ -19,13 +19,7 @@ class ViewParentStudent extends StatefulWidget {
 class _ViewParentStudentState extends State<ViewParentStudent> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  Stream<List<Student>> getStudentsStream() {
-    if (widget.parent == null) {
-      return Stream.value([]);
-    }
-
-    final studentIds = widget.parent!.studentids ?? [];
-
+  Stream<List<Student>> getStudentsStream(List<String> studentIds) {
     if (studentIds.isEmpty) {
       return Stream.value([]);
     }
@@ -135,38 +129,73 @@ class _ViewParentStudentState extends State<ViewParentStudent> {
         ),
       ),
 
-      body: StreamBuilder<List<Student>>(
-        stream: getStudentsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: widget.parent == null
+          ? _emptyState('Parent not found.')
+          : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: firestore
+                  .collection('parents')
+                  .doc(widget.parent!.id)
+                  .snapshots(),
+              builder: (context, parentSnapshot) {
+                if (parentSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                if (parentSnapshot.hasError) {
+                  return Center(child: Text('Error: ${parentSnapshot.error}'));
+                }
 
-          final students = snapshot.data ?? [];
+                final parentDocument = parentSnapshot.data;
+                if (parentDocument == null || !parentDocument.exists) {
+                  return _emptyState('Parent not found.');
+                }
 
-          if (students.isEmpty) {
-            return _emptyState('This parent has no students assigned.');
-          }
+                final liveParent = Parent.fromMap(
+                  parentDocument.id,
+                  parentDocument.data()!,
+                );
+                final liveParentName =
+                    '${liveParent.firstname} ${liveParent.lastname}';
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(parentName, students.length),
-                const SizedBox(height: 16),
-                Text('Assigned Students', style: AppTheme.sectionTitleStyle),
-                const SizedBox(height: 10),
-                _buildStudentsCard(students),
-              ],
+                return StreamBuilder<List<Student>>(
+                  stream: getStudentsStream(liveParent.studentids ?? []),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    final students = snapshot.data ?? [];
+
+                    if (students.isEmpty) {
+                      return _emptyState(
+                        'This parent has no students assigned.',
+                      );
+                    }
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(liveParentName, students.length),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Assigned Students',
+                            style: AppTheme.sectionTitleStyle,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildStudentsCard(students),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 

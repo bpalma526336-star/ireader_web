@@ -4,6 +4,7 @@ class Assessment {
   final String id;
   final String schoolyearid;
   final String? schoolid;
+  final String? divisionid;
   final String assessmenttitle;
   final String visibility;
   final int timelimit;
@@ -19,6 +20,7 @@ class Assessment {
     required this.id,
     required this.schoolyearid,
     this.schoolid,
+    this.divisionid,
     required this.assessmenttitle,
     required this.visibility,
     required this.timelimit,
@@ -36,6 +38,7 @@ class Assessment {
       id: id,
       schoolyearid: map['schoolyearid'] ?? "",
       schoolid: map['schoolid'] ?? "",
+      divisionid: map['divisionid'] ?? "",
       assessmenttitle: map['assessmenttitle'] ?? "",
       visibility: map['visibility'] ?? "",
       timelimit: map['timelimit'] ?? "",
@@ -55,6 +58,7 @@ class Assessment {
     return {
       'schoolyearid': schoolyearid,
       'schoolid': schoolid,
+      'divisionid': divisionid,
       'assessmenttitle': assessmenttitle,
       'visibility': visibility,
       'timelimit': timelimit,
@@ -71,6 +75,7 @@ class Assessment {
   Assessment copywith({
     String? schoolyearid,
     String? schoolid,
+    String? divisionid,
     String? assessmenttitle,
     String? visibility,
     int? timelimit,
@@ -86,6 +91,7 @@ class Assessment {
       id: id,
       schoolyearid: schoolyearid ?? this.schoolyearid,
       schoolid: schoolid ?? this.schoolid,
+      divisionid: divisionid ?? this.divisionid,
       assessmenttitle: assessmenttitle ?? this.assessmenttitle,
       visibility: visibility ?? this.visibility,
       timelimit: timelimit ?? this.timelimit,

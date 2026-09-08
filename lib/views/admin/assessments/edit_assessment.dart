@@ -3,11 +3,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
 import 'package:ireader_web/model/assessmentcontent.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
+import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/theme.dart';
 
 class EditAssessmentScreen extends StatefulWidget {
   final Assessment assessment;
-  const EditAssessmentScreen({super.key, required this.assessment});
+  final Division? division;
+  final School? school;
+  final SchoolYear? schoolyear;
+  const EditAssessmentScreen({
+    super.key,
+    required this.assessment,
+    this.division,
+    this.school,
+    this.schoolyear,
+  });
 
   @override
   State<EditAssessmentScreen> createState() => _EditAssessmentScreenState();
@@ -131,6 +143,9 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
           .toList();
 
       final updateQuiz = widget.assessment.copywith(
+        schoolyearid: widget.schoolyear?.id,
+        schoolid: widget.school?.id,
+        divisionid: widget.division?.id,
         assessmenttitle: selectedassessmenttitle,
         visibility: selectedvisibility,
         timelimit: int.tryParse(timelimitcontroller.text.trim()) ?? 0,
@@ -301,12 +316,17 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
               initialValue: _selectedTestType,
               items: [
                 const DropdownMenuItem(value: null, child: Text('— No type —')),
-                ...testTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))),
+                ...testTypes.map(
+                  (t) => DropdownMenuItem(value: t, child: Text(t)),
+                ),
               ],
               onChanged: (value) => setState(() => _selectedTestType = value),
               decoration: InputDecoration(
                 labelText: "Test Type (for Pre/Post analytics)",
-                prefixIcon: Icon(Icons.compare_arrows, color: AppTheme.primaryColor),
+                prefixIcon: Icon(
+                  Icons.compare_arrows,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ),
             SizedBox(height: 16),

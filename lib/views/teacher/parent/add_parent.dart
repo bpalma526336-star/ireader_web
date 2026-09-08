@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/parent.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddParent extends StatefulWidget {
   final Parent? parent;
-  const AddParent({super.key, this.parent});
+  final Teacher? teacher;
+  const AddParent({super.key, this.parent, this.teacher});
 
   @override
   State<AddParent> createState() => _AddParentState();

@@ -3,6 +3,7 @@ class Section {
   final String sectionname;
   final String schoolyearid;
   final String? schoolid;
+  final String? divisionid;
   final String teacherid;
 
   Section({
@@ -10,6 +11,7 @@ class Section {
     required this.sectionname,
     required this.schoolyearid,
     this.schoolid,
+    this.divisionid,
     required this.teacherid,
   });
 
@@ -19,6 +21,7 @@ class Section {
       sectionname: map['sectionname'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
       schoolid: map['schoolid'] ?? "",
+      divisionid: map['divisionid'] ?? "",
       teacherid: map['teacherid'] ?? "",
     );
   }
@@ -28,6 +31,7 @@ class Section {
       'sectionname': sectionname,
       'schoolyearid': schoolyearid,
       'schoolid': schoolid,
+      'divisionid': divisionid,
       'teacherid': teacherid,
     };
   }
@@ -36,6 +40,7 @@ class Section {
     String? sectionname,
     String? schoolyearid,
     String? schoolid,
+    String? divisionid,
     String? teacherid,
   }) {
     return Section(
@@ -43,6 +48,7 @@ class Section {
       sectionname: sectionname ?? this.sectionname,
       schoolyearid: schoolyearid ?? this.schoolyearid,
       schoolid: schoolid ?? this.schoolid,
+      divisionid: divisionid ?? this.divisionid,
       teacherid: teacherid ?? this.teacherid,
     );
   }

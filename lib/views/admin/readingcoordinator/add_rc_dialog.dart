@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/core/firestore_collections.dart';
 import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/readingcoordinator.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddRcDialog extends StatefulWidget {
@@ -23,7 +24,10 @@ class _AddRcDialogState extends State<AddRcDialog> {
 
   bool _isLoading = false;
   List<Division> _divisions = [];
+  List<School> _schools = [];
+  String? _selectedSchoolId;
   String? _selectedDivisionId;
+  bool _loadingSchools = true;
   bool _loadingDivisions = true;
 
   @override
@@ -38,7 +42,9 @@ class _AddRcDialogState extends State<AddRcDialog> {
     lastnameController = TextEditingController(text: widget.rc?.lastname ?? '');
     emailController = TextEditingController(text: widget.rc?.email ?? '');
     _selectedDivisionId = widget.rc?.divisionid;
+    _selectedSchoolId = widget.rc?.schoolid;
     _loadDivisions();
+    _loadSchools();
   }
 
   @override
@@ -50,6 +56,18 @@ class _AddRcDialogState extends State<AddRcDialog> {
     super.dispose();
   }
 
+  Future<void> _loadSchools() async {
+    final snap = await _firestore
+        .collection(FirestoreCollections.schools)
+        .where('status', isEqualTo: 'ACTIVE')
+        .get();
+    if (!mounted) return;
+    setState(() {
+      _schools = snap.docs.map((d) => School.fromMap(d.id, d.data())).toList();
+      _loadingSchools = false;
+    });
+  }
+
   Future<void> _loadDivisions() async {
     final snap = await _firestore
         .collection(FirestoreCollections.divisions)
@@ -57,9 +75,18 @@ class _AddRcDialogState extends State<AddRcDialog> {
         .get();
     if (!mounted) return;
     setState(() {
-      _divisions = snap.docs.map((d) => Division.fromMap(d.id, d.data())).toList();
+      _divisions = snap.docs
+          .map((d) => Division.fromMap(d.id, d.data()))
+          .toList();
       _loadingDivisions = false;
     });
+  }
+
+  List<School> get _schoolsForSelectedDivision {
+    if (_selectedDivisionId == null) return [];
+    return _schools
+        .where((school) => school.divisionid == _selectedDivisionId)
+        .toList();
   }
 
   Future<void> _saveRC() async {
@@ -135,6 +162,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
                 email: emailController.text.trim(),
                 status: 'ACTIVE',
                 divisionid: _selectedDivisionId,
+                schoolid: _selectedSchoolId,
               ).toMap(),
             );
 
@@ -155,6 +183,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
               'lastname': lastnameController.text.trim(),
               'email': emailController.text.trim(),
               'divisionid': _selectedDivisionId,
+              'schoolid': _selectedSchoolId,
             });
 
         if (!mounted) return;
@@ -266,18 +295,78 @@ class _AddRcDialogState extends State<AddRcDialog> {
                 const SizedBox(height: 16),
 
                 _loadingDivisions
-                    ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
                     : DropdownButtonFormField<String>(
                         initialValue: _selectedDivisionId,
                         decoration: const InputDecoration(
-                          labelText: 'Division (Optional)',
+                          labelText: 'Division',
                           prefixIcon: Icon(Icons.account_tree_outlined),
                         ),
                         items: [
-                          const DropdownMenuItem(value: null, child: Text('— No division assigned —')),
-                          ..._divisions.map((d) => DropdownMenuItem(value: d.id, child: Text(d.name))),
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('— No division assigned —'),
+                          ),
+                          ..._divisions.map(
+                            (d) => DropdownMenuItem(
+                              value: d.id,
+                              child: Text(d.name),
+                            ),
+                          ),
                         ],
-                        onChanged: (v) => setState(() => _selectedDivisionId = v),
+                        onChanged: (v) {
+                          setState(() {
+                            _selectedDivisionId = v;
+                            if (v == null ||
+                                !_schoolsForSelectedDivision.any(
+                                  (school) => school.id == _selectedSchoolId,
+                                )) {
+                              _selectedSchoolId = null;
+                            }
+                          });
+                        },
+                      ),
+
+                const SizedBox(height: 16),
+
+                _loadingSchools
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : DropdownButtonFormField<String>(
+                        value: _selectedSchoolId,
+                        decoration: const InputDecoration(
+                          labelText: 'School',
+                          prefixIcon: Icon(Icons.school_outlined),
+                        ),
+                        hint: Text(
+                          _selectedDivisionId == null
+                              ? 'Select a division first'
+                              : 'Select a school',
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('— No school assigned —'),
+                          ),
+                          ..._schoolsForSelectedDivision.map(
+                            (s) => DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: _selectedDivisionId == null
+                            ? null
+                            : (v) => setState(() => _selectedSchoolId = v),
                       ),
 
                 const SizedBox(height: 32),

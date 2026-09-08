@@ -6,8 +6,9 @@ import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddSchoolDialog extends StatefulWidget {
+  final Division division;
   final School? school;
-  const AddSchoolDialog({super.key, this.school});
+  const AddSchoolDialog({super.key, this.school, required this.division});
 
   @override
   State<AddSchoolDialog> createState() => _AddSchoolDialogState();
@@ -19,18 +20,15 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
   late TextEditingController _nameController;
   late TextEditingController _addressController;
 
-  List<Division> _divisions = [];
-  String? _selectedDivisionId;
   bool _isLoading = false;
-  bool _loadingDivisions = true;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.school?.name ?? '');
-    _addressController = TextEditingController(text: widget.school?.address ?? '');
-    _selectedDivisionId = widget.school?.divisionid;
-    _loadDivisions();
+    _addressController = TextEditingController(
+      text: widget.school?.address ?? '',
+    );
   }
 
   @override
@@ -40,41 +38,30 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
     super.dispose();
   }
 
-  Future<void> _loadDivisions() async {
-    final snap = await _firestore
-        .collection(FirestoreCollections.divisions)
-        .where('status', isEqualTo: 'ACTIVE')
-        .get();
-    if (!mounted) return;
-    setState(() {
-      _divisions = snap.docs.map((d) => Division.fromMap(d.id, d.data())).toList();
-      _loadingDivisions = false;
-    });
-  }
-
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedDivisionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a division.'), behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
     setState(() => _isLoading = true);
 
     try {
+      final schoolYears = await _firestore
+          .collection(FirestoreCollections.schoolYears)
+          .get();
+      final schoolyearids = schoolYears.docs.map((doc) => doc.id).toList();
+
       if (widget.school == null) {
         final existing = await _firestore
             .collection(FirestoreCollections.schools)
             .where('name', isEqualTo: _nameController.text.trim())
-            .where('divisionid', isEqualTo: _selectedDivisionId)
+            .where('divisionid', isEqualTo: widget.division.id)
             .get();
 
         if (existing.docs.isNotEmpty) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('A school with this name already exists in the selected division.'),
+              content: Text(
+                'A school with this name already exists in the selected division.',
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -82,31 +69,52 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
           return;
         }
 
-        final docId = _firestore.collection(FirestoreCollections.schools).doc().id;
-        await _firestore.collection(FirestoreCollections.schools).doc(docId).set(
-          School(
-            id: docId,
-            name: _nameController.text.trim(),
-            divisionid: _selectedDivisionId!,
-            address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-            status: 'ACTIVE',
-          ).toMap(),
-        );
+        final docId = _firestore
+            .collection(FirestoreCollections.schools)
+            .doc()
+            .id;
+        await _firestore
+            .collection(FirestoreCollections.schools)
+            .doc(docId)
+            .set(
+              School(
+                id: docId,
+                name: _nameController.text.trim(),
+                divisionid: widget.division.id,
+                schoolyearids: schoolyearids,
+                address: _addressController.text.trim().isEmpty
+                    ? null
+                    : _addressController.text.trim(),
+                status: 'ACTIVE',
+              ).toMap(),
+            );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('School added successfully!'), behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('School added successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } else {
-        await _firestore.collection(FirestoreCollections.schools).doc(widget.school!.id).update({
-          'name': _nameController.text.trim(),
-          'divisionid': _selectedDivisionId,
-          'address': _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-        });
+        await _firestore
+            .collection(FirestoreCollections.schools)
+            .doc(widget.school!.id)
+            .update({
+              'name': _nameController.text.trim(),
+              'divisionid': widget.division.id,
+              'schoolyearids': schoolyearids,
+              'address': _addressController.text.trim().isEmpty
+                  ? null
+                  : _addressController.text.trim(),
+            });
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('School updated successfully!'), behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('School updated successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
 
@@ -115,7 +123,10 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text('Error: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -162,23 +173,10 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
                     hintText: 'e.g. Sta. Rosa Elementary School',
                     prefixIcon: Icon(Icons.school_outlined),
                   ),
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Enter school name' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Enter school name'
+                      : null,
                 ),
-                const SizedBox(height: 16),
-                _loadingDivisions
-                    ? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
-                    : DropdownButtonFormField<String>(
-                        initialValue: _selectedDivisionId,
-                        decoration: const InputDecoration(
-                          labelText: 'Division',
-                          prefixIcon: Icon(Icons.account_tree_outlined),
-                        ),
-                        items: _divisions
-                            .map((d) => DropdownMenuItem(value: d.id, child: Text(d.name)))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedDivisionId = v),
-                        validator: (v) => v == null ? 'Select a division' : null,
-                      ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _addressController,
@@ -196,12 +194,22 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
                     icon: const Icon(Icons.save),
                     onPressed: _isLoading ? null : _save,
                     label: _isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text(widget.school != null ? 'Update School' : 'Add School'),
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            widget.school != null
+                                ? 'Update School'
+                                : 'Add School',
+                          ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),

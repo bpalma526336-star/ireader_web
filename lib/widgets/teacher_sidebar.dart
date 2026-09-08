@@ -8,19 +8,36 @@ import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/views/teacher/parent/manage_parents.dart';
 import 'package:ireader_web/views/teacher/sections/teacher_manage_section.dart';
 
+enum TeacherRoute { sections, parents }
+
 class TeacherSidebar extends StatelessWidget {
+  final TeacherRoute activeRoute;
   final Teacher teacher;
   final SchoolYear schoolyear;
 
   const TeacherSidebar({
     super.key,
+    required this.activeRoute,
     required this.teacher,
     required this.schoolyear,
   });
 
   static const Color _bg = Color(0xFF0F172A);
   static const Color _activeBg = Color(0xFF1E293B);
+  static const Color _muted = Color(0xFF94A3B8);
   static const Color _accent = Color(0xFF3B82F6);
+
+  void _navigate(BuildContext context, Widget page) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+      (_) => false,
+    );
+  }
 
   Future<void> _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -102,9 +119,20 @@ class TeacherSidebar extends StatelessWidget {
           ),
           Container(height: 1, color: const Color(0xFF1E293B)),
           const SizedBox(height: 6),
-          _sectionItem(context),
-          const SizedBox(height: 6),
-          _manageparentitem(context),
+          _navItem(
+            context,
+            Icons.class_outlined,
+            'Assigned Sections',
+            TeacherRoute.sections,
+            TeacherManageSection(teacher: teacher, schoolyear: schoolyear),
+          ),
+          _navItem(
+            context,
+            Icons.people,
+            'Manage Parents',
+            TeacherRoute.parents,
+            ManageParents(teacher: teacher, schoolyear: schoolyear),
+          ),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),
           _logoutItem(context),
@@ -114,25 +142,23 @@ class TeacherSidebar extends StatelessWidget {
     );
   }
 
-  Widget _sectionItem(BuildContext context) {
+  Widget _navItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    TeacherRoute route,
+    Widget page,
+  ) {
+    final isActive = activeRoute == route;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
       child: Material(
-        color: _activeBg,
+        color: isActive ? _activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(7),
         child: InkWell(
           borderRadius: BorderRadius.circular(7),
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TeacherManageSection(
-                  teacher: teacher,
-                  schoolyear: schoolyear,
-                ),
-              ),
-            );
-          },
+          hoverColor: _activeBg,
+          onTap: isActive ? null : () => _navigate(context, page),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
@@ -141,91 +167,39 @@ class TeacherSidebar extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: _accent.withValues(alpha: 0.18),
+                    color: isActive
+                        ? _accent.withValues(alpha: 0.18)
+                        : _activeBg,
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  child: const Icon(
-                    Icons.class_outlined,
-                    color: _accent,
+                  child: Icon(
+                    icon,
+                    color: isActive ? _accent : _muted,
                     size: 14,
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Assigned Sections',
+                    label,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isActive
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.55),
                       fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ),
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: _accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _manageparentitem(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-      child: Material(
-        color: _activeBg,
-        borderRadius: BorderRadius.circular(7),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(7),
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    ManageParents(teacher: teacher, schoolyear: schoolyear),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: _accent.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: const Icon(Icons.people, color: _accent, size: 14),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Manage Parents',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+                if (isActive)
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: const BoxDecoration(
+                      color: _accent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: _accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
               ],
             ),
           ),

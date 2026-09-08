@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/students/add_student.dart';
 import 'package:ireader_web/views/teacher/students/add_student_dialog.dart';
@@ -15,11 +16,13 @@ import 'package:universal_html/html.dart' show AnchorElement;
 class TeacherManageStudentScreen extends StatefulWidget {
   final SchoolYear schoolyear;
   final Section section;
+  final Teacher teacher;
 
   const TeacherManageStudentScreen({
     super.key,
     required this.section,
     required this.schoolyear,
+    required this.teacher,
   });
 
   @override
@@ -74,9 +77,11 @@ class _TeacherManageStudentScreenState
       ..bold = true;
 
     sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet.getRangeByName('A2').setText(
-      'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-    );
+    sheet
+        .getRangeByName('A2')
+        .setText(
+          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+        );
     sheet.getRangeByName('A2').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -88,9 +93,11 @@ class _TeacherManageStudentScreenState
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet.getRangeByName('A4').setText(
-      'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-    );
+    sheet
+        .getRangeByName('A4')
+        .setText(
+          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+        );
     sheet.getRangeByName('A4').cellStyle
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
@@ -107,6 +114,8 @@ class _TeacherManageStudentScreenState
         .collection('students')
         .where('sectionid', isEqualTo: widget.section.id)
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.teacher.schoolid)
+        .where('divisionid', isEqualTo: widget.teacher.divisionid)
         .get();
 
     final students = snapshot.docs
@@ -118,9 +127,11 @@ class _TeacherManageStudentScreenState
     );
 
     for (var student in students) {
-      sheet.getRangeByName('A$rowIndex').setText(
-        "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-      );
+      sheet
+          .getRangeByName('A$rowIndex')
+          .setText(
+            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+          );
       sheet.getRangeByName('B$rowIndex').setText(student.gender);
       sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
       sheet
@@ -148,6 +159,7 @@ class _TeacherManageStudentScreenState
       builder: (_) => ImportStudentsDialog(
         section: widget.section,
         schoolyear: widget.schoolyear,
+        teacher: widget.teacher,
       ),
     );
   }
@@ -162,6 +174,7 @@ class _TeacherManageStudentScreenState
             section: widget.section,
             schoolyear: widget.schoolyear,
             student: null,
+            teacher: widget.teacher,
           ),
         ),
       );
@@ -173,6 +186,7 @@ class _TeacherManageStudentScreenState
           section: widget.section,
           schoolyear: widget.schoolyear,
           student: null,
+          teacher: widget.teacher,
         ),
       );
     }
@@ -374,10 +388,7 @@ class _TeacherManageStudentScreenState
           ),
 
           // READING LEVEL
-          Expanded(
-            flex: 3,
-            child: _readingLevelBadge(student.readlevel),
-          ),
+          Expanded(flex: 3, child: _readingLevelBadge(student.readlevel)),
 
           // ACTIONS
           SizedBox(
@@ -427,6 +438,7 @@ class _TeacherManageStudentScreenState
                             section: widget.section,
                             schoolyear: widget.schoolyear,
                             student: student,
+                            teacher: widget.teacher,
                           ),
                         ),
                       );
@@ -440,6 +452,7 @@ class _TeacherManageStudentScreenState
                               section: widget.section,
                               schoolyear: widget.schoolyear,
                               student: student,
+                              teacher: widget.teacher,
                             ),
                           ),
                         ),
@@ -495,8 +508,10 @@ class _TeacherManageStudentScreenState
                   ),
                   filled: true,
                   fillColor: AppTheme.backgroundColor,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -535,8 +550,13 @@ class _TeacherManageStudentScreenState
                 foregroundColor: AppTheme.primaryColor,
                 side: const BorderSide(color: AppTheme.primaryColor),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -613,6 +633,8 @@ class _TeacherManageStudentScreenState
             .collection('students')
             .where('sectionid', isEqualTo: widget.section.id)
             .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+            .where('schoolid', isEqualTo: widget.teacher.schoolid)
+            .where('divisionid', isEqualTo: widget.teacher.divisionid)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -627,10 +649,8 @@ class _TeacherManageStudentScreenState
 
           var students = (snapshot.data?.docs ?? [])
               .map(
-                (doc) => Student.fromMap(
-                  doc.id,
-                  doc.data() as Map<String, dynamic>,
-                ),
+                (doc) =>
+                    Student.fromMap(doc.id, doc.data() as Map<String, dynamic>),
               )
               .toList();
 
@@ -644,10 +664,10 @@ class _TeacherManageStudentScreenState
           final query = _searchController.text.trim().toLowerCase();
           if (query.isNotEmpty) {
             students = students.where((s) {
-              final name =
-                  '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
-                      .toLowerCase();
-              return name.contains(query) || s.lrn.toLowerCase().contains(query);
+              final name = '${s.firstname} ${s.middlename ?? ''} ${s.lastname}'
+                  .toLowerCase();
+              return name.contains(query) ||
+                  s.lrn.toLowerCase().contains(query);
             }).toList();
           }
 
@@ -663,8 +683,9 @@ class _TeacherManageStudentScreenState
                         Icon(
                           Icons.person_outline,
                           size: 52,
-                          color:
-                              AppTheme.textSecondaryColor.withValues(alpha: 0.4),
+                          color: AppTheme.textSecondaryColor.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -705,8 +726,7 @@ class _TeacherManageStudentScreenState
                             height: 1,
                             color: AppTheme.borderColor,
                           ),
-                          itemBuilder: (_, index) =>
-                              _buildRow(students[index]),
+                          itemBuilder: (_, index) => _buildRow(students[index]),
                         ),
                       ),
                     ],

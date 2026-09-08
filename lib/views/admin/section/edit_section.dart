@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
@@ -7,8 +9,16 @@ import 'package:ireader_web/theme.dart';
 class EditSection extends StatefulWidget {
   final Section section;
   final Teacher teacher;
+  final Division division;
+  final School school;
 
-  const EditSection({super.key, required this.section, required this.teacher});
+  const EditSection({
+    super.key,
+    required this.section,
+    required this.teacher,
+    required this.division,
+    required this.school,
+  });
 
   @override
   State<EditSection> createState() => _EditSectionState();
@@ -60,6 +70,9 @@ class _EditSectionState extends State<EditSection> {
     try {
       await firestore.collection('sections').doc(widget.section.id).update({
         'sectionname': sectionname.text.trim(),
+        'schoolyearid': widget.section.schoolyearid,
+        'schoolid': widget.school.id,
+        'divisionid': widget.division?.id,
         'teacherid': _selectedTeacherId!,
       });
 

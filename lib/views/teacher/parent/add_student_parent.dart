@@ -4,11 +4,12 @@ import 'package:ireader_web/model/parent.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 
 class AddParentStudent extends StatefulWidget {
   final Parent? parent;
-
-  const AddParentStudent({super.key, this.parent});
+  final Teacher? teacher;
+  const AddParentStudent({super.key, this.parent, this.teacher});
 
   @override
   State<AddParentStudent> createState() => _AddParentStudentState();
@@ -58,17 +59,23 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
     try {
       final results = await Future.wait([
-        firestore.collection('students').get(),
-        firestore.collection('sections').get(),
+        firestore
+            .collection('students')
+            .where('divisionid', isEqualTo: widget.teacher?.divisionid)
+            .get(),
+        firestore
+            .collection('sections')
+            .where('divisionid', isEqualTo: widget.teacher?.divisionid)
+            .get(),
         firestore.collection('schoolyears').get(),
       ]);
 
       final studentsSnapshot =
-          results[0];
+          results[0] as QuerySnapshot<Map<String, dynamic>>;
       final sectionsSnapshot =
-          results[1];
+          results[1] as QuerySnapshot<Map<String, dynamic>>;
       final schoolYearsSnapshot =
-          results[2];
+          results[2] as QuerySnapshot<Map<String, dynamic>>;
 
       final students = studentsSnapshot.docs.map((doc) {
         return Student.fromMap(doc.id, doc.data());
@@ -169,6 +176,36 @@ class _AddParentStudentState extends State<AddParentStudent> {
             )
             .firstOrNull ??
         'Unknown school year';
+  }
+
+  List<Student> _studentsForRow(int index) {
+    final selectedId = _selectedStudentIds[index];
+    final existingIds = widget.parent?.studentids ?? [];
+    final selectedInOtherRows = _selectedStudentIds
+        .asMap()
+        .entries
+        .where((entry) => entry.key != index)
+        .map((entry) => entry.value)
+        .whereType<String>()
+        .toSet();
+
+    final filteredStudents = _filteredStudents.where((student) {
+      return !existingIds.contains(student.id) &&
+          !selectedInOtherRows.contains(student.id);
+    }).toList();
+
+    if (selectedId != null &&
+        !filteredStudents.any((student) => student.id == selectedId)) {
+      final selectedStudent = _students.where((student) {
+        return student.id == selectedId && !existingIds.contains(student.id);
+      });
+
+      if (selectedStudent.isNotEmpty) {
+        filteredStudents.insert(0, selectedStudent.first);
+      }
+    }
+
+    return filteredStudents;
   }
 
   // ==========================================
@@ -322,7 +359,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final sectionFilter = DropdownButtonFormField<String>(
-                        initialValue: _selectedSectionId,
+                        value: _selectedSectionId,
                         onChanged: _selectedSchoolYearId == null
                             ? null
                             : (value) {
@@ -331,6 +368,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                                   _selectedStudentIds = List<String?>.filled(
                                     _selectedStudentIds.length,
                                     null,
+                                    growable: true,
                                   );
                                 });
                               },
@@ -358,7 +396,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                         ],
                       );
                       final schoolYearFilter = DropdownButtonFormField<String>(
-                        initialValue: _selectedSchoolYearId,
+                        value: _selectedSchoolYearId,
                         decoration: const InputDecoration(
                           labelText: 'Filter by school year',
                           border: OutlineInputBorder(),
@@ -385,6 +423,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                             _selectedStudentIds = List<String?>.filled(
                               _selectedStudentIds.length,
                               null,
+                              growable: true,
                             );
                           });
                         },
@@ -470,9 +509,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
   Widget _buildStudentRow(int index) {
     final selectedId = _selectedStudentIds[index];
-
-    // IDs already assigned to this parent.
-    final existingIds = widget.parent?.studentids ?? [];
+    final studentsForRow = _studentsForRow(index);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -481,53 +518,24 @@ class _AddParentStudentState extends State<AddParentStudent> {
           // Student dropdown
           Expanded(
             child: DropdownButtonFormField<String>(
-              initialValue: selectedId,
-              onChanged: _selectedSectionId == null
-                  ? null
-                  : (value) => _changeStudent(index, value),
+              value: selectedId,
+              onChanged: (value) => _changeStudent(index, value),
               decoration: InputDecoration(
                 labelText: 'Student ${index + 1}',
                 border: const OutlineInputBorder(),
               ),
-
-              items: _students
-                  .where((student) {
-                    if (!_filteredStudents.contains(student)) {
-                      final isSelected = selectedId == student.id;
-                      if (!isSelected) return false;
-                    }
-
-                    // Don't show students already
-                    // assigned to this parent.
-                    if (existingIds.contains(student.id)) {
-                      return false;
-                    }
-
-                    // Don't allow the same student
-                    // to be selected in another row.
-                    final selectedElsewhere = _selectedStudentIds
-                        .asMap()
-                        .entries
-                        .any((entry) {
-                          return entry.key != index &&
-                              entry.value == student.id;
-                        });
-
-                    return !selectedElsewhere;
-                  })
-                  .map((student) {
-                    return DropdownMenuItem<String>(
-                      value: student.id,
-                      child: Text(
-                        '${student.firstname} '
-                        '${student.lastname} | '
-                        '${_sectionName(student.sectionid)} | '
-                        '${_schoolYearName(student.schoolyearid)} | '
-                        'LRN: ${student.lrn}',
-                      ),
-                    );
-                  })
-                  .toList(),
+              items: studentsForRow.map((student) {
+                return DropdownMenuItem<String>(
+                  value: student.id,
+                  child: Text(
+                    '${student.firstname} '
+                    '${student.lastname} | '
+                    '${_sectionName(student.sectionid)} | '
+                    '${_schoolYearName(student.schoolyearid)} | '
+                    'LRN: ${student.lrn}',
+                  ),
+                );
+              }).toList(),
             ),
           ),
 

@@ -15,8 +15,13 @@ import 'package:universal_html/html.dart' show AnchorElement;
 
 class RCManageSection extends StatefulWidget {
   final SchoolYear schoolyear;
+  final String schoolId;
 
-  const RCManageSection({super.key, required this.schoolyear});
+  const RCManageSection({
+    super.key,
+    required this.schoolyear,
+    required this.schoolId,
+  });
 
   @override
   State<RCManageSection> createState() => _RCManageSectionState();
@@ -81,6 +86,7 @@ class _RCManageSectionState extends State<RCManageSection> {
         .collection('students')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .where('sectionid', isEqualTo: sectionid)
+        .where('schoolid', isEqualTo: widget.schoolId)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
         .map((snapshot) {
@@ -121,6 +127,7 @@ class _RCManageSectionState extends State<RCManageSection> {
     return _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.schoolId)
         .snapshots()
         .map(
           (snap) =>
@@ -323,26 +330,26 @@ class _RCManageSectionState extends State<RCManageSection> {
 
   // ─── Open edit section ─────────────────────────────────────────────────────
 
-  Future<void> _openEditSection(Section section) async {
-    final teacherDoc = await _firestore
-        .collection('teachers')
-        .doc(section.teacherid)
-        .get();
+  // Future<void> _openEditSection(Section section) async {
+  //   final teacherDoc = await _firestore
+  //       .collection('teachers')
+  //       .doc(section.teacherid)
+  //       .get();
 
-    if (!mounted) return;
+  //   if (!mounted) return;
 
-    final teacher = Teacher.fromMap(
-      teacherDoc.id,
-      teacherDoc.data() as Map<String, dynamic>,
-    );
+  //   final teacher = Teacher.fromMap(
+  //     teacherDoc.id,
+  //     teacherDoc.data() as Map<String, dynamic>,
+  //   );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EditSection(section: section, teacher: teacher),
-      ),
-    );
-  }
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => EditSection(section: section, teacher: teacher),
+  //     ),
+  //   );
+  // }
 
   // ─── Result type toggle ────────────────────────────────────────────────────
 
@@ -613,6 +620,7 @@ class _RCManageSectionState extends State<RCManageSection> {
                         builder: (_) => RCManageStudentScreen(
                           section: section,
                           schoolyear: widget.schoolyear,
+                          schoolId: widget.schoolId,
                         ),
                       ),
                     );
@@ -637,11 +645,11 @@ class _RCManageSectionState extends State<RCManageSection> {
             const SizedBox(height: 6),
             Row(
               children: [
-                Expanded(
-                  child: _cardButton('Edit', () async {
-                    await _openEditSection(section);
-                  }),
-                ),
+                // Expanded(
+                //   child: _cardButton('Edit', () async {
+                //     await _openEditSection(section);
+                //   }),
+                // ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: SizedBox(

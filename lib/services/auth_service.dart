@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ireader_web/core/firestore_collections.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/teacher.dart';
 
@@ -12,22 +13,27 @@ class AuthSession {
   final UserRole role;
   final Teacher? teacher;
   final SchoolYear? schoolYear;
-  final String? divisionId;
+  final String? schoolId;
+  final RC? rc;
 
   const AuthSession.admin()
     : role = UserRole.admin,
       teacher = null,
       schoolYear = null,
-      divisionId = null;
+      schoolId = null,
+      rc = null;
 
-  const AuthSession.readingCoordinator({this.divisionId})
-    : role = UserRole.readingCoordinator,
-      teacher = null,
-      schoolYear = null;
+  const AuthSession.readingCoordinator({
+    required this.rc,
+    required this.schoolId,
+  }) : role = UserRole.readingCoordinator,
+       teacher = null,
+       schoolYear = null;
 
   const AuthSession.teacher({required this.teacher, required this.schoolYear})
     : role = UserRole.teacher,
-      divisionId = null;
+      schoolId = null,
+      rc = null;
 }
 
 class AuthService {
@@ -76,9 +82,21 @@ class AuthService {
 
     // Run all 3 role lookups in parallel instead of sequentially
     final results = await Future.wait([
-      _firestore.collection(FirestoreCollections.teachers).where('email', isEqualTo: normalizedEmail).limit(1).get(),
-      _firestore.collection(FirestoreCollections.admins).where('email', isEqualTo: normalizedEmail).limit(1).get(),
-      _firestore.collection(FirestoreCollections.readingCoordinators).where('email', isEqualTo: normalizedEmail).limit(1).get(),
+      _firestore
+          .collection(FirestoreCollections.teachers)
+          .where('email', isEqualTo: normalizedEmail)
+          .limit(1)
+          .get(),
+      _firestore
+          .collection(FirestoreCollections.admins)
+          .where('email', isEqualTo: normalizedEmail)
+          .limit(1)
+          .get(),
+      _firestore
+          .collection(FirestoreCollections.readingCoordinators)
+          .where('email', isEqualTo: normalizedEmail)
+          .limit(1)
+          .get(),
     ]);
 
     final teacherQuery = results[0];
@@ -132,12 +150,18 @@ class AuthService {
     }
 
     if (rcQuery.docs.isNotEmpty) {
-      if (rcQuery.docs.first['status'] != 'ACTIVE') {
+      final rcDoc = rcQuery.docs.first;
+      if (rcDoc['status'] != 'ACTIVE') {
         await _auth.signOut();
         throw Exception('Account inactive.');
       }
-      final divisionId = rcQuery.docs.first.data()['divisionid'] as String?;
-      return AuthSession.readingCoordinator(divisionId: divisionId);
+      final rc = RC.fromMap(rcDoc.id, rcDoc.data());
+      final schoolId = rc.schoolid;
+      if (schoolId == null || schoolId.isEmpty) {
+        await _auth.signOut();
+        throw Exception('Reading coordinator school not found.');
+      }
+      return AuthSession.readingCoordinator(schoolId: schoolId, rc: rc);
     }
 
     await _auth.signOut();

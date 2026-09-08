@@ -1,14 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/assessments/add_assessment.dart';
 import 'package:ireader_web/views/admin/assessments/edit_assessment.dart';
 
 class ManageAssessment extends StatefulWidget {
+  final Division? division;
   final SchoolYear schoolyear;
-  const ManageAssessment({super.key, required this.schoolyear});
+  final School? school;
+  const ManageAssessment({
+    super.key,
+    required this.schoolyear,
+    this.division,
+    this.school,
+  });
 
   @override
   State<ManageAssessment> createState() => _ManageAssessmentState();
@@ -271,6 +280,10 @@ class _ManageAssessmentState extends State<ManageAssessment> {
                                               builder: (context) =>
                                                   EditAssessmentScreen(
                                                     assessment: assessment,
+                                                    division: widget.division,
+                                                    school: widget.school,
+                                                    schoolyear:
+                                                        widget.schoolyear,
                                                   ),
                                             ),
                                           );

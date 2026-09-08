@@ -10,8 +10,13 @@ enum RCRoute { dashboard, schoolYears }
 
 class RCSidebar extends StatelessWidget {
   final RCRoute activeRoute;
+  final String schoolId;
 
-  const RCSidebar({super.key, required this.activeRoute});
+  const RCSidebar({
+    super.key,
+    required this.activeRoute,
+    required this.schoolId,
+  });
 
   static const Color _bg = Color(0xFF0F172A);
   static const Color _activeBg = Color(0xFF1E293B);
@@ -66,7 +71,10 @@ class RCSidebar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E3A5F),
                       borderRadius: BorderRadius.circular(9),
-                      border: Border.all(color: const Color(0xFF2D4E7E), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF2D4E7E),
+                        width: 1,
+                      ),
                     ),
                     child: const Center(
                       child: Text(
@@ -110,8 +118,20 @@ class RCSidebar extends StatelessWidget {
           ),
           Container(height: 1, color: const Color(0xFF1E293B)),
           const SizedBox(height: 6),
-          _navItem(context, 'D', 'Dashboard', RCRoute.dashboard, const RCDashboard()),
-          _navItem(context, 'Y', 'School Years', RCRoute.schoolYears, const RCManageSchoolyearScreen()),
+          _navItem(
+            context,
+            'D',
+            'Dashboard',
+            RCRoute.dashboard,
+            RCDashboard(schoolId: schoolId),
+          ),
+          _navItem(
+            context,
+            'Y',
+            'School Years',
+            RCRoute.schoolYears,
+            RCManageSchoolyearScreen(schoolId: schoolId),
+          ),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),
           _logoutItem(context),
@@ -167,7 +187,9 @@ class RCSidebar extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.55),
+                      color: isActive
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.55),
                       fontSize: 12.5,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                     ),
@@ -212,16 +234,17 @@ class RCSidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: const Center(
-                    child: Icon(Icons.logout, color: Colors.redAccent, size: 13),
+                    child: Icon(
+                      Icons.logout,
+                      color: Colors.redAccent,
+                      size: 13,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 const Text(
                   'Log Out',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 12.5,
-                  ),
+                  style: TextStyle(color: Colors.redAccent, fontSize: 12.5),
                 ),
               ],
             ),

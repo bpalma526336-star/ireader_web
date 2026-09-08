@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/parent.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -18,10 +20,14 @@ class _AddParentStudentState extends State<AddParentStudent> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   List<Student> _students = [];
+  List<Division> _divisions = [];
+  List<School> _schools = [];
   List<Section> _sections = [];
   List<SchoolYear> _schoolYears = [];
 
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedDivisionId;
+  String? _selectedSchoolId;
   String? _selectedSectionId;
   String? _selectedSchoolYearId;
 
@@ -64,11 +70,14 @@ class _AddParentStudentState extends State<AddParentStudent> {
       ]);
 
       final studentsSnapshot =
-          results[0];
+          results[0] as QuerySnapshot<Map<String, dynamic>>;
       final sectionsSnapshot =
-          results[1];
+          results[1] as QuerySnapshot<Map<String, dynamic>>;
       final schoolYearsSnapshot =
-          results[2];
+          results[2] as QuerySnapshot<Map<String, dynamic>>;
+
+      final divisionsSnapshot = await firestore.collection('divisions').get();
+      final schoolsSnapshot = await firestore.collection('schools').get();
 
       final students = studentsSnapshot.docs.map((doc) {
         return Student.fromMap(doc.id, doc.data());
@@ -79,11 +88,19 @@ class _AddParentStudentState extends State<AddParentStudent> {
       final schoolYears = schoolYearsSnapshot.docs.map((doc) {
         return SchoolYear.fromMap(doc.id, doc.data());
       }).toList();
+      final divisions = divisionsSnapshot.docs.map((doc) {
+        return Division.fromMap(doc.id, doc.data());
+      }).toList();
+      final schools = schoolsSnapshot.docs.map((doc) {
+        return School.fromMap(doc.id, doc.data());
+      }).toList();
 
       if (!mounted) return;
 
       setState(() {
         _students = students;
+        _divisions = divisions;
+        _schools = schools;
         _sections = sections;
         _schoolYears = schoolYears;
       });
@@ -144,11 +161,20 @@ class _AddParentStudentState extends State<AddParentStudent> {
           student.lrn.toLowerCase().contains(search);
       final matchesSection =
           _selectedSectionId == null || student.sectionid == _selectedSectionId;
+      final matchesDivision =
+          _selectedDivisionId == null ||
+          student.divisionid == _selectedDivisionId;
+      final matchesSchool =
+          _selectedSchoolId == null || student.schoolid == _selectedSchoolId;
       final matchesSchoolYear =
           _selectedSchoolYearId == null ||
           student.schoolyearid == _selectedSchoolYearId;
 
-      return matchesSearch && matchesSection && matchesSchoolYear;
+      return matchesSearch &&
+          matchesDivision &&
+          matchesSchool &&
+          matchesSection &&
+          matchesSchoolYear;
     }).toList();
   }
 
@@ -169,6 +195,36 @@ class _AddParentStudentState extends State<AddParentStudent> {
             )
             .firstOrNull ??
         'Unknown school year';
+  }
+
+  List<Student> _studentsForRow(int index) {
+    final selectedId = _selectedStudentIds[index];
+    final existingIds = widget.parent?.studentids ?? [];
+    final selectedInOtherRows = _selectedStudentIds
+        .asMap()
+        .entries
+        .where((entry) => entry.key != index)
+        .map((entry) => entry.value)
+        .whereType<String>()
+        .toSet();
+
+    final filteredStudents = _filteredStudents.where((student) {
+      return !existingIds.contains(student.id) &&
+          !selectedInOtherRows.contains(student.id);
+    }).toList();
+
+    if (selectedId != null &&
+        !filteredStudents.any((student) => student.id == selectedId)) {
+      final selectedStudent = _students.where((student) {
+        return student.id == selectedId && !existingIds.contains(student.id);
+      });
+
+      if (selectedStudent.isNotEmpty) {
+        filteredStudents.insert(0, selectedStudent.first);
+      }
+    }
+
+    return filteredStudents;
   }
 
   // ==========================================
@@ -321,8 +377,125 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
                   LayoutBuilder(
                     builder: (context, constraints) {
+                      final divisionFilter = DropdownButtonFormField<String>(
+                        value: _selectedDivisionId,
+                        decoration: const InputDecoration(
+                          labelText: 'Filter by division',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All divisions'),
+                          ),
+                          ..._divisions.map(
+                            (division) => DropdownMenuItem<String>(
+                              value: division.id,
+                              child: Text(division.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDivisionId = value;
+                            _selectedSchoolId = null;
+                            _selectedSchoolYearId = null;
+                            _selectedSectionId = null;
+                            _selectedStudentIds = List<String?>.filled(
+                              _selectedStudentIds.length,
+                              null,
+                              growable: true,
+                            );
+                          });
+                        },
+                      );
+                      final schoolFilter = DropdownButtonFormField<String>(
+                        value: _selectedSchoolId,
+                        decoration: const InputDecoration(
+                          labelText: 'Filter by school',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All schools'),
+                          ),
+                          ..._schools
+                              .where(
+                                (school) =>
+                                    _selectedDivisionId == null ||
+                                    school.divisionid == _selectedDivisionId,
+                              )
+                              .map(
+                                (school) => DropdownMenuItem<String>(
+                                  value: school.id,
+                                  child: Text(school.name),
+                                ),
+                              ),
+                        ],
+                        onChanged: _selectedDivisionId == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedSchoolId = value;
+                                  _selectedSchoolYearId = null;
+                                  _selectedSectionId = null;
+                                  _selectedStudentIds = List<String?>.filled(
+                                    _selectedStudentIds.length,
+                                    null,
+                                    growable: true,
+                                  );
+                                });
+                              },
+                      );
+                      final schoolYearFilter = DropdownButtonFormField<String>(
+                        value: _selectedSchoolYearId,
+                        decoration: const InputDecoration(
+                          labelText: 'Filter by school year',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('All school years'),
+                          ),
+                          ..._schoolYears
+                              .where((schoolYear) {
+                                if (_selectedSchoolId == null) return false;
+                                final school = _schools.firstWhere(
+                                  (item) => item.id == _selectedSchoolId,
+                                );
+                                return school.schoolyearids == null ||
+                                    school.schoolyearids!.contains(
+                                      schoolYear.id,
+                                    );
+                              })
+                              .map(
+                                (schoolYear) => DropdownMenuItem<String>(
+                                  value: schoolYear.id,
+                                  child: Text(
+                                    '${schoolYear.schoolyearstart} - '
+                                    '${schoolYear.schoolyearend}',
+                                  ),
+                                ),
+                              ),
+                        ],
+                        onChanged: _selectedSchoolId == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedSchoolYearId = value;
+                                  _selectedSectionId = null;
+                                  _selectedStudentIds = List<String?>.filled(
+                                    _selectedStudentIds.length,
+                                    null,
+                                    growable: true,
+                                  );
+                                });
+                              },
+                      );
                       final sectionFilter = DropdownButtonFormField<String>(
-                        initialValue: _selectedSectionId,
+                        value: _selectedSectionId,
                         onChanged: _selectedSchoolYearId == null
                             ? null
                             : (value) {
@@ -331,6 +504,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                                   _selectedStudentIds = List<String?>.filled(
                                     _selectedStudentIds.length,
                                     null,
+                                    growable: true,
                                   );
                                 });
                               },
@@ -347,7 +521,9 @@ class _AddParentStudentState extends State<AddParentStudent> {
                               .where(
                                 (section) =>
                                     section.schoolyearid ==
-                                    _selectedSchoolYearId,
+                                        _selectedSchoolYearId &&
+                                    section.schoolid == _selectedSchoolId &&
+                                    section.divisionid == _selectedDivisionId,
                               )
                               .map(
                                 (section) => DropdownMenuItem<String>(
@@ -357,54 +533,29 @@ class _AddParentStudentState extends State<AddParentStudent> {
                               ),
                         ],
                       );
-                      final schoolYearFilter = DropdownButtonFormField<String>(
-                        initialValue: _selectedSchoolYearId,
-                        decoration: const InputDecoration(
-                          labelText: 'Filter by school year',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: [
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('All school years'),
-                          ),
-                          ..._schoolYears.map(
-                            (schoolYear) => DropdownMenuItem<String>(
-                              value: schoolYear.id,
-                              child: Text(
-                                '${schoolYear.schoolyearstart} - '
-                                '${schoolYear.schoolyearend}',
-                              ),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSchoolYearId = value;
-                            _selectedSectionId = null;
-                            _selectedStudentIds = List<String?>.filled(
-                              _selectedStudentIds.length,
-                              null,
-                            );
-                          });
-                        },
-                      );
-
                       if (constraints.maxWidth < 600) {
                         return Column(
                           children: [
-                            sectionFilter,
+                            divisionFilter,
+                            const SizedBox(height: 12),
+                            schoolFilter,
                             const SizedBox(height: 12),
                             schoolYearFilter,
+                            const SizedBox(height: 12),
+                            sectionFilter,
                           ],
                         );
                       }
 
                       return Row(
                         children: [
-                          Expanded(child: sectionFilter),
+                          Expanded(child: divisionFilter),
+                          const SizedBox(width: 12),
+                          Expanded(child: schoolFilter),
                           const SizedBox(width: 12),
                           Expanded(child: schoolYearFilter),
+                          const SizedBox(width: 12),
+                          Expanded(child: sectionFilter),
                         ],
                       );
                     },
@@ -470,9 +621,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
   Widget _buildStudentRow(int index) {
     final selectedId = _selectedStudentIds[index];
-
-    // IDs already assigned to this parent.
-    final existingIds = widget.parent?.studentids ?? [];
+    final studentsForRow = _studentsForRow(index);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -481,53 +630,25 @@ class _AddParentStudentState extends State<AddParentStudent> {
           // Student dropdown
           Expanded(
             child: DropdownButtonFormField<String>(
-              initialValue: selectedId,
-              onChanged: _selectedSectionId == null
-                  ? null
-                  : (value) => _changeStudent(index, value),
+              value: selectedId,
+              onChanged: (value) => _changeStudent(index, value),
               decoration: InputDecoration(
                 labelText: 'Student ${index + 1}',
                 border: const OutlineInputBorder(),
               ),
 
-              items: _students
-                  .where((student) {
-                    if (!_filteredStudents.contains(student)) {
-                      final isSelected = selectedId == student.id;
-                      if (!isSelected) return false;
-                    }
-
-                    // Don't show students already
-                    // assigned to this parent.
-                    if (existingIds.contains(student.id)) {
-                      return false;
-                    }
-
-                    // Don't allow the same student
-                    // to be selected in another row.
-                    final selectedElsewhere = _selectedStudentIds
-                        .asMap()
-                        .entries
-                        .any((entry) {
-                          return entry.key != index &&
-                              entry.value == student.id;
-                        });
-
-                    return !selectedElsewhere;
-                  })
-                  .map((student) {
-                    return DropdownMenuItem<String>(
-                      value: student.id,
-                      child: Text(
-                        '${student.firstname} '
-                        '${student.lastname} | '
-                        '${_sectionName(student.sectionid)} | '
-                        '${_schoolYearName(student.schoolyearid)} | '
-                        'LRN: ${student.lrn}',
-                      ),
-                    );
-                  })
-                  .toList(),
+              items: studentsForRow.map((student) {
+                return DropdownMenuItem<String>(
+                  value: student.id,
+                  child: Text(
+                    '${student.firstname} '
+                    '${student.lastname} | '
+                    '${_sectionName(student.sectionid)} | '
+                    '${_schoolYearName(student.schoolyearid)} | '
+                    'LRN: ${student.lrn}',
+                  ),
+                );
+              }).toList(),
             ),
           ),
 

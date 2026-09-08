@@ -2,16 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
 import 'package:ireader_web/model/assessmentcontent.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddAssessmentScreen extends StatefulWidget {
   final SchoolYear schoolyear;
   final String? schoolyearid;
+  final Division? division;
+  final School? school;
   const AddAssessmentScreen({
     super.key,
     required this.schoolyear,
     required this.schoolyearid,
+    this.division,
+    this.school,
   });
 
   @override
@@ -196,6 +202,8 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
         Assessment(
           id: docRef.id,
           schoolyearid: widget.schoolyear.id,
+          schoolid: widget.school?.id,
+          divisionid: widget.division?.id,
           assessmenttitle: _assessmenttitlecontroller.text.trim(),
           visibility: _visibilityController.text.trim(),
           timelimit: int.tryParse(_timelimit.text.trim()) ?? 0,
@@ -513,7 +521,8 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                                 child: Text(t),
                               );
                             }).toList(),
-                            onChanged: (value) => setState(() => _selectedTestType = value),
+                            onChanged: (value) =>
+                                setState(() => _selectedTestType = value),
                           ),
                         ),
                         const SizedBox(height: 16),

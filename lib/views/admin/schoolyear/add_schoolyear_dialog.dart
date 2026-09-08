@@ -106,6 +106,8 @@ class _AddSchoolyearDialogState extends State<AddSchoolyearDialog> {
               ).toMap(),
             );
 
+        await _linkSchoolYearToSchoolsAndDivisions(newId);
+
         _showSnack("School Year added successfully");
 
         if (mounted) Navigator.pop(context);
@@ -114,6 +116,31 @@ class _AddSchoolyearDialogState extends State<AddSchoolyearDialog> {
       _showSnack("Error saving School Year: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _linkSchoolYearToSchoolsAndDivisions(String schoolYearId) async {
+    final results = await Future.wait([
+      _firestore.collection('schools').get(),
+      _firestore.collection('divisions').get(),
+    ]);
+
+    final references = [
+      ...results[0].docs.map((doc) => doc.reference),
+      ...results[1].docs.map((doc) => doc.reference),
+    ];
+
+    for (var index = 0; index < references.length; index += 500) {
+      final batch = _firestore.batch();
+      final end = (index + 500).clamp(0, references.length);
+
+      for (final reference in references.sublist(index, end)) {
+        batch.update(reference, {
+          'schoolyearids': FieldValue.arrayUnion([schoolYearId]),
+        });
+      }
+
+      await batch.commit();
     }
   }
 

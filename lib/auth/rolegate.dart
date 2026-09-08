@@ -36,11 +36,8 @@ class AuthGate extends StatelessWidget {
 }
 
 class RoleGate extends StatefulWidget {
-  const RoleGate({
-    super.key,
-    required this.email,
-    AuthService? authService,
-  }) : _authService = authService;
+  const RoleGate({super.key, required this.email, AuthService? authService})
+    : _authService = authService;
 
   final String email;
   final AuthService? _authService;
@@ -79,10 +76,16 @@ class _RoleGateState extends State<RoleGate> {
           case UserRole.admin:
             return const AdminDashboard();
           case UserRole.readingCoordinator:
-            return RCDashboard(divisionId: session.divisionId);
+            if (session.rc == null || session.schoolId == null) {
+              AuthService.lastErrorMessage =
+                  "Incomplete reading coordinator profile. Please contact your administrator.";
+              return LoginScreen(errorMessage: AuthService.lastErrorMessage);
+            }
+            return RCDashboard(rc: session.rc!, schoolId: session.schoolId!);
           case UserRole.teacher:
             if (session.teacher == null || session.schoolYear == null) {
-              AuthService.lastErrorMessage = "Incomplete teacher profile. Please contact your administrator.";
+              AuthService.lastErrorMessage =
+                  "Incomplete teacher profile. Please contact your administrator.";
               return LoginScreen(errorMessage: AuthService.lastErrorMessage);
             }
             return TeacherManageSection(
