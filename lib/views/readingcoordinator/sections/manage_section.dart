@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/section/edit_section.dart';
+import 'package:ireader_web/views/readingcoordinator/sections/compare_section.dart';
 import 'package:ireader_web/views/readingcoordinator/students/manage_student.dart';
 import 'package:ireader_web/views/readingcoordinator/practice_set/select_practice_set.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
@@ -15,12 +17,12 @@ import 'package:universal_html/html.dart' show AnchorElement;
 
 class RCManageSection extends StatefulWidget {
   final SchoolYear schoolyear;
-  final String schoolId;
+  final RC rc;
 
   const RCManageSection({
     super.key,
     required this.schoolyear,
-    required this.schoolId,
+    required this.rc,
   });
 
   @override
@@ -86,7 +88,7 @@ class _RCManageSectionState extends State<RCManageSection> {
         .collection('students')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .where('sectionid', isEqualTo: sectionid)
-        .where('schoolid', isEqualTo: widget.schoolId)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
         .map((snapshot) {
@@ -127,7 +129,7 @@ class _RCManageSectionState extends State<RCManageSection> {
     return _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
-        .where('schoolid', isEqualTo: widget.schoolId)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
         .snapshots()
         .map(
           (snap) =>
@@ -489,6 +491,33 @@ class _RCManageSectionState extends State<RCManageSection> {
           ),
           const SizedBox(width: 12),
           _buildResultToggle(),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CompareSection(
+                    rc: widget.rc,
+                    schoolYear: widget.schoolyear,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.compare_arrows, size: 16),
+            label: const Text('Compare Sections'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.primaryColor,
+              side: const BorderSide(color: AppTheme.borderColor),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -620,7 +649,7 @@ class _RCManageSectionState extends State<RCManageSection> {
                         builder: (_) => RCManageStudentScreen(
                           section: section,
                           schoolyear: widget.schoolyear,
-                          schoolId: widget.schoolId,
+                          rc: widget.rc,
                         ),
                       ),
                     );

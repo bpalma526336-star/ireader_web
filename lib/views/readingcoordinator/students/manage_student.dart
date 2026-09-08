@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -10,15 +11,15 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
 
 class RCManageStudentScreen extends StatefulWidget {
-  final String schoolId;
   final SchoolYear schoolyear;
   final Section section;
+  final RC rc;
 
   const RCManageStudentScreen({
     super.key,
     required this.section,
     required this.schoolyear,
-    required this.schoolId,
+    required this.rc,
   });
 
   @override
@@ -488,7 +489,7 @@ class _RCManageStudentScreenState extends State<RCManageStudentScreen> {
             .collection('students')
             .where('sectionid', isEqualTo: widget.section.id)
             .where('schoolyearid', isEqualTo: widget.schoolyear.id)
-            .where('schoolid', isEqualTo: widget.schoolId)
+            .where('schoolid', isEqualTo: widget.rc.schoolid)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

@@ -10,10 +10,9 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
 
 class RCDashboard extends StatefulWidget {
-  final RC? rc;
-  final String schoolId;
+  final RC rc;
 
-  const RCDashboard({super.key, this.rc, required this.schoolId});
+  const RCDashboard({super.key, required this.rc});
 
   @override
   State<RCDashboard> createState() => _RCDashboardState();
@@ -97,7 +96,7 @@ class _RCDashboardState extends State<RCDashboard> {
   Future<List<SchoolYear>> _loadDivisionSchoolYears() async {
     final schoolSnapshot = await _firestore
         .collection('schools')
-        .doc(widget.schoolId)
+        .doc(widget.rc.schoolid)
         .get();
     if (!schoolSnapshot.exists) return [];
     final schoolYearIds =
@@ -122,7 +121,7 @@ class _RCDashboardState extends State<RCDashboard> {
   Stream<List<SchoolYear>> _fetchSchoolYears() {
     return _firestore
         .collection('schools')
-        .doc(widget.schoolId)
+        .doc(widget.rc.schoolid)
         .snapshots()
         .asyncMap((_) => _loadDivisionSchoolYears());
   }
@@ -165,7 +164,7 @@ class _RCDashboardState extends State<RCDashboard> {
     Query<Map<String, dynamic>> studentsQuery = _firestore
         .collection('students')
         .where('schoolyearid', isEqualTo: schoolyearId)
-        .where('schoolid', isEqualTo: _activeRc?.schoolid ?? widget.schoolId)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
         .where('status', isEqualTo: 'ACTIVE');
 
     studentsQuery = studentsQuery.where('divisionid', isEqualTo: divisionId);
@@ -1762,19 +1761,13 @@ class _RCDashboardState extends State<RCDashboard> {
       drawer: isDesktop
           ? null
           : Drawer(
-              child: RCSidebar(
-                activeRoute: RCRoute.dashboard,
-                schoolId: widget.schoolId,
-              ),
+              child: RCSidebar(activeRoute: RCRoute.dashboard, rc: widget.rc),
             ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (isDesktop)
-            RCSidebar(
-              activeRoute: RCRoute.dashboard,
-              schoolId: widget.schoolId,
-            ),
+            RCSidebar(activeRoute: RCRoute.dashboard, rc: widget.rc),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

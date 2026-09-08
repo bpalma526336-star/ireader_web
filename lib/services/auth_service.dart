@@ -13,26 +13,21 @@ class AuthSession {
   final UserRole role;
   final Teacher? teacher;
   final SchoolYear? schoolYear;
-  final String? schoolId;
   final RC? rc;
 
   const AuthSession.admin()
     : role = UserRole.admin,
       teacher = null,
       schoolYear = null,
-      schoolId = null,
       rc = null;
 
-  const AuthSession.readingCoordinator({
-    required this.rc,
-    required this.schoolId,
-  }) : role = UserRole.readingCoordinator,
-       teacher = null,
-       schoolYear = null;
+  const AuthSession.readingCoordinator({required this.rc})
+    : role = UserRole.readingCoordinator,
+      teacher = null,
+      schoolYear = null;
 
   const AuthSession.teacher({required this.teacher, required this.schoolYear})
     : role = UserRole.teacher,
-      schoolId = null,
       rc = null;
 }
 
@@ -156,12 +151,11 @@ class AuthService {
         throw Exception('Account inactive.');
       }
       final rc = RC.fromMap(rcDoc.id, rcDoc.data());
-      final schoolId = rc.schoolid;
-      if (schoolId == null || schoolId.isEmpty) {
+      if (rc.schoolid == null || rc.schoolid!.isEmpty) {
         await _auth.signOut();
         throw Exception('Reading coordinator school not found.');
       }
-      return AuthSession.readingCoordinator(schoolId: schoolId, rc: rc);
+      return AuthSession.readingCoordinator(rc: rc);
     }
 
     await _auth.signOut();

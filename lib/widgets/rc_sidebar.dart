@@ -3,6 +3,7 @@ import 'dart:html' as html;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/auth/login.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/views/readingcoordinator/rcdashboard.dart';
 import 'package:ireader_web/views/readingcoordinator/schoolyears/manage_schoolyear.dart';
 
@@ -10,13 +11,9 @@ enum RCRoute { dashboard, schoolYears }
 
 class RCSidebar extends StatelessWidget {
   final RCRoute activeRoute;
-  final String schoolId;
+  final RC rc;
 
-  const RCSidebar({
-    super.key,
-    required this.activeRoute,
-    required this.schoolId,
-  });
+  const RCSidebar({super.key, required this.activeRoute, required this.rc});
 
   static const Color _bg = Color(0xFF0F172A);
   static const Color _activeBg = Color(0xFF1E293B);
@@ -123,14 +120,14 @@ class RCSidebar extends StatelessWidget {
             'D',
             'Dashboard',
             RCRoute.dashboard,
-            RCDashboard(schoolId: schoolId),
+            RCDashboard(rc: rc),
           ),
           _navItem(
             context,
             'Y',
             'School Years',
             RCRoute.schoolYears,
-            RCManageSchoolyearScreen(schoolId: schoolId),
+            RCManageSchoolyearScreen(rc: rc),
           ),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),

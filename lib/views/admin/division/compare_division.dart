@@ -573,8 +573,10 @@ class _CompareDivisionState extends State<CompareDivision> {
                 final isB = division.id == _selectedDivisionId2;
                 return DataRow(
                   color: WidgetStateProperty.resolveWith<Color?>((states) {
-                    if (isA) return AppTheme.primaryColor.withValues(alpha: 0.08);
-                    if (isB) return const Color(0xFF3B82F6).withValues(alpha: 0.08);
+                    if (isA)
+                      return AppTheme.primaryColor.withValues(alpha: 0.08);
+                    if (isB)
+                      return const Color(0xFF3B82F6).withValues(alpha: 0.08);
                     return null;
                   }),
                   cells: [
@@ -585,7 +587,9 @@ class _CompareDivisionState extends State<CompareDivision> {
                           Text(
                             division.name,
                             style: TextStyle(
-                              fontWeight: (isA || isB) ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: (isA || isB)
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               color: isA
                                   ? AppTheme.primaryColor
                                   : isB
@@ -601,7 +605,9 @@ class _CompareDivisionState extends State<CompareDivision> {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.12,
+                                ),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
@@ -622,7 +628,9 @@ class _CompareDivisionState extends State<CompareDivision> {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                                color: const Color(
+                                  0xFF3B82F6,
+                                ).withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
@@ -717,7 +725,10 @@ class _CompareDivisionState extends State<CompareDivision> {
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           border: Border(
-                            left: BorderSide(color: AppTheme.primaryColor, width: 4),
+                            left: BorderSide(
+                              color: AppTheme.primaryColor,
+                              width: 4,
+                            ),
                             right: BorderSide(color: AppTheme.borderColor),
                             top: BorderSide(color: AppTheme.borderColor),
                             bottom: BorderSide(color: AppTheme.borderColor),
@@ -727,234 +738,281 @@ class _CompareDivisionState extends State<CompareDivision> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(
-                                Icons.tune,
-                                size: 14,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Comparison Settings',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isNarrow = constraints.maxWidth < 700;
-                            final schoolYearDd = _dropdown<String>(
-                              value: _selectedSchoolYearId,
-                              hint: 'School year',
-                              items: _schoolYears
-                                  .map(
-                                    (year) => DropdownMenuItem(
-                                      value: year.id,
-                                      child: Text(
-                                        '${year.schoolyearstart}–${year.schoolyearend}',
-                                        style: const TextStyle(fontSize: 13),
-                                      ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.1,
                                     ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedSchoolYearId = value),
-                            );
-                            final divADd = _dropdown<String>(
-                              value: _selectedDivisionId,
-                              hint: 'Division A',
-                              items: _divisions
-                                  .map(
-                                    (division) => DropdownMenuItem(
-                                      value: division.id,
-                                      child: Text(division.name, style: const TextStyle(fontSize: 13)),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedDivisionId = value),
-                            );
-                            final vsBadge = Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: AppTheme.borderColor),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(
+                                    Icons.tune,
+                                    size: 14,
+                                    color: AppTheme.primaryColor,
+                                  ),
                                 ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'vs',
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Comparison Settings',
                                   style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppTheme.textSecondaryColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimaryColor,
                                   ),
                                 ),
-                              ),
-                            );
-                            final divBDd = _dropdown<String>(
-                              value: _selectedDivisionId2,
-                              hint: 'Division B',
-                              items: _divisions
-                                  .map(
-                                    (division) => DropdownMenuItem(
-                                      value: division.id,
-                                      child: Text(division.name, style: const TextStyle(fontSize: 13)),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedDivisionId2 = value),
-                            );
-                            final compareBtn = SizedBox(
-                              height: 42,
-                              child: ElevatedButton(
-                                onPressed: canCompare ? _runComparison : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: _comparing
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isNarrow = constraints.maxWidth < 700;
+                                final schoolYearDd = _dropdown<String>(
+                                  value: _selectedSchoolYearId,
+                                  hint: 'School year',
+                                  items: _schoolYears
+                                      .map(
+                                        (year) => DropdownMenuItem(
+                                          value: year.id,
+                                          child: Text(
+                                            '${year.schoolyearstart}–${year.schoolyearend}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
                                         ),
                                       )
-                                    : const Text(
-                                        'Compare',
-                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                      ),
-                              ),
-                            );
-
-                            if (isNarrow) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  schoolYearDd,
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Expanded(child: divADd),
-                                      vsBadge,
-                                      Expanded(child: divBDd),
-                                    ],
+                                      .toList(),
+                                  onChanged: (value) => setState(
+                                    () => _selectedSchoolYearId = value,
                                   ),
-                                  const SizedBox(height: 8),
-                                  compareBtn,
-                                ],
-                              );
-                            }
-                            return Row(
-                              children: [
-                                Expanded(child: schoolYearDd),
-                                const SizedBox(width: 8),
-                                Expanded(child: divADd),
-                                vsBadge,
-                                Expanded(child: divBDd),
-                                const SizedBox(width: 8),
-                                compareBtn,
-                              ],
-                            );
-                          },
-                        ),
-                        if (_selectedDivisionId == _selectedDivisionId2 &&
-                            _selectedDivisionId != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline, size: 12, color: Colors.red.shade400),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Please select two different divisions.',
-                                  style: TextStyle(fontSize: 11, color: Colors.red.shade400),
-                                ),
-                              ],
-                            ),
-                          ),
-                        const SizedBox(height: 14),
-                        const Divider(height: 1),
-                        const SizedBox(height: 14),
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: AppTheme.borderColor),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: _comparisonTypes.map((type) {
-                                final selected = _selectedType == type;
-                                return GestureDetector(
-                                  onTap: selected
-                                      ? null
-                                      : () async {
-                                          setState(() => _selectedType = type);
-                                          await _runComparison();
-                                          if (!mounted) return;
-                                        },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 180),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 18,
-                                    ),
+                                );
+                                final divADd = _dropdown<String>(
+                                  value: _selectedDivisionId,
+                                  hint: 'Division A',
+                                  items: _divisions
+                                      .map(
+                                        (division) => DropdownMenuItem(
+                                          value: division.id,
+                                          child: Text(
+                                            division.name,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) => setState(
+                                    () => _selectedDivisionId = value,
+                                  ),
+                                );
+                                final vsBadge = Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
                                     decoration: BoxDecoration(
-                                      color: selected
-                                          ? AppTheme.primaryColor
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(30),
-                                      boxShadow: selected
-                                          ? [
-                                              BoxShadow(
-                                                color: AppTheme.primaryColor.withValues(alpha: 0.25),
-                                                blurRadius: 6,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : [],
+                                      color: Colors.grey.shade100,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppTheme.borderColor,
+                                      ),
                                     ),
-                                    child: Text(
-                                      type,
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      'vs',
                                       style: TextStyle(
-                                        color: selected
-                                            ? Colors.white
-                                            : AppTheme.textSecondaryColor,
-                                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                        fontSize: 12,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.textSecondaryColor,
                                       ),
                                     ),
                                   ),
                                 );
-                              }).toList(),
+                                final divBDd = _dropdown<String>(
+                                  value: _selectedDivisionId2,
+                                  hint: 'Division B',
+                                  items: _divisions
+                                      .map(
+                                        (division) => DropdownMenuItem(
+                                          value: division.id,
+                                          child: Text(
+                                            division.name,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) => setState(
+                                    () => _selectedDivisionId2 = value,
+                                  ),
+                                );
+                                final compareBtn = SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    onPressed: canCompare
+                                        ? _runComparison
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: _comparing
+                                        ? const SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Compare',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                  ),
+                                );
+
+                                if (isNarrow) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      schoolYearDd,
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Expanded(child: divADd),
+                                          vsBadge,
+                                          Expanded(child: divBDd),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      compareBtn,
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    Expanded(child: schoolYearDd),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: divADd),
+                                    vsBadge,
+                                    Expanded(child: divBDd),
+                                    const SizedBox(width: 8),
+                                    compareBtn,
+                                  ],
+                                );
+                              },
                             ),
-                          ),
-                        ),
+                            if (_selectedDivisionId == _selectedDivisionId2 &&
+                                _selectedDivisionId != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 12,
+                                      color: Colors.red.shade400,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Please select two different divisions.',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.red.shade400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 14),
+                            const Divider(height: 1),
+                            const SizedBox(height: 14),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color: AppTheme.borderColor,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: _comparisonTypes.map((type) {
+                                    final selected = _selectedType == type;
+                                    return GestureDetector(
+                                      onTap: selected
+                                          ? null
+                                          : () async {
+                                              setState(
+                                                () => _selectedType = type,
+                                              );
+                                              await _runComparison();
+                                              if (!mounted) return;
+                                            },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                          horizontal: 18,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: selected
+                                              ? AppTheme.primaryColor
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                          boxShadow: selected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: AppTheme.primaryColor
+                                                        .withValues(
+                                                          alpha: 0.25,
+                                                        ),
+                                                    blurRadius: 6,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ]
+                                              : [],
+                                        ),
+                                        child: Text(
+                                          type,
+                                          style: TextStyle(
+                                            color: selected
+                                                ? Colors.white
+                                                : AppTheme.textSecondaryColor,
+                                            fontWeight: selected
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -994,9 +1052,14 @@ class _CompareDivisionState extends State<CompareDivision> {
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -1015,11 +1078,19 @@ class _CompareDivisionState extends State<CompareDivision> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (division1 != null)
-                                _divisionCard(division1, AppTheme.primaryColor, label: 'A'),
+                                _divisionCard(
+                                  division1,
+                                  AppTheme.primaryColor,
+                                  label: 'A',
+                                ),
                               if (division1 != null && division2 != null)
                                 const SizedBox(width: 12),
                               if (division2 != null)
-                                _divisionCard(division2, const Color(0xFF3B82F6), label: 'B'),
+                                _divisionCard(
+                                  division2,
+                                  const Color(0xFF3B82F6),
+                                  label: 'B',
+                                ),
                             ],
                           ),
                         ],
@@ -1027,77 +1098,106 @@ class _CompareDivisionState extends State<CompareDivision> {
                     ),
                   const SizedBox(height: 16),
 
-                  // ── Chart ───────────────────────────────────────────────
-                  if (_chartUrl != null)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.borderColor),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.bar_chart_rounded,
-                                size: 16,
-                                color: AppTheme.primaryColor,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Reading Level Comparison by Division',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Image.network(
-                            _chartUrl!,
-                            fit: BoxFit.contain,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const SizedBox(
-                                height: 200,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppTheme.primaryColor,
+                  // ── Dashboard: summary left, chart right ────────────────
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final chartCard = _chartUrl == null
+                          ? const SizedBox.shrink()
+                          : Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppTheme.borderColor),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
                                   ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox(
-                                  height: 140,
-                                  child: Center(
-                                    child: Text(
-                                      'Unable to load chart.',
-                                      style: TextStyle(fontSize: 13),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.bar_chart_rounded,
+                                        size: 16,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Expanded(
+                                        child: Text(
+                                          'Reading Level Comparison by Division',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.textPrimaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    height: 260,
+                                    child: Image.network(
+                                      _chartUrl!,
+                                      width: double.infinity,
+                                      fit: BoxFit.contain,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return const Center(
+                                              child: CircularProgressIndicator(
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Center(
+                                                child: Text(
+                                                  'Unable to load chart.',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
                                     ),
                                   ),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            );
 
-                  // ── Summary Table ───────────────────────────────────────
-                  _summaryTable(),
+                      if (constraints.maxWidth < 800) {
+                        return Column(
+                          children: [
+                            _summaryTable(),
+                            if (_chartUrl != null) ...[
+                              const SizedBox(height: 16),
+                              chartCard,
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 1, child: _summaryTable()),
+                          if (_chartUrl != null) ...[
+                            const SizedBox(width: 16),
+                            Expanded(flex: 2, child: chartCard),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
