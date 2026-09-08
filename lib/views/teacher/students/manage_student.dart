@@ -438,6 +438,7 @@ class _TeacherManageStudentScreenState
                             section: widget.section,
                             schoolyear: widget.schoolyear,
                             student: student,
+                            teacher: widget.teacher,
                           ),
                         ),
                       );
@@ -451,6 +452,7 @@ class _TeacherManageStudentScreenState
                               section: widget.section,
                               schoolyear: widget.schoolyear,
                               student: student,
+                              teacher: widget.teacher,
                             ),
                           ),
                         ),

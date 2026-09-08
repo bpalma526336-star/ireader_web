@@ -6,6 +6,7 @@ import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/student/add_student.dart';
 import 'package:ireader_web/views/admin/student/add_student_dialog.dart';
@@ -151,13 +152,33 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
       ..click();
   }
 
-  void _openImportStudents() {
+  Future<void> _openImportStudents() async {
+    final teacherSnapshot = await firestore
+        .collection('teachers')
+        .doc(widget.section.teacherid)
+        .get();
+
+    if (!mounted) return;
+
+    if (!teacherSnapshot.exists || teacherSnapshot.data() == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to find the section teacher.')),
+      );
+      return;
+    }
+
+    final teacher = Teacher.fromMap(
+      teacherSnapshot.id,
+      teacherSnapshot.data()!,
+    );
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => ImportStudentsDialog(
         section: widget.section,
         schoolyear: widget.schoolyear,
+        teacher: teacher,
       ),
     );
   }
