@@ -109,7 +109,7 @@ CompInsights buildInsights(
 
   for (int i = 0; i < scores.length; i++) {
     if (scores[i] < highest) {
-      if (lowest == null || scores[i] < lowest!) {
+      if (lowest == null || scores[i] < lowest) {
         lowest = scores[i];
         lowestIndex = i;
       }
@@ -429,7 +429,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.14),
+                    color: badgeColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

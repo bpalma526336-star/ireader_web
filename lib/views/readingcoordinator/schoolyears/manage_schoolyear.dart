@@ -66,9 +66,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
       final level = _selectedReadType == "Overall Result"
           ? (data['readlevel'] ?? '')
           : (data['comprehensionresult'] ?? '');
-      if (level == 'Frustration')
+      if (level == 'Frustration') {
         frustration++;
-      else if (level == 'Instructional')
+      } else if (level == 'Instructional')
         instructional++;
       else if (level == 'Independent')
         independent++;
@@ -86,8 +86,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
     final independent = counts['Independent'] ?? 0;
     final total = frustration + instructional + independent;
 
-    if (total == 0)
+    if (total == 0) {
       return "No $_selectedReadType data recorded for this school year.";
+    }
 
     final frustPct = ((frustration / total) * 100).round();
     final instrPct = ((instructional / total) * 100).round();

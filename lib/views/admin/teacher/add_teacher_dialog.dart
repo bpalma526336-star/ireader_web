@@ -272,7 +272,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                 _loadingSchools
                     ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
                     : DropdownButtonFormField<String>(
-                        value: _selectedSchoolId,
+                        initialValue: _selectedSchoolId,
                         decoration: const InputDecoration(
                           labelText: 'School (Optional)',
                           prefixIcon: Icon(Icons.school_outlined),

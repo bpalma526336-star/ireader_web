@@ -161,7 +161,7 @@ class _MigrateSchoolDialogState extends State<MigrateSchoolDialog> {
                 )
               else ...[
                 DropdownButtonFormField<String>(
-                  value: _selectedSchoolId,
+                  initialValue: _selectedSchoolId,
                   decoration: const InputDecoration(
                     labelText: 'Target School',
                     prefixIcon: Icon(Icons.school_outlined),

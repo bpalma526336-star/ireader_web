@@ -708,8 +708,9 @@ class _RCDashboardState extends State<RCDashboard> {
                 _selectedReadType = type;
                 _loadingAnalysis = true;
               });
-              if (_selectedRangeYears.isNotEmpty)
+              if (_selectedRangeYears.isNotEmpty) {
                 await _analyzeRange(_selectedRangeYears);
+              }
               if (mounted) setState(() => _loadingAnalysis = false);
             },
             child: AnimatedContainer(
@@ -1790,8 +1791,9 @@ class _RCDashboardState extends State<RCDashboard> {
                                     ),
                                     onPressed: () async {
                                       if (_startYear == null ||
-                                          _endYear == null)
+                                          _endYear == null) {
                                         return;
+                                      }
                                       final startVal =
                                           int.tryParse(
                                             _startYear!.schoolyearstart,

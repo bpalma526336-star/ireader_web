@@ -503,7 +503,7 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                         _labelledField(
                           label: "Test Type",
                           field: DropdownButtonFormField<String>(
-                            value: _selectedTestType,
+                            initialValue: _selectedTestType,
                             decoration: _inputDecoration(
                               hint: "Select test type (optional)",
                             ),

@@ -168,7 +168,7 @@ class _AddSchoolDialogState extends State<AddSchoolDialog> {
                 _loadingDivisions
                     ? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
                     : DropdownButtonFormField<String>(
-                        value: _selectedDivisionId,
+                        initialValue: _selectedDivisionId,
                         decoration: const InputDecoration(
                           labelText: 'Division',
                           prefixIcon: Icon(Icons.account_tree_outlined),

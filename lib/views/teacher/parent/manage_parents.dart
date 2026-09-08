@@ -5,7 +5,6 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/parent/add_parent.dart';
-import 'package:ireader_web/views/teacher/parent/add_parent_dialog.dart';
 import 'package:ireader_web/views/teacher/parent/view_students.dart';
 import 'package:ireader_web/widgets/teacher_sidebar.dart';
 import 'package:ireader_web/widgets/teacher_top_header.dart';

@@ -298,7 +298,7 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
             ),
             SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedTestType,
+              initialValue: _selectedTestType,
               items: [
                 const DropdownMenuItem(value: null, child: Text('— No type —')),
                 ...testTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))),

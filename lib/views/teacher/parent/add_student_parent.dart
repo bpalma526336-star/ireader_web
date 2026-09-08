@@ -64,11 +64,11 @@ class _AddParentStudentState extends State<AddParentStudent> {
       ]);
 
       final studentsSnapshot =
-          results[0] as QuerySnapshot<Map<String, dynamic>>;
+          results[0];
       final sectionsSnapshot =
-          results[1] as QuerySnapshot<Map<String, dynamic>>;
+          results[1];
       final schoolYearsSnapshot =
-          results[2] as QuerySnapshot<Map<String, dynamic>>;
+          results[2];
 
       final students = studentsSnapshot.docs.map((doc) {
         return Student.fromMap(doc.id, doc.data());
@@ -322,7 +322,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final sectionFilter = DropdownButtonFormField<String>(
-                        value: _selectedSectionId,
+                        initialValue: _selectedSectionId,
                         onChanged: _selectedSchoolYearId == null
                             ? null
                             : (value) {
@@ -358,7 +358,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                         ],
                       );
                       final schoolYearFilter = DropdownButtonFormField<String>(
-                        value: _selectedSchoolYearId,
+                        initialValue: _selectedSchoolYearId,
                         decoration: const InputDecoration(
                           labelText: 'Filter by school year',
                           border: OutlineInputBorder(),
@@ -481,7 +481,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
           // Student dropdown
           Expanded(
             child: DropdownButtonFormField<String>(
-              value: selectedId,
+              initialValue: selectedId,
               onChanged: _selectedSectionId == null
                   ? null
                   : (value) => _changeStudent(index, value),

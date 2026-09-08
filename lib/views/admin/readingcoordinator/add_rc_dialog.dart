@@ -268,7 +268,7 @@ class _AddRcDialogState extends State<AddRcDialog> {
                 _loadingDivisions
                     ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
                     : DropdownButtonFormField<String>(
-                        value: _selectedDivisionId,
+                        initialValue: _selectedDivisionId,
                         decoration: const InputDecoration(
                           labelText: 'Division (Optional)',
                           prefixIcon: Icon(Icons.account_tree_outlined),

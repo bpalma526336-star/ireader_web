@@ -224,8 +224,9 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
           final isSelected = _selectedReadType == type;
           return GestureDetector(
             onTap: () {
-              if (_selectedReadType != type)
+              if (_selectedReadType != type) {
                 setState(() => _selectedReadType = type);
+              }
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -323,8 +324,9 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                             .doc(section.schoolyearid)
                             .get(),
                         builder: (context, sySnap) {
-                          if (!sySnap.hasData || !sySnap.data!.exists)
+                          if (!sySnap.hasData || !sySnap.data!.exists) {
                             return const SizedBox.shrink();
+                          }
                           final sy =
                               sySnap.data!.data() as Map<String, dynamic>;
                           return Text(
