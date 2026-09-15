@@ -252,33 +252,33 @@ class _ManageSchoolScreenState extends State<ManageSchoolScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          // SizedBox(
-          //   height: 38,
-          //   child: OutlinedButton.icon(
-          //     onPressed: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (_) => CompareSchool(division: widget.division),
-          //         ),
-          //       );
-          //     },
-          //     icon: const Icon(Icons.compare_arrows, size: 16),
-          //     label: const Text('Compare Division'),
-          //     style: OutlinedButton.styleFrom(
-          //       foregroundColor: AppTheme.textPrimaryColor,
-          //       side: const BorderSide(color: AppTheme.borderColor),
-          //       padding: const EdgeInsets.symmetric(horizontal: 14),
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(8),
-          //       ),
-          //       textStyle: const TextStyle(
-          //         fontSize: 13,
-          //         fontWeight: FontWeight.w600,
-          //       ),
-          //     ),
-          //   ),
-          // ),
+          SizedBox(
+            height: 38,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CompareSchool(division: widget.division),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.compare_arrows, size: 16),
+              label: const Text('Compare Schools'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.textPrimaryColor,
+                side: const BorderSide(color: AppTheme.borderColor),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

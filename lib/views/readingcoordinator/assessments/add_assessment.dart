@@ -3,16 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
 import 'package:ireader_web/model/assessmentcontent.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddAssessmentScreen extends StatefulWidget {
   final SchoolYear schoolyear;
   final String? schoolyearid;
+  final RC rc;
   const AddAssessmentScreen({
     super.key,
     required this.schoolyear,
     required this.schoolyearid,
+    required this.rc,
   });
 
   @override
@@ -153,6 +156,8 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
             isEqualTo: _assessmenttitlecontroller.text.trim(),
           )
           .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+          .where('divisionid', isEqualTo: widget.rc.divisionid)
+          .where('schoolid', isEqualTo: widget.rc.schoolid)
           .get();
 
       if (assessmentexist.docs.isNotEmpty) {
@@ -198,6 +203,8 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
         Assessment(
           id: docRef.id,
           schoolyearid: widget.schoolyear.id,
+          divisionid: widget.rc.divisionid,
+          schoolid: widget.rc.schoolid,
           assessmenttitle: _assessmenttitlecontroller.text.trim(),
           visibility: _visibilityController.text.trim(),
           timelimit: int.tryParse(_timelimit.text.trim()) ?? 0,

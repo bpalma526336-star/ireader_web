@@ -3,11 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
 import 'package:ireader_web/model/assessmentcontent.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/theme.dart';
 
 class EditAssessmentScreen extends StatefulWidget {
   final Assessment assessment;
-  const EditAssessmentScreen({super.key, required this.assessment});
+  final RC rc;
+  const EditAssessmentScreen({
+    super.key,
+    required this.assessment,
+    required this.rc,
+  });
 
   @override
   State<EditAssessmentScreen> createState() => _EditAssessmentScreenState();
@@ -128,6 +134,8 @@ class _EditAssessmentScreenState extends State<EditAssessmentScreen> {
           .toList();
 
       final updateQuiz = widget.assessment.copywith(
+        divisionid: widget.rc.divisionid,
+        schoolid: widget.rc.schoolid,
         assessmenttitle: selectedassessmenttitle,
         visibility: selectedvisibility,
         timelimit: int.tryParse(timelimitcontroller.text.trim()) ?? 0,

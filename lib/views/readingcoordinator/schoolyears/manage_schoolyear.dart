@@ -1373,6 +1373,7 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
                                                         ManageAssessment(
                                                           schoolyear:
                                                               schoolyear,
+                                                          rc: widget.rc,
                                                         ),
                                                   ),
                                                 ),

@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
+import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/readingcoordinator/assessments/add_assessment.dart';
 import 'package:ireader_web/views/readingcoordinator/assessments/edit_assessment.dart';
 
 class ManageAssessment extends StatefulWidget {
+  final RC rc;
   final SchoolYear schoolyear;
-  const ManageAssessment({super.key, required this.schoolyear});
+  const ManageAssessment({
+    super.key,
+    required this.schoolyear,
+    required this.rc,
+  });
 
   @override
   State<ManageAssessment> createState() => _ManageAssessmentState();
@@ -21,6 +27,8 @@ class _ManageAssessmentState extends State<ManageAssessment> {
     return _firestore
         .collection('assessment')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('divisionid', isEqualTo: widget.rc.divisionid)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
         .snapshots();
   }
 
@@ -68,6 +76,7 @@ class _ManageAssessmentState extends State<ManageAssessment> {
                           builder: (context) => AddAssessmentScreen(
                             schoolyear: widget.schoolyear,
                             schoolyearid: widget.schoolyear.id,
+                            rc: widget.rc,
                           ),
                         ),
                       );
@@ -91,6 +100,7 @@ class _ManageAssessmentState extends State<ManageAssessment> {
                           builder: (context) => AddAssessmentScreen(
                             schoolyear: widget.schoolyear,
                             schoolyearid: widget.schoolyear.id,
+                            rc: widget.rc,
                           ),
                         ),
                       );
@@ -271,6 +281,7 @@ class _ManageAssessmentState extends State<ManageAssessment> {
                                               builder: (context) =>
                                                   EditAssessmentScreen(
                                                     assessment: assessment,
+                                                    rc: widget.rc,
                                                   ),
                                             ),
                                           );
@@ -364,7 +375,8 @@ class _ManageAssessmentState extends State<ManageAssessment> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EditAssessmentScreen(assessment: assessment),
+          builder: (context) =>
+              EditAssessmentScreen(assessment: assessment, rc: widget.rc),
         ),
       );
     } else if (value == 'delete') {
