@@ -2,11 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/assessment.dart';
 import 'package:ireader_web/model/schoolyear.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class ViewAssessment extends StatefulWidget {
   final SchoolYear schoolyear;
-  const ViewAssessment({super.key, required this.schoolyear});
+  final Teacher teacher;
+  const ViewAssessment({
+    super.key,
+    required this.schoolyear,
+    required this.teacher,
+  });
 
   @override
   State<ViewAssessment> createState() => _ViewAssessmentState();
@@ -19,6 +25,8 @@ class _ViewAssessmentState extends State<ViewAssessment> {
     return _firestore
         .collection('assessment')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.teacher.schoolid)
+        .where('divisionid', isEqualTo: widget.teacher.divisionid)
         .snapshots();
   }
 

@@ -11,7 +11,7 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/student/add_student.dart';
 import 'package:ireader_web/views/admin/student/add_student_dialog.dart';
 import 'package:ireader_web/views/admin/student/student_profile.dart';
-import 'package:ireader_web/shared/import_students_dialog.dart';
+import 'package:ireader_web/shared/import_students_dialog_admin.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
 
@@ -167,18 +167,19 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
       return;
     }
 
-    final teacher = Teacher.fromMap(
-      teacherSnapshot.id,
-      teacherSnapshot.data()!,
-    );
+    // final teacher = Teacher.fromMap(
+    //   teacherSnapshot.id,
+    //   teacherSnapshot.data()!,
+    // );
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => ImportStudentsDialog(
+      builder: (_) => ImportStudentsDialogAdmin(
         section: widget.section,
         schoolyear: widget.schoolyear,
-        teacher: teacher,
+        school: widget.school,
+        division: widget.division,
       ),
     );
   }

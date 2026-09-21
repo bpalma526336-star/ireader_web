@@ -616,7 +616,10 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ViewAssessment(schoolyear: correctSchoolYear),
+            builder: (context) => ViewAssessment(
+              schoolyear: correctSchoolYear,
+              teacher: widget.teacher,
+            ),
           ),
         );
       },

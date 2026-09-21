@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
+import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/student.dart';
@@ -42,12 +44,14 @@ class _ParsedRow {
 class ImportStudentsDialogAdmin extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
-  final Teacher teacher;
+  final School school;
+  final Division division;
   const ImportStudentsDialogAdmin({
     super.key,
     required this.section,
     required this.schoolyear,
-    required this.teacher,
+    required this.school,
+    required this.division,
   });
 
   @override
@@ -184,8 +188,8 @@ class _ImportStudentsDialogAdminState extends State<ImportStudentsDialogAdmin> {
             .where('lrn', isEqualTo: row.lrn)
             .where('schoolyearid', isEqualTo: widget.schoolyear.id)
             .where('sectionid', isEqualTo: widget.section.id)
-            .where('divisionid', isEqualTo: widget.teacher.divisionid)
-            .where('schoolid', isEqualTo: widget.teacher.schoolid)
+            .where('divisionid', isEqualTo: widget.division.id)
+            .where('schoolid', isEqualTo: widget.school.id)
             .get();
 
         if (existing.docs.isNotEmpty) {
@@ -213,8 +217,8 @@ class _ImportStudentsDialogAdminState extends State<ImportStudentsDialogAdmin> {
                 readingresult: 'Not Started',
                 comprehensionresult: 'Not Started',
                 status: 'ACTIVE',
-                schoolid: widget.teacher.schoolid,
-                divisionid: widget.teacher.divisionid,
+                schoolid: widget.school.id,
+                divisionid: widget.division.id,
               ).toMap(),
             );
         imported++;
