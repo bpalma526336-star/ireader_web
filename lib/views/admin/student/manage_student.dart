@@ -66,91 +66,91 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
     }
   }
 
-  Future<void> exportStudents() async {
-    final Workbook workbook = Workbook();
-    final Worksheet sheet = workbook.worksheets[0];
-    const String lastCol = 'D';
+  // Future<void> exportStudents() async {
+  //   final Workbook workbook = Workbook();
+  //   final Worksheet sheet = workbook.worksheets[0];
+  //   const String lastCol = 'D';
 
-    sheet.getRangeByName('A1:${lastCol}1').merge();
-    sheet.getRangeByName('A1').setText('STAGE 2 ADMISSION IN PHIL-IRI');
-    sheet.getRangeByName('A1').cellStyle
-      ..hAlign = HAlignType.center
-      ..vAlign = VAlignType.center
-      ..bold = true;
+  //   sheet.getRangeByName('A1:${lastCol}1').merge();
+  //   sheet.getRangeByName('A1').setText('STAGE 2 ADMISSION IN PHIL-IRI');
+  //   sheet.getRangeByName('A1').cellStyle
+  //     ..hAlign = HAlignType.center
+  //     ..vAlign = VAlignType.center
+  //     ..bold = true;
 
-    sheet.getRangeByName('A2:${lastCol}2').merge();
-    sheet
-        .getRangeByName('A2')
-        .setText(
-          'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
-        );
-    sheet.getRangeByName('A2').cellStyle
-      ..hAlign = HAlignType.center
-      ..vAlign = VAlignType.center;
+  //   sheet.getRangeByName('A2:${lastCol}2').merge();
+  //   sheet
+  //       .getRangeByName('A2')
+  //       .setText(
+  //         'School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}',
+  //       );
+  //   sheet.getRangeByName('A2').cellStyle
+  //     ..hAlign = HAlignType.center
+  //     ..vAlign = VAlignType.center;
 
-    sheet.getRangeByName('A3:${lastCol}3').merge();
-    sheet.getRangeByName('A3').setText('Teacher: $_teacherName');
-    sheet.getRangeByName('A3').cellStyle
-      ..hAlign = HAlignType.center
-      ..vAlign = VAlignType.center;
+  //   sheet.getRangeByName('A3:${lastCol}3').merge();
+  //   sheet.getRangeByName('A3').setText('Teacher: $_teacherName');
+  //   sheet.getRangeByName('A3').cellStyle
+  //     ..hAlign = HAlignType.center
+  //     ..vAlign = VAlignType.center;
 
-    sheet.getRangeByName('A4:${lastCol}4').merge();
-    sheet
-        .getRangeByName('A4')
-        .setText(
-          'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
-        );
-    sheet.getRangeByName('A4').cellStyle
-      ..hAlign = HAlignType.center
-      ..vAlign = VAlignType.center;
+  //   sheet.getRangeByName('A4:${lastCol}4').merge();
+  //   sheet
+  //       .getRangeByName('A4')
+  //       .setText(
+  //         'Students who will undergo Phil-IRI Oral Reading in English (Stage 2)',
+  //       );
+  //   sheet.getRangeByName('A4').cellStyle
+  //     ..hAlign = HAlignType.center
+  //     ..vAlign = VAlignType.center;
 
-    sheet.getRangeByName('A5').setText('NAME');
-    sheet.getRangeByName('B5').setText('GENDER');
-    sheet.getRangeByName('C5').setText('SCORE');
-    sheet.getRangeByName('D5').setText('START LEVEL OF GRADE PASSAGE');
-    sheet.getRangeByName('A5:${lastCol}5').cellStyle.bold = true;
+  //   sheet.getRangeByName('A5').setText('NAME');
+  //   sheet.getRangeByName('B5').setText('GENDER');
+  //   sheet.getRangeByName('C5').setText('SCORE');
+  //   sheet.getRangeByName('D5').setText('START LEVEL OF GRADE PASSAGE');
+  //   sheet.getRangeByName('A5:${lastCol}5').cellStyle.bold = true;
 
-    int rowIndex = 6;
+  //   int rowIndex = 6;
 
-    final snapshot = await FirebaseFirestore.instance
-        .collection('students')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
-        .get();
+  //   final snapshot = await FirebaseFirestore.instance
+  //       .collection('students')
+  //       .where('sectionid', isEqualTo: widget.section.id)
+  //       .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+  //       .get();
 
-    final students = snapshot.docs
-        .map((doc) => Student.fromMap(doc.id, doc.data()))
-        .toList();
+  //   final students = snapshot.docs
+  //       .map((doc) => Student.fromMap(doc.id, doc.data()))
+  //       .toList();
 
-    students.sort(
-      (a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()),
-    );
+  //   students.sort(
+  //     (a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()),
+  //   );
 
-    for (var student in students) {
-      sheet
-          .getRangeByName('A$rowIndex')
-          .setText(
-            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-          );
-      sheet.getRangeByName('B$rowIndex').setText(student.gender);
-      sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
-      sheet
-          .getRangeByName('D$rowIndex')
-          .setText(student.gradelevelread.toString());
-      rowIndex++;
-    }
+  //   for (var student in students) {
+  //     sheet
+  //         .getRangeByName('A$rowIndex')
+  //         .setText(
+  //           "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
+  //         );
+  //     sheet.getRangeByName('B$rowIndex').setText(student.gender);
+  //     sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
+  //     sheet
+  //         .getRangeByName('D$rowIndex')
+  //         .setText(student.gradelevelread.toString());
+  //     rowIndex++;
+  //   }
 
-    sheet.getRangeByName('A1:$lastCol$rowIndex').autoFitColumns();
+  //   sheet.getRangeByName('A1:$lastCol$rowIndex').autoFitColumns();
 
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
+  //   final List<int> bytes = workbook.saveAsStream();
+  //   workbook.dispose();
 
-    AnchorElement(
-        href: 'data:application/octet-stream;base64,${base64.encode(bytes)}',
-      )
-      ..setAttribute('download', 'Phil-IRI_Student_List(Stage_2).xlsx')
-      ..click();
-  }
+  //   AnchorElement(
+  //       href: 'data:application/octet-stream;base64,${base64.encode(bytes)}',
+  //     )
+  //     ..setAttribute('download', 'Phil-IRI_Student_List(Stage_2).xlsx')
+  //     ..click();
+  // }
 
   Future<void> _openImportStudents() async {
     final teacherSnapshot = await firestore
@@ -472,34 +472,34 @@ class _ManageStudentScreenState extends State<ManageStudentScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Export
-                InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  onTap: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      await exportStudents();
-                    } catch (e) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('Export failed: $e')),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.backgroundColor,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppTheme.borderColor),
-                    ),
-                    child: const Icon(
-                      Icons.file_download_outlined,
-                      size: 15,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ),
+                // const SizedBox(width: 8),
+                // // Export
+                // InkWell(
+                //   borderRadius: BorderRadius.circular(6),
+                //   onTap: () async {
+                //     final messenger = ScaffoldMessenger.of(context);
+                //     try {
+                //       await exportStudents();
+                //     } catch (e) {
+                //       messenger.showSnackBar(
+                //         SnackBar(content: Text('Export failed: $e')),
+                //       );
+                //     }
+                //   },
+                //   child: Container(
+                //     padding: const EdgeInsets.all(6),
+                //     decoration: BoxDecoration(
+                //       color: AppTheme.backgroundColor,
+                //       borderRadius: BorderRadius.circular(6),
+                //       border: Border.all(color: AppTheme.borderColor),
+                //     ),
+                //     child: const Icon(
+                //       Icons.file_download_outlined,
+                //       size: 15,
+                //       color: AppTheme.textSecondaryColor,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
