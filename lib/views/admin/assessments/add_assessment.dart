@@ -508,24 +508,24 @@ class _AddAssessmentScreenState extends State<AddAssessmentScreen> {
                         const SizedBox(height: 16),
 
                         // Test Type dropdown
-                        _labelledField(
-                          label: "Test Type",
-                          field: DropdownButtonFormField<String>(
-                            initialValue: _selectedTestType,
-                            decoration: _inputDecoration(
-                              hint: "Select test type (optional)",
-                            ),
-                            items: testTypes.map((t) {
-                              return DropdownMenuItem<String>(
-                                value: t,
-                                child: Text(t),
-                              );
-                            }).toList(),
-                            onChanged: (value) =>
-                                setState(() => _selectedTestType = value),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                        // _labelledField(
+                        //   label: "Test Type",
+                        //   field: DropdownButtonFormField<String>(
+                        //     initialValue: _selectedTestType,
+                        //     decoration: _inputDecoration(
+                        //       hint: "Select test type (optional)",
+                        //     ),
+                        //     items: testTypes.map((t) {
+                        //       return DropdownMenuItem<String>(
+                        //         value: t,
+                        //         child: Text(t),
+                        //       );
+                        //     }).toList(),
+                        //     onChanged: (value) =>
+                        //         setState(() => _selectedTestType = value),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 16),
 
                         // Date + Time Limit row
                         LayoutBuilder(
