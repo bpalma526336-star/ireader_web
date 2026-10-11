@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/readingcoordinator.dart';
 import 'package:ireader_web/model/school.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/student.dart';
 import 'package:ireader_web/theme.dart';
+import 'package:ireader_web/views/readingcoordinator/compare/compare_division.dart';
+import 'package:ireader_web/views/readingcoordinator/compare/compare_school.dart';
 import 'package:ireader_web/widgets/rc_sidebar.dart';
 
 class RCDashboard extends StatefulWidget {
@@ -145,6 +148,227 @@ class _RCDashboardState extends State<RCDashboard> {
     await _analyzeRange(years);
     setState(() => _loadingAnalysis = false);
   }
+
+  Future<void> _openSchoolComparison() async {
+    final divisionsFuture = _firestore.collection('divisions').get();
+
+    String? selectedDivisionId;
+
+    final division = await showDialog<Division>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Select Division'),
+              content: SizedBox(
+                width: 360,
+                child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  future: divisionsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                        height: 72,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Text(
+                        'Unable to load divisions: ${snapshot.error}',
+                      );
+                    }
+
+                    if (!snapshot.hasData) {
+                      return const Text('No divisions found.');
+                    }
+
+                    // Load active divisions and sort alphabetically.
+                    final divisions =
+                        snapshot.data!.docs
+                            .map((doc) => Division.fromMap(doc.id, doc.data()))
+                            .where(
+                              (division) =>
+                                  division.status.toUpperCase() == 'ACTIVE',
+                            )
+                            .toList()
+                          ..sort((a, b) => a.name.compareTo(b.name));
+
+                    if (divisions.isEmpty) {
+                      return const Text('No active divisions are available.');
+                    }
+
+                    // Use unique Firestore document IDs as values.
+                    // This avoids comparing Division objects directly.
+                    final validIds = divisions
+                        .map((division) => division.id)
+                        .toSet();
+
+                    final currentSelection =
+                        validIds.contains(selectedDivisionId)
+                        ? selectedDivisionId
+                        : null;
+
+                    return DropdownButtonFormField<String>(
+                      initialValue: currentSelection,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Division',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: divisions
+                          .map(
+                            (division) => DropdownMenuItem<String>(
+                              value: division.id,
+                              child: Text(
+                                division.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (id) {
+                        setDialogState(() {
+                          selectedDivisionId = id;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  future: divisionsFuture,
+                  builder: (context, snapshot) {
+                    final divisions =
+                        snapshot.data?.docs
+                            .map((doc) => Division.fromMap(doc.id, doc.data()))
+                            .where(
+                              (division) =>
+                                  division.status.toUpperCase() == 'ACTIVE',
+                            )
+                            .toList() ??
+                        <Division>[];
+
+                    final canCompare =
+                        snapshot.hasData &&
+                        !snapshot.hasError &&
+                        divisions.any((d) => d.id == selectedDivisionId);
+
+                    return FilledButton(
+                      onPressed: !canCompare
+                          ? null
+                          : () {
+                              final selectedDivision = divisions.firstWhere(
+                                (d) => d.id == selectedDivisionId,
+                              );
+
+                              Navigator.pop(dialogContext, selectedDivision);
+                            },
+                      child: const Text('Compare'),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || division == null) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CompareSchool(division: division)),
+    );
+  }
+
+  // Future<void> _openSchoolComparison() async {
+  //   final divisionsFuture = _firestore.collection('divisions').get();
+  //   Division? selectedDivision;
+  //   final division = await showDialog<Division>(
+  //     context: context,
+  //     builder: (dialogContext) => StatefulBuilder(
+  //       builder: (context, setDialogState) => AlertDialog(
+  //         title: const Text('Select Division'),
+  //         content: SizedBox(
+  //           width: 360,
+  //           child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+  //             future: divisionsFuture,
+  //             builder: (context, snapshot) {
+  //               if (snapshot.connectionState == ConnectionState.waiting) {
+  //                 return const SizedBox(
+  //                   height: 72,
+  //                   child: Center(child: CircularProgressIndicator()),
+  //                 );
+  //               }
+  //               if (snapshot.hasError) {
+  //                 return Text('Unable to load divisions: ${snapshot.error}');
+  //               }
+
+  //               final divisions =
+  //                   snapshot.data!.docs
+  //                       .map((doc) => Division.fromMap(doc.id, doc.data()))
+  //                       .where(
+  //                         (division) =>
+  //                             division.status.toUpperCase() == 'ACTIVE',
+  //                       )
+  //                       .toList()
+  //                     ..sort((a, b) => a.name.compareTo(b.name));
+  //               if (divisions.isEmpty) {
+  //                 return const Text('No active divisions are available.');
+  //               }
+  //               return DropdownButtonFormField<Division>(
+  //                 initialValue: selectedDivision,
+  //                 isExpanded: true,
+  //                 decoration: const InputDecoration(
+  //                   labelText: 'Division',
+  //                   border: OutlineInputBorder(),
+  //                 ),
+  //                 items: divisions
+  //                     .map(
+  //                       (division) => DropdownMenuItem(
+  //                         value: division,
+  //                         child: Text(division.name),
+  //                       ),
+  //                     )
+  //                     .toList(),
+  //                 onChanged: (division) {
+  //                   setDialogState(() => selectedDivision = division);
+  //                 },
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(dialogContext),
+  //             child: const Text('Cancel'),
+  //           ),
+  //           FilledButton(
+  //             onPressed: selectedDivision == null
+  //                 ? null
+  //                 : () => Navigator.pop(dialogContext, selectedDivision),
+  //             child: const Text('Compare'),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+
+  //   if (!mounted || division == null) return;
+  //   await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (_) => CompareSchool(division: division)),
+  //   );
+  // }
 
   // =========================================================
   // COUNT STUDENTS PER LEVEL
@@ -1889,6 +2113,59 @@ class _RCDashboardState extends State<RCDashboard> {
                                       setState(() => _loadingAnalysis = false);
                                     },
                                     child: const Text('Generate'),
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => CompareDivision(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Compare Division'),
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                SizedBox(
+                                  height: 42,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: _openSchoolComparison,
+                                    child: const Text('Compare School'),
                                   ),
                                 ),
                                 const Spacer(),
