@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/model/word_recognition.dart';
 import 'package:ireader_web/model/wordrecognitionquestions.dart';
 import 'package:ireader_web/theme.dart';
@@ -9,7 +10,13 @@ import 'package:ireader_web/theme.dart';
 class AddWrPs extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
-  const AddWrPs({super.key, required this.section, required this.schoolyear});
+  final Teacher? teacher;
+  const AddWrPs({
+    super.key,
+    required this.section,
+    required this.schoolyear,
+    this.teacher,
+  });
 
   @override
   State<AddWrPs> createState() => _AddWrPsState();
@@ -139,6 +146,7 @@ class _AddWrPsState extends State<AddWrPs> {
           id: docRef.id,
           sectionid: widget.section.id,
           schoolyearid: widget.schoolyear.id,
+          teacherid: widget.teacher?.id,
           title: titleController.text.trim(),
           gradelevel: gradelevelController.text.trim(),
           visibility: visibilityController.text.trim(),

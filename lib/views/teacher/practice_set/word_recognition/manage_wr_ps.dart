@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/model/word_recognition.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/practice_set/word_recognition/add_wr_ps.dart';
@@ -10,10 +11,12 @@ import 'package:ireader_web/views/teacher/practice_set/word_recognition/edit_wr_
 class ManageWRPS extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher? teacher;
   const ManageWRPS({
     super.key,
     required this.section,
     required this.schoolyear,
+    this.teacher,
   });
 
   @override
@@ -205,6 +208,7 @@ class _ManageWRPSState extends State<ManageWRPS> {
                     builder: (context) => AddWrPs(
                       section: widget.section,
                       schoolyear: widget.schoolyear,
+                      teacher: widget.teacher,
                     ),
                   ),
                 );
@@ -428,7 +432,9 @@ class _ManageWRPSState extends State<ManageWRPS> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withValues(alpha: 0.15),
+                                      color: Colors.blue.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(

@@ -6,9 +6,11 @@ import 'package:ireader_web/auth/login.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/views/teacher/parent/manage_parents.dart';
+import 'package:ireader_web/views/teacher/practice_set/select_practice_set.dart';
 import 'package:ireader_web/views/teacher/sections/teacher_manage_section.dart';
+import 'package:ireader_web/views/teacher/practice_set/select_practice_set.dart';
 
-enum TeacherRoute { sections, parents }
+enum TeacherRoute { sections, parents, practicesets }
 
 class TeacherSidebar extends StatelessWidget {
   final TeacherRoute activeRoute;
@@ -126,6 +128,13 @@ class TeacherSidebar extends StatelessWidget {
             TeacherRoute.sections,
             TeacherManageSection(teacher: teacher, schoolyear: schoolyear),
           ),
+          // _navItem(
+          //   context,
+          //   Icons.book_outlined,
+          //   'Practice Sets',
+          //   TeacherRoute.practicesets,
+          //   SelectPracticeSetScreen(teacher: teacher,),
+          // ),
           _navItem(
             context,
             Icons.people,

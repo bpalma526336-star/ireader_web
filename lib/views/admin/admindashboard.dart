@@ -108,7 +108,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _endYear = years.last;
     _startYearId = _startYear!.id;
     _endYearId = _endYear!.id;
-    await Future.wait([_analyzeRange(years), _loadDivisionMetadata()]);
+    await _loadDivisionMetadata();
+    await _analyzeRange(years);
     setState(() => _loadingAnalysis = false);
   }
 
@@ -1332,9 +1333,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   String _buildDivisionChartUrl() {
     final levels = ['Frustration', 'Instructional', 'Independent'];
-    final divisions = _dashboardDivisions
-        .where((d) => _divisionCounts.containsKey(d.id))
-        .toList();
+    final divisions = _dashboardDivisions;
     if (divisions.isEmpty) return '';
 
     const colors = [
@@ -1426,16 +1425,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
       Color(0xFF0EA5E9),
     ];
 
-    final activeDivisions = _dashboardDivisions
-        .where((d) => _divisionCounts.containsKey(d.id))
+    final divisions = _dashboardDivisions;
+    final divisionsWithData = divisions
+        .where((division) => _total(_divisionCounts[division.id] ?? {}) > 0)
         .toList();
-    final hasData = activeDivisions.isNotEmpty;
+    final hasData = divisionsWithData.isNotEmpty;
 
     String insight =
         'No division-level reading data is available for the selected range yet.';
 
     if (hasData) {
-      final divisionPerformance = activeDivisions.map((division) {
+      final divisionPerformance = divisionsWithData.map((division) {
         final counts = _divisionCounts[division.id] ?? {};
         final total = _total(counts);
         final independentPct = _percent(counts['Independent'] ?? 0, total);
@@ -1534,7 +1534,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ),
         const SizedBox(height: 16),
-        if (!hasData)
+        if (divisions.isEmpty)
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -1600,7 +1600,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ),
                       ),
-                      ...activeDivisions.asMap().entries.map(
+                      ...divisions.asMap().entries.map(
                         (e) => SizedBox(
                           width: 130,
                           child: Text(
@@ -1646,7 +1646,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               ],
                             ),
                           ),
-                          ...activeDivisions.asMap().entries.map((e) {
+                          ...divisions.asMap().entries.map((e) {
                             final counts = _divisionCounts[e.value.id] ?? {};
                             final n = counts[level] ?? 0;
                             final total = _total(counts);
@@ -1680,7 +1680,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ),
                       ),
-                      ...activeDivisions.asMap().entries.map((e) {
+                      ...divisions.asMap().entries.map((e) {
                         final total = _total(_divisionCounts[e.value.id] ?? {});
                         return SizedBox(
                           width: 130,
@@ -2812,7 +2812,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                         context: context,
                                         builder: (ctx) => Dialog(
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                           ),
                                           child: ConstrainedBox(
                                             constraints: const BoxConstraints(
@@ -2823,17 +2825,33 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                               padding: const EdgeInsets.all(24),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
                                                       Container(
-                                                        padding: const EdgeInsets.all(6),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              6,
+                                                            ),
                                                         decoration: BoxDecoration(
-                                                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                                                          borderRadius: BorderRadius.circular(6),
+                                                          color: AppTheme
+                                                              .primaryColor
+                                                              .withValues(
+                                                                alpha: 0.1,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
                                                         ),
-                                                        child: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primaryColor),
+                                                        child: const Icon(
+                                                          Icons.calendar_month,
+                                                          size: 16,
+                                                          color: AppTheme
+                                                              .primaryColor,
+                                                        ),
                                                       ),
                                                       const SizedBox(width: 10),
                                                       const Expanded(
@@ -2841,14 +2859,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                                           'School Years',
                                                           style: TextStyle(
                                                             fontSize: 16,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: AppTheme.textPrimaryColor,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: AppTheme
+                                                                .textPrimaryColor,
                                                           ),
                                                         ),
                                                       ),
                                                       IconButton(
-                                                        icon: const Icon(Icons.close, size: 18),
-                                                        onPressed: () => Navigator.pop(ctx),
+                                                        icon: const Icon(
+                                                          Icons.close,
+                                                          size: 18,
+                                                        ),
+                                                        onPressed: () =>
+                                                            Navigator.pop(ctx),
                                                         tooltip: 'Close',
                                                       ),
                                                     ],
@@ -2856,63 +2880,126 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                                   const SizedBox(height: 4),
                                                   const Text(
                                                     'Tap a school year to edit it.',
-                                                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: AppTheme
+                                                          .textSecondaryColor,
+                                                    ),
                                                   ),
                                                   const SizedBox(height: 12),
                                                   const Divider(height: 1),
                                                   const SizedBox(height: 4),
                                                   schoolYears.isEmpty
                                                       ? const Padding(
-                                                          padding: EdgeInsets.all(16),
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                16,
+                                                              ),
                                                           child: Center(
-                                                            child: Text('No school years found.', style: TextStyle(color: AppTheme.textSecondaryColor)),
+                                                            child: Text(
+                                                              'No school years found.',
+                                                              style: TextStyle(
+                                                                color: AppTheme
+                                                                    .textSecondaryColor,
+                                                              ),
+                                                            ),
                                                           ),
                                                         )
                                                       : Flexible(
                                                           child: ListView.separated(
                                                             shrinkWrap: true,
-                                                            itemCount: schoolYears.length,
-                                                            separatorBuilder: (_, __) => const Divider(height: 1),
+                                                            itemCount:
+                                                                schoolYears
+                                                                    .length,
+                                                            separatorBuilder:
+                                                                (_, __) =>
+                                                                    const Divider(
+                                                                      height: 1,
+                                                                    ),
                                                             itemBuilder: (_, index) {
-                                                              final year = schoolYears[index];
+                                                              final year =
+                                                                  schoolYears[index];
                                                               return ListTile(
-                                                                contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                                                                contentPadding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          0,
+                                                                      vertical:
+                                                                          2,
+                                                                    ),
                                                                 leading: Container(
                                                                   width: 36,
                                                                   height: 36,
-                                                                  alignment: Alignment.center,
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
                                                                   decoration: BoxDecoration(
-                                                                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                                                                    borderRadius: BorderRadius.circular(8),
+                                                                    color: AppTheme
+                                                                        .primaryColor
+                                                                        .withValues(
+                                                                          alpha:
+                                                                              0.08,
+                                                                        ),
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          8,
+                                                                        ),
                                                                   ),
                                                                   child: Text(
                                                                     '${index + 1}',
                                                                     style: const TextStyle(
-                                                                      fontSize: 12,
-                                                                      fontWeight: FontWeight.w700,
-                                                                      color: AppTheme.primaryColor,
+                                                                      fontSize:
+                                                                          12,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                      color: AppTheme
+                                                                          .primaryColor,
                                                                     ),
                                                                   ),
                                                                 ),
                                                                 title: Text(
                                                                   '${year.schoolyearstart} – ${year.schoolyearend}',
                                                                   style: const TextStyle(
-                                                                    fontWeight: FontWeight.w600,
-                                                                    fontSize: 14,
-                                                                    color: AppTheme.textPrimaryColor,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontSize:
+                                                                        14,
+                                                                    color: AppTheme
+                                                                        .textPrimaryColor,
                                                                   ),
                                                                 ),
                                                                 trailing: IconButton(
-                                                                  icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryColor),
-                                                                  tooltip: 'Edit',
+                                                                  icon: const Icon(
+                                                                    Icons
+                                                                        .edit_outlined,
+                                                                    size: 18,
+                                                                    color: AppTheme
+                                                                        .primaryColor,
+                                                                  ),
+                                                                  tooltip:
+                                                                      'Edit',
                                                                   onPressed: () {
-                                                                    Navigator.pop(ctx);
-                                                                    AddSchoolyearDialog.show(context, schoolyear: year);
+                                                                    Navigator.pop(
+                                                                      ctx,
+                                                                    );
+                                                                    AddSchoolyearDialog.show(
+                                                                      context,
+                                                                      schoolyear:
+                                                                          year,
+                                                                    );
                                                                   },
                                                                 ),
                                                                 onTap: () {
-                                                                  Navigator.pop(ctx);
-                                                                  AddSchoolyearDialog.show(context, schoolyear: year);
+                                                                  Navigator.pop(
+                                                                    ctx,
+                                                                  );
+                                                                  AddSchoolyearDialog.show(
+                                                                    context,
+                                                                    schoolyear:
+                                                                        year,
+                                                                  );
                                                                 },
                                                               );
                                                             },
@@ -2924,17 +3011,37 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                                   SizedBox(
                                                     width: double.infinity,
                                                     child: OutlinedButton.icon(
-                                                      icon: const Icon(Icons.add, size: 16),
-                                                      label: const Text('Add School Year'),
+                                                      icon: const Icon(
+                                                        Icons.add,
+                                                        size: 16,
+                                                      ),
+                                                      label: const Text(
+                                                        'Add School Year',
+                                                      ),
                                                       style: OutlinedButton.styleFrom(
-                                                        foregroundColor: AppTheme.primaryColor,
-                                                        side: const BorderSide(color: AppTheme.primaryColor),
-                                                        padding: const EdgeInsets.symmetric(vertical: 10),
-                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                        foregroundColor:
+                                                            AppTheme
+                                                                .primaryColor,
+                                                        side: const BorderSide(
+                                                          color: AppTheme
+                                                              .primaryColor,
+                                                        ),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 10,
+                                                            ),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
                                                       ),
                                                       onPressed: () {
                                                         Navigator.pop(ctx);
-                                                        AddSchoolyearDialog.show(context);
+                                                        AddSchoolyearDialog.show(
+                                                          context,
+                                                        );
                                                       },
                                                     ),
                                                   ),

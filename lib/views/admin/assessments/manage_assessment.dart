@@ -30,6 +30,8 @@ class _ManageAssessmentState extends State<ManageAssessment> {
     return _firestore
         .collection('assessment')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('divisionid', isEqualTo: widget.division?.id)
+        .where('schoolid', isEqualTo: widget.school?.id)
         .snapshots();
   }
 

@@ -4,6 +4,7 @@ class StorylinePracticeSet {
   final String id;
   final String sectionid;
   final String schoolyearid;
+  final String? teacherid;
   final String title;
   final String category;
   final String gradelevel;
@@ -15,6 +16,7 @@ class StorylinePracticeSet {
     required this.id,
     required this.sectionid,
     required this.schoolyearid,
+    this.teacherid,
     required this.title,
     required this.category,
     required this.visibility,
@@ -28,6 +30,7 @@ class StorylinePracticeSet {
       id: id,
       sectionid: map['sectionid'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
+      teacherid: map['teacherid'] ?? "",
       title: map['practicesettitle'] ?? "",
       category: map['category'] ?? "",
       visibility: map['visibility'] ?? "",
@@ -44,6 +47,7 @@ class StorylinePracticeSet {
       'practicesettitle': title,
       'sectionid': sectionid,
       'schoolyearid': schoolyearid,
+      'teacherid': teacherid,
       'category': category,
       'visibility': visibility,
       'readingpassage': readingpassage,
@@ -56,6 +60,7 @@ class StorylinePracticeSet {
     String? title,
     String? sectionid,
     String? schoolyearid,
+    String? teacherid,
     String? category,
     String? visibility,
     String? readingpassage,
@@ -66,6 +71,7 @@ class StorylinePracticeSet {
       id: id,
       sectionid: sectionid ?? this.sectionid,
       schoolyearid: schoolyearid ?? this.schoolyearid,
+      teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       category: category ?? this.category,
       visibility: visibility ?? this.visibility,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/storyline_practice_set.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/practice_set/storyline/add_storyline_ps.dart';
 import 'package:ireader_web/views/teacher/practice_set/storyline/edit_storyline_ps.dart';
@@ -10,10 +11,12 @@ import 'package:ireader_web/views/teacher/practice_set/storyline/edit_storyline_
 class ManageSLPS extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher? teacher;
   const ManageSLPS({
     super.key,
     required this.section,
     required this.schoolyear,
+    this.teacher,
   });
 
   @override
@@ -52,8 +55,10 @@ class _ManageSLPSState extends State<ManageSLPS> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              EditStoryLinePS(storylinePracticeSet: storylinepracticeset),
+          builder: (context) => EditStoryLinePS(
+            storylinePracticeSet: storylinepracticeset,
+            teacher: widget.teacher,
+          ),
         ),
       );
     } else if (value == "delete") {
@@ -364,6 +369,7 @@ class _ManageSLPSState extends State<ManageSLPS> {
                                   builder: (context) => AddSlps(
                                     section: widget.section,
                                     schoolyear: widget.schoolyear,
+                                    teacher: widget.teacher,
                                   ),
                                 ),
                               );
@@ -415,7 +421,9 @@ class _ManageSLPSState extends State<ManageSLPS> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.purple.withValues(alpha: 0.15),
+                                      color: Colors.purple.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(

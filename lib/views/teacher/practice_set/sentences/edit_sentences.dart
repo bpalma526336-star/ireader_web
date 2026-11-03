@@ -2,11 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/sentences.dart';
 import 'package:ireader_web/model/sentencesquestion.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class EditSentences extends StatefulWidget {
   final sentencespracticeset sentencepracticesets;
-  const EditSentences({super.key, required this.sentencepracticesets});
+  final Teacher? teacher;
+  const EditSentences({
+    super.key,
+    required this.sentencepracticesets,
+    this.teacher,
+  });
 
   @override
   State<EditSentences> createState() => _EditSentencesState();
@@ -139,6 +145,7 @@ class _EditSentencesState extends State<EditSentences> {
         id: widget.sentencepracticesets.id,
         sectionid: widget.sentencepracticesets.sectionid,
         schoolyearid: widget.sentencepracticesets.schoolyearid,
+        teacherid: widget.teacher?.id,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

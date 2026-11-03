@@ -2,11 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/storyline_practice_set.dart';
 import 'package:ireader_web/model/storyline_practice_set_content.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class EditStoryLinePS extends StatefulWidget {
   final StorylinePracticeSet storylinePracticeSet;
-  const EditStoryLinePS({super.key, required this.storylinePracticeSet});
+  final Teacher? teacher;
+  const EditStoryLinePS({
+    super.key,
+    required this.storylinePracticeSet,
+    this.teacher,
+  });
 
   @override
   State<EditStoryLinePS> createState() => _EditStoryLinePSState();
@@ -144,6 +150,7 @@ class _EditStoryLinePSState extends State<EditStoryLinePS> {
         id: widget.storylinePracticeSet.id,
         sectionid: widget.storylinePracticeSet.sectionid,
         schoolyearid: widget.storylinePracticeSet.schoolyearid,
+        teacherid: widget.teacher?.id,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

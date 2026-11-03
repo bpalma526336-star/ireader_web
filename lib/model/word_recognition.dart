@@ -4,6 +4,7 @@ class WordRecognition {
   final String id;
   final String sectionid;
   final String schoolyearid;
+  final String? teacherid;
   final String title;
   final String gradelevel;
   final String visibility;
@@ -14,6 +15,7 @@ class WordRecognition {
     required this.id,
     required this.sectionid,
     required this.schoolyearid,
+    this.teacherid,
     required this.title,
     required this.gradelevel,
     required this.visibility,
@@ -26,6 +28,7 @@ class WordRecognition {
       id: id,
       sectionid: map['sectionid'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
+      teacherid: map['teacherid'] ?? "",
       title: map['title'] ?? "",
       gradelevel: map['gradelevel'] ?? "",
       visibility: map['visibility'] ?? "",
@@ -40,6 +43,7 @@ class WordRecognition {
     final map = {
       'sectionid': sectionid,
       'schoolyearid': schoolyearid,
+      'teacherid': teacherid,
       'title': title,
       'gradelevel': gradelevel,
       'visibility': visibility,
@@ -52,6 +56,7 @@ class WordRecognition {
   WordRecognition copyWith({
     String? sectionid,
     String? schoolyearid,
+    String? teacherid,
     String? title,
     String? gradelevel,
     String? visibility,
@@ -62,6 +67,7 @@ class WordRecognition {
       id: id,
       sectionid: sectionid ?? this.sectionid,
       schoolyearid: schoolyearid ?? this.schoolyearid,
+      teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       gradelevel: gradelevel ?? this.gradelevel,
       visibility: visibility ?? this.visibility,

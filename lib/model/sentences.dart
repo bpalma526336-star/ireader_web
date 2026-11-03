@@ -4,6 +4,7 @@ class sentencespracticeset {
   final String id;
   final String sectionid;
   final String schoolyearid;
+  final String? teacherid;
   final String title;
   final String gradelevel;
   final String visibility;
@@ -14,6 +15,7 @@ class sentencespracticeset {
     required this.id,
     required this.sectionid,
     required this.schoolyearid,
+    this.teacherid,
     required this.title,
     required this.gradelevel,
     required this.visibility,
@@ -26,6 +28,7 @@ class sentencespracticeset {
       id: id,
       sectionid: map['sectionid'] ?? "",
       schoolyearid: map['schoolyearid'] ?? "",
+      teacherid: map['teacherid'] ?? "",
       title: map['title'] ?? "",
       gradelevel: map['gradelevel'] ?? "",
       visibility: map['visibility'] ?? "",
@@ -41,6 +44,7 @@ class sentencespracticeset {
       'title': title,
       'sectionid': sectionid,
       'schoolyearid': schoolyearid,
+      'teacherid': teacherid,
       'gradelevel': gradelevel,
       'visibility': visibility,
       'category': category,
@@ -54,6 +58,7 @@ class sentencespracticeset {
     String? id,
     String? sectionid,
     String? schoolyearid,
+    String? teacherid,
     String? title,
     String? gradelevel,
     String? visibility,
@@ -64,6 +69,7 @@ class sentencespracticeset {
       id: id ?? this.id,
       sectionid: sectionid ?? this.sectionid,
       schoolyearid: schoolyearid ?? this.schoolyearid,
+      teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       gradelevel: gradelevel ?? this.gradelevel,
       visibility: visibility ?? this.visibility,

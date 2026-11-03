@@ -4,15 +4,18 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/sentences.dart';
 import 'package:ireader_web/model/sentencesquestion.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddSentences extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher? teacher;
   const AddSentences({
     super.key,
     required this.section,
     required this.schoolyear,
+    this.teacher,
   });
 
   @override
@@ -143,6 +146,7 @@ class _AddSentencesState extends State<AddSentences> {
           id: docRef.id,
           sectionid: widget.section.id,
           schoolyearid: widget.schoolyear.id,
+          teacherid: widget.teacher?.id,
           title: titleController.text.trim(),
           category: categoryController.text.trim(),
           gradelevel: gradelevelController.text.trim(),

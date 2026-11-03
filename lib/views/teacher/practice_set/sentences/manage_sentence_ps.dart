@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/sentences.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/practice_set/sentences/add_sentences.dart';
 import 'package:ireader_web/views/teacher/practice_set/sentences/edit_sentences.dart';
@@ -10,10 +11,12 @@ import 'package:ireader_web/views/teacher/practice_set/sentences/edit_sentences.
 class SentencePS extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher? teacher;
   const SentencePS({
     super.key,
     required this.section,
     required this.schoolyear,
+    this.teacher,
   });
 
   @override
@@ -52,8 +55,10 @@ class _SentencePSState extends State<SentencePS> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              EditSentences(sentencepracticesets: sentencepracticesets),
+          builder: (context) => EditSentences(
+            sentencepracticesets: sentencepracticesets,
+            teacher: widget.teacher,
+          ),
         ),
       );
     } else if (value == "delete") {
@@ -146,6 +151,7 @@ class _SentencePSState extends State<SentencePS> {
                     builder: (context) => AddSentences(
                       section: widget.section,
                       schoolyear: widget.schoolyear,
+                      teacher: widget.teacher,
                     ),
                   ),
                 );
@@ -417,7 +423,9 @@ class _SentencePSState extends State<SentencePS> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withValues(alpha: 0.15),
+                                      color: Colors.green.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(

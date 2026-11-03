@@ -96,6 +96,8 @@ class _ManageSectionState extends State<ManageSection> {
         .collection('students')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .where('sectionid', isEqualTo: sectionid)
+        .where('divisionid', isEqualTo: widget.division.id)
+        .where('schoolid', isEqualTo: widget.school.id)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
         .map((snapshot) {
@@ -136,6 +138,8 @@ class _ManageSectionState extends State<ManageSection> {
     return _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('divisionid', isEqualTo: widget.division.id)
+        .where('schoolid', isEqualTo: widget.school.id)
         .snapshots()
         .map(
           (snap) =>
@@ -188,6 +192,8 @@ class _ManageSectionState extends State<ManageSection> {
     final sectionsSnap = await _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('divisionid', isEqualTo: widget.division.id)
+        .where('schoolid', isEqualTo: widget.school.id)
         .get();
 
     for (var sectionDoc in sectionsSnap.docs) {
@@ -215,6 +221,8 @@ class _ManageSectionState extends State<ManageSection> {
           .collection('students')
           .where('sectionid', isEqualTo: section.id)
           .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+          .where('divisionid', isEqualTo: widget.division.id)
+          .where('schoolid', isEqualTo: widget.school.id)
           .get();
 
       for (var studentDoc in studentsSnap.docs) {
@@ -328,6 +336,8 @@ class _ManageSectionState extends State<ManageSection> {
         .collection('students')
         .where('sectionid', isEqualTo: section.id)
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('divisionid', isEqualTo: widget.division.id)
+        .where('schoolid', isEqualTo: widget.school.id)
         .get();
     final students = snapshot.docs
         .map((doc) => Student.fromMap(doc.id, doc.data()))

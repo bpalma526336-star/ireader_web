@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/model/word_recognition.dart';
 import 'package:ireader_web/model/wordrecognitionquestions.dart';
 import 'package:ireader_web/theme.dart';
 
 class EditWordRecognition extends StatefulWidget {
   final WordRecognition wrcontent;
-  const EditWordRecognition({super.key, required this.wrcontent});
+  final Teacher? teacher;
+  const EditWordRecognition({super.key, required this.wrcontent, this.teacher});
 
   @override
   State<EditWordRecognition> createState() => _EditWordRecognitionState();
@@ -135,6 +137,7 @@ class _EditWordRecognitionState extends State<EditWordRecognition> {
         schoolyearid: widget.wrcontent.schoolyearid,
         title: titleController.text.trim(),
         category: selectedCategory!,
+        teacherid: widget.teacher?.id,
         gradelevel: selectedgradelevel!,
         visibility: selectedvisibility!,
         questions: questions,
