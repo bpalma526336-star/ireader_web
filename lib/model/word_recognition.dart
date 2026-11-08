@@ -2,9 +2,7 @@ import 'package:ireader_web/model/wordrecognitionquestions.dart';
 
 class WordRecognition {
   final String id;
-  final String sectionid;
-  final String schoolyearid;
-  final String? teacherid;
+  final String teacherid;
   final String title;
   final String gradelevel;
   final String visibility;
@@ -13,9 +11,7 @@ class WordRecognition {
 
   WordRecognition({
     required this.id,
-    required this.sectionid,
-    required this.schoolyearid,
-    this.teacherid,
+    required this.teacherid,
     required this.title,
     required this.gradelevel,
     required this.visibility,
@@ -26,8 +22,6 @@ class WordRecognition {
   factory WordRecognition.fromMap(String id, Map<String, dynamic> map) {
     return WordRecognition(
       id: id,
-      sectionid: map['sectionid'] ?? "",
-      schoolyearid: map['schoolyearid'] ?? "",
       teacherid: map['teacherid'] ?? "",
       title: map['title'] ?? "",
       gradelevel: map['gradelevel'] ?? "",
@@ -41,8 +35,6 @@ class WordRecognition {
 
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     final map = {
-      'sectionid': sectionid,
-      'schoolyearid': schoolyearid,
       'teacherid': teacherid,
       'title': title,
       'gradelevel': gradelevel,
@@ -54,8 +46,6 @@ class WordRecognition {
   }
 
   WordRecognition copyWith({
-    String? sectionid,
-    String? schoolyearid,
     String? teacherid,
     String? title,
     String? gradelevel,
@@ -65,8 +55,6 @@ class WordRecognition {
   }) {
     return WordRecognition(
       id: id,
-      sectionid: sectionid ?? this.sectionid,
-      schoolyearid: schoolyearid ?? this.schoolyearid,
       teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       gradelevel: gradelevel ?? this.gradelevel,

@@ -523,8 +523,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Expanded(child: _viewPracticeSetButton(section)),
-                    const SizedBox(width: 8),
+                    // Expanded(child: _viewPracticeSetButton(section)),
+                    // const SizedBox(width: 8),
                     Expanded(child: _exportButton(section)),
                   ],
                 ),
@@ -626,30 +626,30 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
     );
   }
 
-  Widget _viewPracticeSetButton(Section section) {
-    return _actionBtn(
-      icon: Icons.menu_book_outlined,
-      label: 'Practice Set',
-      isPrimary: false,
-      onTap: () async {
-        final schoolYearDoc = await _firestore
-            .collection('schoolyears')
-            .doc(section.schoolyearid)
-            .get();
-        if (!schoolYearDoc.exists) return;
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SelectPracticeSetScreen(
-              section: section,
-              schoolyear: widget.schoolyear,
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // Widget _viewPracticeSetButton(Section section) {
+  //   return _actionBtn(
+  //     icon: Icons.menu_book_outlined,
+  //     label: 'Practice Set',
+  //     isPrimary: false,
+  //     onTap: () async {
+  //       final schoolYearDoc = await _firestore
+  //           .collection('schoolyears')
+  //           .doc(section.schoolyearid)
+  //           .get();
+  //       if (!schoolYearDoc.exists) return;
+  //       if (!mounted) return;
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => SelectPracticeSetScreen(
+  //             section: section,
+  //             schoolyear: widget.schoolyear,
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _exportButton(Section section) {
     return _actionBtn(

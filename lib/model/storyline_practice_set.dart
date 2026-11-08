@@ -2,8 +2,6 @@ import 'package:ireader_web/model/storyline_practice_set_content.dart';
 
 class StorylinePracticeSet {
   final String id;
-  final String sectionid;
-  final String schoolyearid;
   final String? teacherid;
   final String title;
   final String category;
@@ -14,8 +12,6 @@ class StorylinePracticeSet {
 
   StorylinePracticeSet({
     required this.id,
-    required this.sectionid,
-    required this.schoolyearid,
     this.teacherid,
     required this.title,
     required this.category,
@@ -28,8 +24,6 @@ class StorylinePracticeSet {
   factory StorylinePracticeSet.fromMap(String id, Map<String, dynamic> map) {
     return StorylinePracticeSet(
       id: id,
-      sectionid: map['sectionid'] ?? "",
-      schoolyearid: map['schoolyearid'] ?? "",
       teacherid: map['teacherid'] ?? "",
       title: map['practicesettitle'] ?? "",
       category: map['category'] ?? "",
@@ -45,8 +39,6 @@ class StorylinePracticeSet {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     return {
       'practicesettitle': title,
-      'sectionid': sectionid,
-      'schoolyearid': schoolyearid,
       'teacherid': teacherid,
       'category': category,
       'visibility': visibility,
@@ -58,8 +50,6 @@ class StorylinePracticeSet {
 
   StorylinePracticeSet copyWith({
     String? title,
-    String? sectionid,
-    String? schoolyearid,
     String? teacherid,
     String? category,
     String? visibility,
@@ -69,8 +59,6 @@ class StorylinePracticeSet {
   }) {
     return StorylinePracticeSet(
       id: id,
-      sectionid: sectionid ?? this.sectionid,
-      schoolyearid: schoolyearid ?? this.schoolyearid,
       teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       category: category ?? this.category,

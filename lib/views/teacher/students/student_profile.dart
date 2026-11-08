@@ -1651,13 +1651,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   Future<List<Map<String, String>>> _fetchRecommendedWR(String category) async {
-    if (category.isEmpty) return [];
+    if (category.isEmpty || widget.section.teacherid.isEmpty) return [];
     final snap = await _firestore
         .collection('wordrecognitionpracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('teacherid', isEqualTo: widget.section.teacherid)
         .where('category', isEqualTo: category)
         .where('visibility', isEqualTo: 'View to Students')
+        .where('gradelevel', isEqualTo: widget.student.gradelevelread)
         .get();
     return snap.docs.map((d) {
       final m = d.data();
@@ -1672,13 +1672,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   Future<List<Map<String, String>>> _fetchRecommendedSentences(
     String category,
   ) async {
-    if (category.isEmpty) return [];
+    if (category.isEmpty || widget.section.teacherid.isEmpty) return [];
     final snap = await _firestore
         .collection('phrasesentencespracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('teacherid', isEqualTo: widget.section.teacherid)
         .where('category', isEqualTo: category)
         .where('visibility', isEqualTo: 'View to Students')
+        .where('gradelevel', isEqualTo: widget.student.gradelevelread)
         .get();
     return snap.docs.map((d) {
       final m = d.data();
@@ -1693,13 +1693,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   Future<List<Map<String, String>>> _fetchRecommendedStoryline(
     String category,
   ) async {
-    if (category.isEmpty) return [];
+    if (category.isEmpty || widget.section.teacherid.isEmpty) return [];
     final snap = await _firestore
         .collection('storylinepracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('teacherid', isEqualTo: widget.section.teacherid)
         .where('category', isEqualTo: category)
         .where('visibility', isEqualTo: 'View to Students')
+        .where('gradelevel', isEqualTo: widget.student.gradelevelread)
         .get();
     return snap.docs.map((d) {
       final m = d.data();
@@ -1763,24 +1763,24 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Word Recognition',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                        ),
-                      ),
-                      _levelBadge(
-                        readlevel.isEmpty ? 'Not assessed' : readlevel,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                  // const SizedBox(height: 12),
+                  // Row(
+                  //   children: [
+                  //     const Expanded(
+                  //       child: Text(
+                  //         'Word Recognition',
+                  //         style: TextStyle(
+                  //           fontSize: 12,
+                  //           color: AppTheme.textSecondaryColor,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     _levelBadge(
+                  //       readlevel.isEmpty ? 'Not assessed' : readlevel,
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 8),
                   Row(
                     children: [
                       const Expanded(
@@ -1806,16 +1806,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             const SizedBox(height: 14),
 
             // ── Phil-IRI Guidance ─────────────────────────────────────────
-            if (readlevel.isNotEmpty)
-              _guidanceCard(
-                icon: _levelIcon(readlevel),
-                color: wrColor,
-                title: 'Word Recognition — ${_wrTitle(readlevel)}',
-                body: _wordReadingGuidance(readlevel),
-              ),
+            // if (readlevel.isNotEmpty)
+            //   _guidanceCard(
+            //     icon: _levelIcon(readlevel),
+            //     color: wrColor,
+            //     title: 'Word Recognition — ${_wrTitle(readlevel)}',
+            //     body: _wordReadingGuidance(readlevel),
+            //   ),
 
-            if (readlevel.isNotEmpty) const SizedBox(height: 10),
-
+            // if (readlevel.isNotEmpty) const SizedBox(height: 10),
             if (comprehensionresult.isNotEmpty)
               _guidanceCard(
                 icon: _levelIcon(comprehensionresult),
@@ -1848,10 +1847,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
 
             _buildPracticeSetSection(
               sectionTitle:
-                  'Word Recognition (${readlevel.isEmpty ? "Not assessed" : readlevel})',
+                  'Word Recognition (${comprehensionresult.isEmpty ? "Not assessed" : comprehensionresult})',
               icon: Icons.spellcheck,
               color: wrColor,
-              future: _fetchRecommendedWR(readlevel),
+              future: _fetchRecommendedWR(comprehensionresult),
             ),
 
             const SizedBox(height: 16),

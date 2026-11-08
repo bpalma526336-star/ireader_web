@@ -11,7 +11,6 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/section/edit_section.dart';
 import 'package:ireader_web/views/readingcoordinator/sections/compare_section.dart';
 import 'package:ireader_web/views/readingcoordinator/students/manage_student.dart';
-import 'package:ireader_web/views/readingcoordinator/practice_set/select_practice_set.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Row, Border;
 import 'package:universal_html/html.dart' show AnchorElement;
 
@@ -656,19 +655,6 @@ class _RCManageSectionState extends State<RCManageSection> {
                   }),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _cardButton('Practice Sets', () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SelectPracticeSetScreen(
-                          section: section,
-                          schoolyear: widget.schoolyear,
-                        ),
-                      ),
-                    );
-                  }),
-                ),
               ],
             ),
             const SizedBox(height: 6),

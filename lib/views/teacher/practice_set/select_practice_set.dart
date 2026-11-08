@@ -7,16 +7,17 @@ import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/teacher/practice_set/sentences/manage_sentence_ps.dart';
 import 'package:ireader_web/views/teacher/practice_set/storyline/manage_storyline_ps.dart';
 import 'package:ireader_web/views/teacher/practice_set/word_recognition/manage_wr_ps.dart';
+import 'package:ireader_web/widgets/teacher_sidebar.dart';
 
 class SelectPracticeSetScreen extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  final Teacher? teacher;
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher teacher;
   const SelectPracticeSetScreen({
     super.key,
-    required this.section,
-    required this.schoolyear,
-    this.teacher,
+    this.section,
+    this.schoolyear,
+    required this.teacher,
   });
 
   @override
@@ -112,12 +113,6 @@ class _SelectPracticeSetScreenState extends State<SelectPracticeSetScreen> {
                   "Manage Practice Sets",
                   style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "School Year: ${widget.schoolyear.schoolyearstart} - ${widget.schoolyear.schoolyearend}",
-                ),
-                const SizedBox(height: 4),
-                Text("Section: ${widget.section.sectionname}"),
                 const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.centerRight,
@@ -148,65 +143,104 @@ class _SelectPracticeSetScreenState extends State<SelectPracticeSetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 900;
+    final teacher = widget.teacher;
     return Scaffold(
-      appBar: AppBar(backgroundColor: AppTheme.backgroundColor),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      // appBar: AppBar(backgroundColor: AppTheme.backgroundColor),
+      drawer: isDesktop || teacher == null
+          ? null
+          : Drawer(
+              child: TeacherSidebar(
+                activeRoute: TeacherRoute.practicesets,
+                teacher: teacher,
+                schoolyear: widget.schoolyear,
+              ),
+              // child: TeacherSidebar(
+              //   activeRoute: TeacherRoute.practicesets,
+              //   teacher: teacher,
+              //   schoolyear: widget.schoolyear,
+              // ),
+            ),
+      body: Row(
         children: [
-          _practiceCard(
-            title: 'Word Recognition',
-            icon: Icons.spellcheck,
-            color: Colors.blue,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ManageWRPS(
-                    section: widget.section,
-                    schoolyear: widget.schoolyear,
-                    teacher: widget.teacher,
-                  ),
+          if (isDesktop && teacher != null)
+            TeacherSidebar(
+              activeRoute: TeacherRoute.practicesets,
+              teacher: teacher,
+              schoolyear: widget.schoolyear,
+            ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              children: [
+                _practiceCard(
+                  title: 'Word Recognition',
+                  icon: Icons.spellcheck,
+                  color: Colors.blue,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ManageWRPS(
+                          section: widget.section,
+                          schoolyear: widget.schoolyear,
+                          teacher: widget.teacher,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-          _practiceCard(
-            title: 'Phrase & Sentences',
-            icon: Icons.short_text,
-            color: Colors.green,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SentencePS(
-                    section: widget.section,
-                    schoolyear: widget.schoolyear,
-                  ),
+                _practiceCard(
+                  title: 'Phrase & Sentences',
+                  icon: Icons.short_text,
+                  color: Colors.green,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SentencePS(
+                          section: widget.section,
+                          schoolyear: widget.schoolyear,
+                          teacher: widget.teacher,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-          _practiceCard(
-            title: 'Storyline',
-            icon: Icons.menu_book,
-            color: Colors.purple,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ManageSLPS(
-                    section: widget.section,
-                    schoolyear: widget.schoolyear,
-                  ),
+                _practiceCard(
+                  title: 'Storyline',
+                  icon: Icons.menu_book,
+                  color: Colors.purple,
+                  onTap: () {
+                    final teacher = widget.teacher;
+                    if (teacher == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Teacher information is unavailable."),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ManageSLPS(
+                          section: widget.section,
+                          schoolyear: widget.schoolyear,
+                          teacher: teacher,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ],
       ),

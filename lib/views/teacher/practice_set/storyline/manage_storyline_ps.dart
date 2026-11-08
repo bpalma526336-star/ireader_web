@@ -9,14 +9,14 @@ import 'package:ireader_web/views/teacher/practice_set/storyline/add_storyline_p
 import 'package:ireader_web/views/teacher/practice_set/storyline/edit_storyline_ps.dart';
 
 class ManageSLPS extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  final Teacher? teacher;
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher teacher;
   const ManageSLPS({
     super.key,
     required this.section,
     required this.schoolyear,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -32,8 +32,9 @@ class _ManageSLPSState extends State<ManageSLPS> {
   Stream<QuerySnapshot> _fetchStorylinePracticeSets() {
     return firestore
         .collection('storylinepracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        // .where('sectionid', isEqualTo: widget.section?.id)
+        // .where('schoolyearid', isEqualTo: widget.schoolyear?.id)
+        .where('teacherid', isEqualTo: widget.teacher.id)
         .snapshots();
   }
 
@@ -149,8 +150,9 @@ class _ManageSLPSState extends State<ManageSLPS> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddSlps(
-                      section: widget.section,
-                      schoolyear: widget.schoolyear,
+                      section: widget?.section,
+                      schoolyear: widget?.schoolyear,
+                      teacher: widget.teacher,
                     ),
                   ),
                 );
@@ -406,6 +408,7 @@ class _ManageSLPSState extends State<ManageSLPS> {
                                       MaterialPageRoute(
                                         builder: (context) => EditStoryLinePS(
                                           storylinePracticeSet: practiceset,
+                                          teacher: widget.teacher,
                                         ),
                                       ),
                                     );

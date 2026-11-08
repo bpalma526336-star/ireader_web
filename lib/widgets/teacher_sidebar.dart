@@ -15,13 +15,13 @@ enum TeacherRoute { sections, parents, practicesets }
 class TeacherSidebar extends StatelessWidget {
   final TeacherRoute activeRoute;
   final Teacher teacher;
-  final SchoolYear schoolyear;
+  final SchoolYear? schoolyear;
 
   const TeacherSidebar({
     super.key,
     required this.activeRoute,
     required this.teacher,
-    required this.schoolyear,
+    this.schoolyear,
   });
 
   static const Color _bg = Color(0xFF0F172A);
@@ -59,6 +59,7 @@ class TeacherSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final schoolyear = this.schoolyear;
     return Container(
       width: 220,
       color: _bg,
@@ -121,27 +122,31 @@ class TeacherSidebar extends StatelessWidget {
           ),
           Container(height: 1, color: const Color(0xFF1E293B)),
           const SizedBox(height: 6),
+          if (schoolyear != null)
+            _navItem(
+              context,
+              Icons.class_outlined,
+              'Assigned Sections',
+              TeacherRoute.sections,
+              TeacherManageSection(teacher: teacher, schoolyear: schoolyear),
+            ),
+          SizedBox(height: 6),
           _navItem(
             context,
-            Icons.class_outlined,
-            'Assigned Sections',
-            TeacherRoute.sections,
-            TeacherManageSection(teacher: teacher, schoolyear: schoolyear),
+            Icons.book_outlined,
+            'Practice Sets',
+            TeacherRoute.practicesets,
+            SelectPracticeSetScreen(teacher: teacher, schoolyear: schoolyear),
           ),
-          // _navItem(
-          //   context,
-          //   Icons.book_outlined,
-          //   'Practice Sets',
-          //   TeacherRoute.practicesets,
-          //   SelectPracticeSetScreen(teacher: teacher,),
-          // ),
-          _navItem(
-            context,
-            Icons.people,
-            'Manage Parents',
-            TeacherRoute.parents,
-            ManageParents(teacher: teacher, schoolyear: schoolyear),
-          ),
+          SizedBox(height: 6),
+          if (schoolyear != null)
+            _navItem(
+              context,
+              Icons.people,
+              'Manage Parents',
+              TeacherRoute.parents,
+              ManageParents(teacher: teacher, schoolyear: schoolyear),
+            ),
           const Spacer(),
           Container(height: 1, color: const Color(0xFF1E293B)),
           _logoutItem(context),

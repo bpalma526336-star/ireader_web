@@ -8,8 +8,8 @@ import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddSlps extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
+  final Section? section;
+  final SchoolYear? schoolyear;
   final Teacher? teacher;
   const AddSlps({
     super.key,
@@ -136,14 +136,13 @@ class _AddSlpsState extends State<AddSlps> {
             ),
           )
           .toList();
+      final docRef = _firestore.collection("storylinepracticeset").doc();
       await _firestore
           .collection("storylinepracticeset")
-          .doc()
+          .doc(docRef.id)
           .set(
             StorylinePracticeSet(
-              id: _firestore.collection("storylinepracticeset").doc().id,
-              sectionid: widget.section.id,
-              schoolyearid: widget.schoolyear.id,
+              id: docRef.id,
               teacherid: widget.teacher?.id,
               title: titleController.text.trim(),
               category: categoryController.text.trim(),

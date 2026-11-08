@@ -4,12 +4,19 @@ import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
 import 'package:ireader_web/model/storyline_practice_set.dart';
 import 'package:ireader_web/model/storyline_practice_set_content.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddSlps extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  const AddSlps({super.key, required this.section, required this.schoolyear});
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher? teacher;
+  const AddSlps({
+    super.key,
+    required this.section,
+    required this.schoolyear,
+    this.teacher,
+  });
 
   @override
   State<AddSlps> createState() => _AddSlpsState();
@@ -135,8 +142,7 @@ class _AddSlpsState extends State<AddSlps> {
           .set(
             StorylinePracticeSet(
               id: _firestore.collection("storylinepracticeset").doc().id,
-              sectionid: widget.section.id,
-              schoolyearid: widget.schoolyear.id,
+              teacherid: widget.teacher?.id,
               title: titleController.text.trim(),
               category: categoryController.text.trim(),
               gradelevel: gradelevelController.text.trim(),

@@ -142,8 +142,7 @@ class _EditStoryLinePSState extends State<EditStoryLinePS> {
           .toList();
       final storylinepracticeset = StorylinePracticeSet(
         id: widget.storylinePracticeSet.id,
-        sectionid: widget.storylinePracticeSet.sectionid,
-        schoolyearid: widget.storylinePracticeSet.schoolyearid,
+        teacherid: widget.storylinePracticeSet.teacherid,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

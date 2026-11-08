@@ -8,14 +8,14 @@ import 'package:ireader_web/model/wordrecognitionquestions.dart';
 import 'package:ireader_web/theme.dart';
 
 class AddWrPs extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  final Teacher? teacher;
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher teacher;
   const AddWrPs({
     super.key,
     required this.section,
     required this.schoolyear,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -144,9 +144,7 @@ class _AddWrPsState extends State<AddWrPs> {
       await docRef.set(
         WordRecognition(
           id: docRef.id,
-          sectionid: widget.section.id,
-          schoolyearid: widget.schoolyear.id,
-          teacherid: widget.teacher?.id,
+          teacherid: widget.teacher.id,
           title: titleController.text.trim(),
           gradelevel: gradelevelController.text.trim(),
           visibility: visibilityController.text.trim(),

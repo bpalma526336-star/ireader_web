@@ -7,11 +7,11 @@ import 'package:ireader_web/theme.dart';
 
 class EditStoryLinePS extends StatefulWidget {
   final StorylinePracticeSet storylinePracticeSet;
-  final Teacher? teacher;
+  final Teacher teacher;
   const EditStoryLinePS({
     super.key,
     required this.storylinePracticeSet,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -148,9 +148,7 @@ class _EditStoryLinePSState extends State<EditStoryLinePS> {
           .toList();
       final storylinepracticeset = StorylinePracticeSet(
         id: widget.storylinePracticeSet.id,
-        sectionid: widget.storylinePracticeSet.sectionid,
-        schoolyearid: widget.storylinePracticeSet.schoolyearid,
-        teacherid: widget.teacher?.id,
+        teacherid: widget.teacher.id,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

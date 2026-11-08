@@ -2,9 +2,7 @@ import 'package:ireader_web/model/sentencesquestion.dart';
 
 class sentencespracticeset {
   final String id;
-  final String sectionid;
-  final String schoolyearid;
-  final String? teacherid;
+  final String teacherid;
   final String title;
   final String gradelevel;
   final String visibility;
@@ -13,9 +11,7 @@ class sentencespracticeset {
 
   sentencespracticeset({
     required this.id,
-    required this.sectionid,
-    required this.schoolyearid,
-    this.teacherid,
+    required this.teacherid,
     required this.title,
     required this.gradelevel,
     required this.visibility,
@@ -26,8 +22,6 @@ class sentencespracticeset {
   factory sentencespracticeset.fromMap(String id, Map<String, dynamic> map) {
     return sentencespracticeset(
       id: id,
-      sectionid: map['sectionid'] ?? "",
-      schoolyearid: map['schoolyearid'] ?? "",
       teacherid: map['teacherid'] ?? "",
       title: map['title'] ?? "",
       gradelevel: map['gradelevel'] ?? "",
@@ -42,8 +36,6 @@ class sentencespracticeset {
   Map<String, dynamic> toMap({bool isUpdate = false}) {
     final map = {
       'title': title,
-      'sectionid': sectionid,
-      'schoolyearid': schoolyearid,
       'teacherid': teacherid,
       'gradelevel': gradelevel,
       'visibility': visibility,
@@ -56,8 +48,6 @@ class sentencespracticeset {
 
   sentencespracticeset copyWith({
     String? id,
-    String? sectionid,
-    String? schoolyearid,
     String? teacherid,
     String? title,
     String? gradelevel,
@@ -67,8 +57,6 @@ class sentencespracticeset {
   }) {
     return sentencespracticeset(
       id: id ?? this.id,
-      sectionid: sectionid ?? this.sectionid,
-      schoolyearid: schoolyearid ?? this.schoolyearid,
       teacherid: teacherid ?? this.teacherid,
       title: title ?? this.title,
       gradelevel: gradelevel ?? this.gradelevel,

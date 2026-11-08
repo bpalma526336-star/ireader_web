@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/schoolyear.dart';
 import 'package:ireader_web/model/section.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/theme.dart';
 import 'package:ireader_web/views/admin/practice_set/sentences/manage_sentence_ps.dart';
 import 'package:ireader_web/views/admin/practice_set/storyline/manage_storyline_ps.dart';
@@ -10,10 +11,12 @@ import 'package:ireader_web/views/admin/practice_set/word_recognition/manage_wr_
 class SelectPracticeSetScreen extends StatefulWidget {
   final Section section;
   final SchoolYear schoolyear;
+  final Teacher? teacher;
   const SelectPracticeSetScreen({
     super.key,
     required this.section,
     required this.schoolyear,
+    this.teacher,
   });
 
   @override
@@ -161,6 +164,7 @@ class _SelectPracticeSetScreenState extends State<SelectPracticeSetScreen> {
                   builder: (_) => ManageWRPS(
                     section: widget.section,
                     schoolyear: widget.schoolyear,
+                    teacher: widget?.teacher,
                   ),
                 ),
               );
@@ -180,6 +184,7 @@ class _SelectPracticeSetScreenState extends State<SelectPracticeSetScreen> {
                   builder: (_) => SentencePS(
                     section: widget.section,
                     schoolyear: widget.schoolyear,
+                    teacher: widget?.teacher,
                   ),
                 ),
               );

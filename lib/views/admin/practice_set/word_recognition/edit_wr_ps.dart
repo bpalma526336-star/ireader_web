@@ -131,8 +131,7 @@ class _EditWordRecognitionState extends State<EditWordRecognition> {
           .toList();
       final sentencespracticesets = WordRecognition(
         id: widget.wrcontent.id,
-        sectionid: widget.wrcontent.sectionid,
-        schoolyearid: widget.wrcontent.schoolyearid,
+        teacherid: widget.wrcontent.teacherid,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

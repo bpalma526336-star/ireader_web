@@ -7,11 +7,11 @@ import 'package:ireader_web/theme.dart';
 
 class EditSentences extends StatefulWidget {
   final sentencespracticeset sentencepracticesets;
-  final Teacher? teacher;
+  final Teacher teacher;
   const EditSentences({
     super.key,
     required this.sentencepracticesets,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -143,9 +143,8 @@ class _EditSentencesState extends State<EditSentences> {
           .toList();
       final sentencespracticesets = sentencespracticeset(
         id: widget.sentencepracticesets.id,
-        sectionid: widget.sentencepracticesets.sectionid,
-        schoolyearid: widget.sentencepracticesets.schoolyearid,
-        teacherid: widget.teacher?.id,
+        teacherid: widget.teacher.id,
+        // widget.teacher?.id ?? widget.sentencepracticesets.teacherid,
         title: titleController.text.trim(),
         category: selectedCategory!,
         gradelevel: selectedgradelevel!,

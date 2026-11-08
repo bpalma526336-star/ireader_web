@@ -9,14 +9,14 @@ import 'package:ireader_web/views/teacher/practice_set/word_recognition/add_wr_p
 import 'package:ireader_web/views/teacher/practice_set/word_recognition/edit_wr_ps.dart';
 
 class ManageWRPS extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  final Teacher? teacher;
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher teacher;
   const ManageWRPS({
     super.key,
     required this.section,
     required this.schoolyear,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -32,8 +32,16 @@ class _ManageWRPSState extends State<ManageWRPS> {
   Stream<QuerySnapshot> _fetchWordRecognitionPracticeSets() {
     return firestore
         .collection('wordrecognitionpracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        //       .where(
+        //         Filter.or(
+        //           Filter('sectionid', isEqualTo: widget.section?.id),
+        //           Filter('schoolyearid', isEqualTo: widget.schoolyear?.id),
+        //           Filter('teacherid', isEqualTo: widget.teacher?.id),
+        //         ),
+        //       )
+        // .where('sectionid', isEqualTo: widget.section?.id)
+        // .where('schoolyearid', isEqualTo: widget.schoolyear?.id)
+        .where('teacherid', isEqualTo: widget.teacher?.id)
         .snapshots();
   }
 
@@ -55,7 +63,10 @@ class _ManageWRPSState extends State<ManageWRPS> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EditWordRecognition(wrcontent: wordrecognition),
+          builder: (context) => EditWordRecognition(
+            wrcontent: wordrecognition,
+            teacher: widget.teacher,
+          ),
         ),
       );
     } else if (value == "delete") {
@@ -206,8 +217,8 @@ class _ManageWRPSState extends State<ManageWRPS> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddWrPs(
-                      section: widget.section,
-                      schoolyear: widget.schoolyear,
+                      section: widget?.section,
+                      schoolyear: widget?.schoolyear,
                       teacher: widget.teacher,
                     ),
                   ),

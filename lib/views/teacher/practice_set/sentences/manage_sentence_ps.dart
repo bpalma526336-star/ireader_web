@@ -9,14 +9,14 @@ import 'package:ireader_web/views/teacher/practice_set/sentences/add_sentences.d
 import 'package:ireader_web/views/teacher/practice_set/sentences/edit_sentences.dart';
 
 class SentencePS extends StatefulWidget {
-  final Section section;
-  final SchoolYear schoolyear;
-  final Teacher? teacher;
+  final Section? section;
+  final SchoolYear? schoolyear;
+  final Teacher teacher;
   const SentencePS({
     super.key,
     required this.section,
     required this.schoolyear,
-    this.teacher,
+    required this.teacher,
   });
 
   @override
@@ -32,8 +32,9 @@ class _SentencePSState extends State<SentencePS> {
   Stream<QuerySnapshot> _fetchSentencesPracticeSets() {
     return firestore
         .collection('phrasesentencespracticeset')
-        .where('sectionid', isEqualTo: widget.section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        // .where('sectionid', isEqualTo: widget.section?.id)
+        // .where('schoolyearid', isEqualTo: widget.schoolyear?.id)
+        .where('teacherid', isEqualTo: widget.teacher.id)
         .snapshots();
   }
 
@@ -149,8 +150,8 @@ class _SentencePSState extends State<SentencePS> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddSentences(
-                      section: widget.section,
-                      schoolyear: widget.schoolyear,
+                      section: widget?.section,
+                      schoolyear: widget?.schoolyear,
                       teacher: widget.teacher,
                     ),
                   ),
@@ -368,8 +369,9 @@ class _SentencePSState extends State<SentencePS> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => AddSentences(
-                                    section: widget.section,
-                                    schoolyear: widget.schoolyear,
+                                    section: widget?.section,
+                                    schoolyear: widget?.schoolyear,
+                                    teacher: widget.teacher,
                                   ),
                                 ),
                               );
@@ -408,6 +410,7 @@ class _SentencePSState extends State<SentencePS> {
                                       MaterialPageRoute(
                                         builder: (context) => EditSentences(
                                           sentencepracticesets: practiceset,
+                                          teacher: widget.teacher,
                                         ),
                                       ),
                                     );
