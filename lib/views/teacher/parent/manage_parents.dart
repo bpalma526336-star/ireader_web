@@ -184,7 +184,7 @@ class _ManageParentsState extends State<ManageParents> {
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Search teachers by name or email',
+                  hintText: 'Search parents by name or email',
                   hintStyle: const TextStyle(
                     fontSize: 13,
                     color: AppTheme.textSecondaryColor,

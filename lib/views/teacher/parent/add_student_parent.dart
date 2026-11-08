@@ -139,6 +139,9 @@ class _AddParentStudentState extends State<AddParentStudent> {
     });
   }
 
+  bool get _canSelectStudents =>
+      _selectedSchoolYearId != null && _selectedSectionId != null;
+
   List<Student> get _filteredStudents {
     final search = _searchController.text.trim().toLowerCase();
 
@@ -333,29 +336,28 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
                   const SizedBox(height: 24),
 
-                  TextField(
-                    controller: _searchController,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: 'Search students',
-                      hintText: 'Name or LRN',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Clear search',
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                            ),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
+                  // TextField(
+                  //   controller: _searchController,
+                  //   onChanged: (_) => setState(() {}),
+                  //   decoration: InputDecoration(
+                  //     labelText: 'Search students',
+                  //     hintText: 'Name or LRN',
+                  //     prefixIcon: const Icon(Icons.search),
+                  //     suffixIcon: _searchController.text.isEmpty
+                  //         ? null
+                  //         : IconButton(
+                  //             tooltip: 'Clear search',
+                  //             icon: const Icon(Icons.clear),
+                  //             onPressed: () {
+                  //               _searchController.clear();
+                  //               setState(() {});
+                  //             },
+                  //           ),
+                  //     border: const OutlineInputBorder(),
+                  //   ),
+                  // ),
 
-                  const SizedBox(height: 16),
-
+                  // const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final schoolYearFilter = DropdownButtonFormField<String>(
@@ -364,21 +366,17 @@ class _AddParentStudentState extends State<AddParentStudent> {
                           labelText: 'Filter by school year',
                           border: OutlineInputBorder(),
                         ),
-                        items: [
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('All school years'),
-                          ),
-                          ..._schoolYears.map(
-                            (schoolYear) => DropdownMenuItem<String>(
-                              value: schoolYear.id,
-                              child: Text(
-                                '${schoolYear.schoolyearstart} - '
-                                '${schoolYear.schoolyearend}',
+                        items: _schoolYears
+                            .map(
+                              (schoolYear) => DropdownMenuItem<String>(
+                                value: schoolYear.id,
+                                child: Text(
+                                  '${schoolYear.schoolyearstart} - '
+                                  '${schoolYear.schoolyearend}',
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+                            )
+                            .toList(),
                         onChanged: (value) {
                           setState(() {
                             _selectedSchoolYearId = value;
@@ -410,10 +408,6 @@ class _AddParentStudentState extends State<AddParentStudent> {
                           border: OutlineInputBorder(),
                         ),
                         items: [
-                          const DropdownMenuItem<String>(
-                            value: null,
-                            child: Text('All sections'),
-                          ),
                           ..._sections
                               .where(
                                 (section) =>
@@ -458,7 +452,7 @@ class _AddParentStudentState extends State<AddParentStudent> {
                     return _buildStudentRow(index);
                   }),
 
-                  if (_filteredStudents.isEmpty)
+                  if (_canSelectStudents && _filteredStudents.isEmpty)
                     const Padding(
                       padding: EdgeInsets.only(bottom: 16),
                       child: Text(
@@ -509,17 +503,22 @@ class _AddParentStudentState extends State<AddParentStudent> {
 
   Widget _buildStudentRow(int index) {
     final selectedId = _selectedStudentIds[index];
-    final studentsForRow = _studentsForRow(index);
+    final studentsForRow = _canSelectStudents
+        ? _studentsForRow(index)
+        : <Student>[];
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          // Student dropdown
           Expanded(
             child: DropdownButtonFormField<String>(
               value: selectedId,
-              onChanged: (value) => _changeStudent(index, value),
+              isExpanded: true,
+              // null onChanged = disabled, same as the other filters
+              onChanged: _canSelectStudents
+                  ? (value) => _changeStudent(index, value)
+                  : null,
               decoration: InputDecoration(
                 labelText: 'Student ${index + 1}',
                 border: const OutlineInputBorder(),
@@ -533,21 +532,17 @@ class _AddParentStudentState extends State<AddParentStudent> {
                     '${_sectionName(student.sectionid)} | '
                     '${_schoolYearName(student.schoolyearid)} | '
                     'LRN: ${student.lrn}',
+                    overflow: TextOverflow.ellipsis,
                   ),
                 );
               }).toList(),
             ),
           ),
-
           const SizedBox(width: 10),
-
-          // Delete row button
           IconButton(
             tooltip: 'Remove',
             icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              _removeStudentRow(index);
-            },
+            onPressed: () => _removeStudentRow(index),
           ),
         ],
       ),
