@@ -34,6 +34,34 @@ class _RCManageSectionState extends State<RCManageSection> {
   final List<String> studentreads = ["Overall Result", "Comprehension Result"];
   String _selectedReadType = "Overall Result";
 
+  // ─── Safe name helpers ─────────────────────────────────────────────────────
+
+  String _str(Map<String, dynamic> data, String key) =>
+      (data[key] ?? '').toString().trim();
+
+  /// "Lastname, Firstname Middlename" – middlename is optional.
+  String _studentFullName(Map<String, dynamic> data) {
+    final last = _str(data, 'lastname');
+    final first = _str(data, 'firstname');
+    final middle = _str(data, 'middlename');
+
+    final givenNames = [first, middle].where((n) => n.isNotEmpty).join(' ');
+    if (last.isEmpty) return givenNames;
+    if (givenNames.isEmpty) return last;
+    return '$last, $givenNames';
+  }
+
+  /// "Firstname Middlename Lastname" – middlename is optional.
+  String _teacherFullName(Map<String, dynamic>? data) {
+    if (data == null) return 'Unknown';
+    final name = [
+      _str(data, 'firstname'),
+      _str(data, 'middlename'),
+      _str(data, 'lastname'),
+    ].where((n) => n.isNotEmpty).join(' ');
+    return name.isEmpty ? 'Unknown' : name;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -88,6 +116,7 @@ class _RCManageSectionState extends State<RCManageSection> {
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .where('sectionid', isEqualTo: sectionid)
         .where('schoolid', isEqualTo: widget.rc.schoolid)
+        .where('divisionid', isEqualTo: widget.rc.divisionid)
         .where('status', isEqualTo: 'ACTIVE')
         .snapshots()
         .map((snapshot) {
@@ -129,6 +158,7 @@ class _RCManageSectionState extends State<RCManageSection> {
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
         .where('schoolid', isEqualTo: widget.rc.schoolid)
+        .where('divisionid', isEqualTo: widget.rc.divisionid)
         .snapshots()
         .map(
           (snap) =>
@@ -181,40 +211,59 @@ class _RCManageSectionState extends State<RCManageSection> {
     final sectionsSnap = await _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
+        .where('divisionid', isEqualTo: widget.rc.divisionid)
         .get();
 
-    for (var sectionDoc in sectionsSnap.docs) {
-      final section = Section.fromMap(sectionDoc.id, sectionDoc.data());
+    // Fetch every section's teacher and students in parallel instead of
+    // one section at a time.
+    final perSection = await Future.wait(
+      sectionsSnap.docs.map((sectionDoc) async {
+        final section = Section.fromMap(sectionDoc.id, sectionDoc.data());
 
-      final teacherSnap = await _firestore
-          .collection('teachers')
-          .doc(section.teacherid)
-          .get();
-      final teacherName = teacherSnap.exists
-          ? "${teacherSnap['firstname']} ${teacherSnap['lastname']}"
-          : 'Unknown';
+        final teacherSnap = await _firestore
+            .collection('teachers')
+            .doc(section.teacherid)
+            .get();
+        final tData = teacherSnap.data();
 
-      final studentsSnap = await _firestore
-          .collection('students')
-          .where('sectionid', isEqualTo: section.id)
-          .where('schoolyearid', isEqualTo: widget.schoolyear.id)
-          .get();
+        // No teacher found -> skip this section.
+        if (tData == null) return null;
 
-      for (var studentDoc in studentsSnap.docs) {
-        final student = Student.fromMap(studentDoc.id, studentDoc.data());
+        final t = Teacher.fromMap(teacherSnap.id, tData);
+
+        // Teacher belongs to a different school -> skip this section.
+        if (t.schoolid != widget.rc.schoolid) return null;
+
+        final studentsSnap = await _firestore
+            .collection('students')
+            .where('sectionid', isEqualTo: section.id)
+            .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+            .where('schoolid', isEqualTo: widget.rc.schoolid)
+            .where('divisionid', isEqualTo: widget.rc.divisionid)
+            .where('status', isEqualTo: 'ACTIVE')
+            .get();
+
+        return (section, _teacherFullName(tData), studentsSnap);
+      }),
+    );
+
+    for (final item in perSection) {
+      if (item == null) continue; // skipped section
+
+      final (section, teacherName, studentsSnap) = item;
+
+      for (final studentDoc in studentsSnap.docs) {
+        final data = studentDoc.data();
 
         sheet.getRangeByName('A$rowIndex').setText(section.sectionname);
         sheet.getRangeByName('B$rowIndex').setText(teacherName);
-        sheet
-            .getRangeByName('C$rowIndex')
-            .setText(
-              "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-            );
-        sheet.getRangeByName('D$rowIndex').setText(student.gender);
-        sheet.getRangeByName('E$rowIndex').setText(student.gstscore.toString());
+        sheet.getRangeByName('C$rowIndex').setText(_studentFullName(data));
+        sheet.getRangeByName('D$rowIndex').setText(_str(data, 'gender'));
+        sheet.getRangeByName('E$rowIndex').setText(_str(data, 'gstscore'));
         sheet
             .getRangeByName('F$rowIndex')
-            .setText(student.gradelevelread.toString());
+            .setText(_str(data, 'gradelevelread'));
         rowIndex++;
       }
     }
@@ -255,13 +304,18 @@ class _RCManageSectionState extends State<RCManageSection> {
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
 
-    final teacherSnap = await _firestore
+    final teacherSnap = await FirebaseFirestore.instance
         .collection('teachers')
         .doc(section.teacherid)
         .get();
-    final teacherName = teacherSnap.exists
-        ? "${teacherSnap['firstname']} ${teacherSnap['middlename']} ${teacherSnap['lastname']}"
-        : 'Unknown';
+    String teacherName = 'Unknown';
+    final tData = teacherSnap.data();
+    if (tData != null) {
+      final t = Teacher.fromMap(teacherSnap.id, tData);
+      if (t.schoolid == widget.rc.schoolid) {
+        teacherName = _teacherFullName(tData);
+      }
+    }
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
     sheet.getRangeByName('A3').setText('Teacher: $teacherName');
@@ -291,26 +345,24 @@ class _RCManageSectionState extends State<RCManageSection> {
         .collection('students')
         .where('sectionid', isEqualTo: section.id)
         .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolid', isEqualTo: widget.rc.schoolid)
+        .where('divisionid', isEqualTo: widget.rc.divisionid)
+        .where('status', isEqualTo: 'ACTIVE')
         .get();
-    final students = snapshot.docs
-        .map((doc) => Student.fromMap(doc.id, doc.data()))
-        .toList();
 
-    students.sort(
-      (a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()),
-    );
+    final students = snapshot.docs.map((d) => d.data()).toList()
+      ..sort(
+        (a, b) => _str(
+          a,
+          'lastname',
+        ).toLowerCase().compareTo(_str(b, 'lastname').toLowerCase()),
+      );
 
-    for (var student in students) {
-      sheet
-          .getRangeByName('A$rowIndex')
-          .setText(
-            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-          );
-      sheet.getRangeByName('B$rowIndex').setText(student.gender);
-      sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
-      sheet
-          .getRangeByName('D$rowIndex')
-          .setText(student.gradelevelread.toString());
+    for (final data in students) {
+      sheet.getRangeByName('A$rowIndex').setText(_studentFullName(data));
+      sheet.getRangeByName('B$rowIndex').setText(_str(data, 'gender'));
+      sheet.getRangeByName('C$rowIndex').setText(_str(data, 'gstscore'));
+      sheet.getRangeByName('D$rowIndex').setText(_str(data, 'gradelevelread'));
       rowIndex++;
     }
 
@@ -562,9 +614,13 @@ class _RCManageSectionState extends State<RCManageSection> {
                   );
                 }
                 final d = snap.data!;
-                final name = d.exists
-                    ? "${d['firstname']} ${d['lastname']}"
+                final data = d.data() as Map<String, dynamic>?;
+                final sameSchool =
+                    data != null && data['schoolid'] == widget.rc.schoolid;
+                final name = (d.exists && sameSchool)
+                    ? _teacherFullName(data)
                     : 'Unknown Teacher';
+
                 return Text(
                   name,
                   style: const TextStyle(

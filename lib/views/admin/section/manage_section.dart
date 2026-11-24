@@ -43,6 +43,34 @@ class _ManageSectionState extends State<ManageSection> {
   final List<String> studentreads = ["Overall Result", "Comprehension Result"];
   String _selectedReadType = "Overall Result";
 
+  // ─── Safe name helpers ─────────────────────────────────────────────────────
+
+  String _str(Map<String, dynamic> data, String key) =>
+      (data[key] ?? '').toString().trim();
+
+  /// "Lastname, Firstname Middlename" – middlename is optional.
+  String _studentFullName(Map<String, dynamic> data) {
+    final last = _str(data, 'lastname');
+    final first = _str(data, 'firstname');
+    final middle = _str(data, 'middlename');
+
+    final givenNames = [first, middle].where((n) => n.isNotEmpty).join(' ');
+    if (last.isEmpty) return givenNames;
+    if (givenNames.isEmpty) return last;
+    return '$last, $givenNames';
+  }
+
+  /// "Firstname Middlename Lastname" – middlename is optional.
+  String _teacherFullName(Map<String, dynamic>? data) {
+    if (data == null) return 'Unknown';
+    final name = [
+      _str(data, 'firstname'),
+      _str(data, 'middlename'),
+      _str(data, 'lastname'),
+    ].where((n) => n.isNotEmpty).join(' ');
+    return name.isEmpty ? 'Unknown' : name;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -204,18 +232,9 @@ class _ManageSectionState extends State<ManageSection> {
           .doc(section.teacherid)
           .get();
 
-      String teacherName = "Unknown";
-
-      if (teacherSnap.exists) {
-        final data = teacherSnap.data() as Map<String, dynamic>;
-
-        final middle = (data['middlename'] ?? '').toString();
-
-        teacherName =
-            "${data['firstname'] ?? ''} "
-            "${middle.isNotEmpty ? '$middle ' : ''}"
-            "${data['lastname'] ?? ''}";
-      }
+      final teacherName = teacherSnap.exists
+          ? _teacherFullName(teacherSnap.data())
+          : 'Unknown';
 
       final studentsSnap = await _firestore
           .collection('students')
@@ -225,21 +244,17 @@ class _ManageSectionState extends State<ManageSection> {
           .where('schoolid', isEqualTo: widget.school.id)
           .get();
 
-      for (var studentDoc in studentsSnap.docs) {
-        final student = Student.fromMap(studentDoc.id, studentDoc.data());
+      for (final studentDoc in studentsSnap.docs) {
+        final data = studentDoc.data();
 
         sheet.getRangeByName('A$rowIndex').setText(section.sectionname);
         sheet.getRangeByName('B$rowIndex').setText(teacherName);
-        sheet
-            .getRangeByName('C$rowIndex')
-            .setText(
-              "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-            );
-        sheet.getRangeByName('D$rowIndex').setText(student.gender);
-        sheet.getRangeByName('E$rowIndex').setText(student.gstscore.toString());
+        sheet.getRangeByName('C$rowIndex').setText(_studentFullName(data));
+        sheet.getRangeByName('D$rowIndex').setText(_str(data, 'gender'));
+        sheet.getRangeByName('E$rowIndex').setText(_str(data, 'gstscore'));
         sheet
             .getRangeByName('F$rowIndex')
-            .setText(student.gradelevelread.toString());
+            .setText(_str(data, 'gradelevelread'));
         rowIndex++;
       }
     }
@@ -291,22 +306,9 @@ class _ManageSectionState extends State<ManageSection> {
         .collection('teachers')
         .doc(section.teacherid)
         .get();
-
-    String teacherName = 'Unknown';
-
-    if (teacherSnap.exists) {
-      final data = teacherSnap.data() as Map<String, dynamic>;
-
-      final firstName = (data['firstname'] ?? '').toString().trim();
-      final middleName = (data['middlename'] ?? '').toString().trim();
-      final lastName = (data['lastname'] ?? '').toString().trim();
-
-      teacherName = [
-        firstName,
-        middleName,
-        lastName,
-      ].where((name) => name.isNotEmpty).join(' ');
-    }
+    final teacherName = teacherSnap.exists
+        ? _teacherFullName(teacherSnap.data())
+        : 'Unknown';
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
     sheet.getRangeByName('A3').setText('Teacher: $teacherName');
@@ -339,25 +341,20 @@ class _ManageSectionState extends State<ManageSection> {
         .where('divisionid', isEqualTo: widget.division.id)
         .where('schoolid', isEqualTo: widget.school.id)
         .get();
-    final students = snapshot.docs
-        .map((doc) => Student.fromMap(doc.id, doc.data()))
-        .toList();
 
-    students.sort(
-      (a, b) => a.lastname.toLowerCase().compareTo(b.lastname.toLowerCase()),
-    );
+    final students = snapshot.docs.map((d) => d.data()).toList()
+      ..sort(
+        (a, b) => _str(
+          a,
+          'lastname',
+        ).toLowerCase().compareTo(_str(b, 'lastname').toLowerCase()),
+      );
 
-    for (var student in students) {
-      sheet
-          .getRangeByName('A$rowIndex')
-          .setText(
-            "${student.lastname}, ${student.firstname} ${student.middlename != null && student.middlename!.isNotEmpty ? "${student.middlename!} " : ""}",
-          );
-      sheet.getRangeByName('B$rowIndex').setText(student.gender);
-      sheet.getRangeByName('C$rowIndex').setText(student.gstscore.toString());
-      sheet
-          .getRangeByName('D$rowIndex')
-          .setText(student.gradelevelread.toString());
+    for (final data in students) {
+      sheet.getRangeByName('A$rowIndex').setText(_studentFullName(data));
+      sheet.getRangeByName('B$rowIndex').setText(_str(data, 'gender'));
+      sheet.getRangeByName('C$rowIndex').setText(_str(data, 'gstscore'));
+      sheet.getRangeByName('D$rowIndex').setText(_str(data, 'gradelevelread'));
       rowIndex++;
     }
 
@@ -674,7 +671,7 @@ class _ManageSectionState extends State<ManageSection> {
                 }
                 final d = snap.data!;
                 final name = d.exists
-                    ? "${d['firstname']} ${d['lastname']}"
+                    ? _teacherFullName(d.data() as Map<String, dynamic>?)
                     : 'Unknown Teacher';
                 return Text(
                   name,

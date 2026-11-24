@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ireader_web/model/division.dart';
 import 'package:ireader_web/model/school.dart';
+import 'package:ireader_web/model/teacher.dart';
 import 'package:ireader_web/widgets/admin_sidebar.dart';
 import 'package:ireader_web/widgets/admin_top_header.dart';
 import 'package:ireader_web/model/schoolyear.dart';
@@ -222,6 +223,8 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
     final sections = await _firestore
         .collection('sections')
         .where('schoolyearid', isEqualTo: schoolYearId)
+        .where('schoolid', isEqualTo: widget.school.id)
+        .where('divisionid', isEqualTo: widget.division.id)
         .get();
 
     // =========================================================
@@ -284,6 +287,8 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
       final studentsSnap = await _firestore
           .collection('students')
           .where('sectionid', isEqualTo: sectionId)
+          .where('schoolid', isEqualTo: widget.school.id)
+          .where('divisionid', isEqualTo: widget.division.id)
           .get();
 
       final studentMap = <String, Student>{};
@@ -374,6 +379,8 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
           .collection('assessment')
           .where('assessmenttitle', isEqualTo: assessmentTitle)
           .where('schoolyearid', isEqualTo: schoolYearId)
+          .where('schoolid', isEqualTo: widget.school.id)
+          .where('divisionid', isEqualTo: widget.division.id)
           .limit(1)
           .get();
 
@@ -387,19 +394,38 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
 
       int row = 7;
 
-      for (final sec in sections.docs) {
-        final teacherSnap = await _firestore
-            .collection('teachers')
-            .doc(sec['teacherid'])
-            .get();
+      final perSection = await Future.wait(
+        sections.docs.map((sec) async {
+          final teacherSnap = await _firestore
+              .collection('teachers')
+              .doc(sec['teacherid'])
+              .get();
+          final tData = teacherSnap.data();
 
-        final counts = await countSectionResults(
-          sectionId: sec.id,
-          assessmentId: assessmentId,
-        );
+          // No teacher found -> skip this section.
+          if (tData == null) return null;
+
+          final t = Teacher.fromMap(teacherSnap.id, tData);
+
+          // Teacher belongs to a different school -> skip this section.
+          if (t.schoolid != widget.school.id) return null;
+
+          final counts = await countSectionResults(
+            sectionId: sec.id,
+            assessmentId: assessmentId,
+          );
+
+          return (sec, t.lastname, counts);
+        }),
+      );
+
+      for (final item in perSection) {
+        if (item == null) continue; // skipped section
+
+        final (sec, teacherName, counts) = item;
 
         sheet.getRangeByName('A$row').setText(sec['sectionname']);
-        sheet.getRangeByName('C$row').setText(teacherSnap['lastname']);
+        sheet.getRangeByName('C$row').setText(teacherName);
 
         final values = [
           counts['fm'],
@@ -853,43 +879,43 @@ class _ManageSchoolyearScreenState extends State<ManageSchoolyearScreen> {
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          height: 36,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => ManageSection(
-                                                    schoolyear: schoolyear,
-                                                    division: widget.division,
-                                                    school: widget.school,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(
-                                                0xFF1E293B,
-                                              ),
-                                              foregroundColor: Colors.white,
-                                              elevation: 0,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              textStyle: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              'View Full Report',
-                                            ),
-                                          ),
-                                        ),
+                                        // const SizedBox(height: 8),
+                                        // SizedBox(
+                                        //   width: double.infinity,
+                                        //   height: 36,
+                                        //   child: ElevatedButton(
+                                        //     onPressed: () {
+                                        //       Navigator.push(
+                                        //         context,
+                                        //         MaterialPageRoute(
+                                        //           builder: (_) => ManageSection(
+                                        //             schoolyear: schoolyear,
+                                        //             division: widget.division,
+                                        //             school: widget.school,
+                                        //           ),
+                                        //         ),
+                                        //       );
+                                        //     },
+                                        //     style: ElevatedButton.styleFrom(
+                                        //       backgroundColor: const Color(
+                                        //         0xFF1E293B,
+                                        //       ),
+                                        //       foregroundColor: Colors.white,
+                                        //       elevation: 0,
+                                        //       shape: RoundedRectangleBorder(
+                                        //         borderRadius:
+                                        //             BorderRadius.circular(8),
+                                        //       ),
+                                        //       textStyle: const TextStyle(
+                                        //         fontSize: 13,
+                                        //         fontWeight: FontWeight.w600,
+                                        //       ),
+                                        //     ),
+                                        //     child: const Text(
+                                        //       'View Full Report',
+                                        //     ),
+                                        //   ),
+                                        // ),
                                       ],
                                     ),
                                   ),

@@ -190,14 +190,14 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
           .collection('students')
           .where('sectionid', isEqualTo: sectionId)
           .get();
-      final studentMap = <String, Student>{};
 
-      for (final s in studentsSnap.docs) {
-        final student = Student.fromMap(s.id, s.data());
-        studentMap[student.id] = student;
-      }
+      // student id -> gender (no Student.fromMap, so middlename is never needed)
+      final studentGender = <String, String>{
+        for (final s in studentsSnap.docs)
+          s.id: (s.data()['gender'] ?? '').toString(),
+      };
 
-      if (studentMap.isEmpty) {
+      if (studentGender.isEmpty) {
         return {
           'fm': 0,
           'ff': 0,
@@ -226,12 +226,13 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
           iff2 = 0,
           ia2 = 0;
       for (final r in resultSnap.docs) {
-        final result = studentoverallresult.fromMap(r.id, r.data());
-        final student = studentMap[result.studentid];
-        if (student == null) continue;
-        final gender = student.gender;
-        final level = result.readlevel;
+        final rd = r.data();
+        final gender = studentGender[rd['studentid']];
+        if (gender == null) continue; // student not in this section
+        final level = (rd['readlevel'] ?? '').toString();
+
         if (level == 'Frustration') {
+          // ...the rest of the loop stays exactly the same
           fa++;
           if (gender == 'Male') fm++;
           if (gender == 'Female') ff++;
@@ -287,7 +288,9 @@ class _RCManageSchoolyearScreenState extends State<RCManageSchoolyearScreen> {
           assessmentId: assessmentId,
         );
         sheet.getRangeByName('A$row').setText(sec['sectionname']);
-        sheet.getRangeByName('C$row').setText(teacherSnap['lastname']);
+        final tData = teacherSnap.data();
+        final teacherName = (tData?['lastname'] ?? '').toString().trim();
+        sheet.getRangeByName('C$row').setText(teacherName);
         final values = [
           counts['fm'],
           counts['ff'],

@@ -125,18 +125,13 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       ..hAlign = HAlignType.center
       ..vAlign = VAlignType.center;
 
-    final teacherSnap = await _firestore
-        .collection('teachers')
-        .doc(section.teacherid)
-        .get();
-    final teacherName = teacherSnap.exists
-        ? () {
-            final middle = (teacherSnap['middlename'] as String?) ?? '';
-            return middle.isEmpty
-                ? '${teacherSnap['firstname']} ${teacherSnap['lastname']}'
-                : '${teacherSnap['firstname']} $middle ${teacherSnap['lastname']}';
-          }()
-        : 'Unknown';
+    final t = widget.teacher;
+    final teacherName = [
+      t.firstname,
+      if (t.middlename != null && t.middlename!.trim().isNotEmpty)
+        t.middlename!,
+      t.lastname,
+    ].join(' ');
 
     sheet.getRangeByName('A3:${lastCol}3').merge();
     sheet.getRangeByName('A3').setText('Teacher: $teacherName');
@@ -155,8 +150,8 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
       ..vAlign = VAlignType.center;
 
     sheet.getRangeByName('A5').setText('NAME');
-    sheet.getRangeByName('B5:${lastcolgender}5').setText('GENDER');
-    sheet.getRangeByName('C5:${lastcolgstscore}5').setText('SCORE');
+    sheet.getRangeByName('B5').setText('GENDER');
+    sheet.getRangeByName('C5').setText('SCORE');
     sheet.getRangeByName('D5').setText('START LEVEL OF GRADE PASSAGE');
     sheet.getRangeByName('A5:${lastCol}5').cellStyle.bold = true;
 
@@ -164,9 +159,10 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
     final snapshot = await _firestore
         .collection('students')
         .where('sectionid', isEqualTo: section.id)
-        .where('schoolyearid', isEqualTo: widget.schoolyear.id)
+        .where('schoolyearid', isEqualTo: section.schoolyearid)
         .where('schoolid', isEqualTo: widget.teacher.schoolid)
         .where('divisionid', isEqualTo: widget.teacher.divisionid)
+        .where('status', isEqualTo: 'ACTIVE')
         .get();
     final students = snapshot.docs
         .map((doc) => Student.fromMap(doc.id, doc.data()))
@@ -772,6 +768,7 @@ class _TeacherManageSectionState extends State<TeacherManageSection> {
                     stream: _firestore
                         .collection('sections')
                         .where('teacherid', isEqualTo: widget.teacher.id)
+                        .where('schoolid', isEqualTo: widget.teacher.schoolid)
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {

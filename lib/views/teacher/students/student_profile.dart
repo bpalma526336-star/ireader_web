@@ -344,6 +344,77 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 
+  Widget _readingLevelBadge(String level) {
+    Color color;
+    switch (level.toLowerCase()) {
+      case 'frustration':
+        color = AppTheme.levelFrustration;
+        break;
+      case 'instructional':
+        color = AppTheme.levelInstructional;
+        break;
+      case 'independent':
+        color = AppTheme.levelIndependent;
+        break;
+      default:
+        color = AppTheme.textSecondaryColor;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        level,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    final isActive = status.toLowerCase() == 'active';
+    final color = isActive ? Colors.green : AppTheme.textSecondaryColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _metaChip(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppTheme.textSecondaryColor),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppTheme.textSecondaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPracticeSetButtons() {
     final practiceSets = [
       "Word Recognition",
@@ -394,12 +465,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   Widget _buildSelectedPracticeSet() {
-    final practiceSets = [
-      "Word Recognition",
-      "Phrase and Sentences",
-      "Storyline Adventure",
-    ];
-
     Widget buildPracticeCard({
       required String title,
       required String subtitle,
@@ -1909,14 +1974,26 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Student Profile",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppTheme.backgroundColor,
-        centerTitle: true,
+        backgroundColor: Colors.white,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_outlined,
+            color: AppTheme.textPrimaryColor,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          "${widget.student.firstname} ${widget.student.lastname}",
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
         actions: [
           Builder(
             builder: (context) {
@@ -1956,15 +2033,18 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          elevation: 0,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 8,
+                            vertical: 10,
                           ),
-                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         onPressed: onPressed,
                       ),
@@ -1972,103 +2052,137 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppTheme.borderColor),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('students')
-                    .doc(widget.student.id)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  }
-
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return const Text("Student not found");
-                  }
-
-                  final data = snapshot.data!.data() as Map<String, dynamic>;
-
-                  final firstname = data['firstname'] ?? '';
-                  final middlename = data['middlename'] ?? '';
-                  final lastname = data['lastname'] ?? '';
-                  final lrn = data['lrn'] ?? '';
-                  final gender = data['gender'] ?? '';
-                  final readlevel = data['readlevel'] ?? '';
-                  final status = data['status'] ?? '';
-
-                  return Column(
-                    children: [
-                      // 🧑‍🎓 Student Name
-                      Text(
-                        "$firstname $middlename $lastname",
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // 📘 Student LRN
-                      Text(
-                        lrn,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // 🚻 Student Gender
-                      Text(
-                        gender,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // 📊 Reading Level
-                      Text(
-                        readlevel,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // 🧾 Student Status
-                      Text(
-                        status,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                    ],
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('students')
+                  .doc(widget.student.id)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: CircularProgressIndicator(),
+                    ),
                   );
-                },
-              ),
+                }
+
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const Text("Student not found");
+                }
+
+                final data = snapshot.data!.data() as Map<String, dynamic>;
+                final firstname = data['firstname'] ?? '';
+                final middlename = data['middlename'] ?? '';
+                final lastname = data['lastname'] ?? '';
+                final lrn = data['lrn'] ?? '';
+                final gender = data['gender'] ?? '';
+                final readlevel = data['readlevel'] ?? '';
+                final status = data['status'] ?? '';
+                final initial = firstname.isNotEmpty
+                    ? firstname[0].toUpperCase()
+                    : '?';
+
+                return _cardBox(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: const BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "$firstname ${middlename.isNotEmpty ? "$middlename " : ""}$lastname",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _statusBadge(status),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 4,
+                              children: [
+                                _metaChip(Icons.badge_outlined, "LRN: $lrn"),
+                                _metaChip(Icons.wc_outlined, gender),
+                                _metaChip(
+                                  Icons.class_outlined,
+                                  widget.section.sectionname,
+                                ),
+                                _metaChip(
+                                  Icons.calendar_today_outlined,
+                                  "${widget.schoolyear.schoolyearstart}–${widget.schoolyear.schoolyearend}",
+                                ),
+                              ],
+                            ),
+                            if (readlevel.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  const Text(
+                                    "Reading Level: ",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppTheme.textSecondaryColor,
+                                    ),
+                                  ),
+                                  _readingLevelBadge(readlevel),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-
-            const SizedBox(height: 24),
-
-            // 🧩 Choice Chips for Tabs
+            const SizedBox(height: 16),
             _buildFilterButtons(),
             const SizedBox(height: 16),
-
-            // 🪶 Selected Tab Content (uses StreamBuilder too)
-            Expanded(child: _buildSelectedTab()),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: _buildSelectedTab(),
+            ),
           ],
         ),
       ),
